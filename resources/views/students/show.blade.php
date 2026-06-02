@@ -30,6 +30,20 @@
                                     <td>{{ $student->document_number }}</td>
                                 </tr>
                                 <tr>
+                                    <th>{{ __("Programas de Estudio / Carreras") }}</th>
+                                    <td>
+                                        @forelse ($student->careers as $career)
+                                            <span class="badge bg-secondary mb-1 p-2">
+                                                <a href="{{ route("careers.show", $career->id) }}" class="text-white text-decoration-none">
+                                                    {{ $career->name }}
+                                                </a>
+                                            </span>
+                                        @empty
+                                            <span class="text-muted">{{ __("Sin asignar") }}</span>
+                                        @endforelse
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>{{ __("Correo Electrónico") }}</th>
                                     <td>{{ $student->email ?? __("No registrado") }}</td>
                                 </tr>

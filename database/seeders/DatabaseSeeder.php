@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(CareerSeeder::class);
 
         User::factory()->create([
             "name" => "admin",
@@ -25,21 +25,39 @@ class DatabaseSeeder extends Seeder
             "password" => bcrypt("admin123"),
         ]);
 
+        $careers = \App\Models\Career::all();
+
         // Crear 10 alumnos matriculados
-        Student::factory(10)->create([
+        $studentsMatriculados = Student::factory(10)->create([
             "status" => "matriculado",
         ]);
 
         // Crear 5 alumnos egresados
-        Student::factory(5)->egresado()->create();
+        $studentsEgresados = Student::factory(5)->egresado()->create();
+
+        // Asociar carreras a estudiantes
+        $allStudents = $studentsMatriculados->concat($studentsEgresados);
+        $allStudents->each(function ($student) use ($careers) {
+            $student->careers()->attach(
+                $careers->random(rand(1, 2))->pluck("id")->toArray()
+            );
+        });
 
         // Crear 10 profesores (8 activos y 2 inactivos)
-        Teacher::factory(8)->create([
+        $teachersActivos = Teacher::factory(8)->create([
             "status" => "activo",
         ]);
 
-        Teacher::factory(2)->create([
+        $teachersInactivos = Teacher::factory(2)->create([
             "status" => "inactivo",
         ]);
+
+        // Asociar carreras a profesores
+        $allTeachers = $teachersActivos->concat($teachersInactivos);
+        $allTeachers->each(function ($teacher) use ($careers) {
+            $teacher->careers()->attach(
+                $careers->random(rand(1, 2))->pluck("id")->toArray()
+            );
+        });
     }
 }

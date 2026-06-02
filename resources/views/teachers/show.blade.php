@@ -42,6 +42,20 @@
                                     <td>{{ $teacher->specialty }}</td>
                                 </tr>
                                 <tr>
+                                    <th>{{ __("Programas de Estudio / Carreras") }}</th>
+                                    <td>
+                                        @forelse ($teacher->careers as $career)
+                                            <span class="badge bg-secondary mb-1 p-2">
+                                                <a href="{{ route("careers.show", $career->id) }}" class="text-white text-decoration-none">
+                                                    {{ $career->name }}
+                                                </a>
+                                            </span>
+                                        @empty
+                                            <span class="text-muted">{{ __("Sin asignar") }}</span>
+                                        @endforelse
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>{{ __("Estado") }}</th>
                                     <td>
                                         @if ($teacher->status === "activo")

@@ -19,4 +19,12 @@ class Student extends Model
         "enrollment_date",
         "graduation_date",
     ];
+
+    /**
+     * Get the careers that the student belongs to.
+     */
+    public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Career::class)->withTimestamps();
+    }
 }

@@ -13,3 +13,5 @@ Route::get("/home", [App\Http\Controllers\HomeController::class, "index"])->name
 Route::resource("students", App\Http\Controllers\StudentController::class)->middleware("auth");
 
 Route::resource("teachers", App\Http\Controllers\TeacherController::class)->middleware("auth");
+
+Route::resource("careers", App\Http\Controllers\CareerController::class)->middleware("auth");

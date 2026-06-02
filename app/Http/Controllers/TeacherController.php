@@ -14,7 +14,7 @@ class TeacherController extends Controller
     {
         $status = $request->input("status");
 
-        $query = Teacher::query();
+        $query = Teacher::query()->with("careers");
 
         if ($status && $status !== "todos") {
             $query->where("status", $status);
@@ -30,7 +30,8 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        return view("teachers.create");
+        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
+        return view("teachers.create", compact("careers"));
     }
 
     /**
@@ -39,6 +40,8 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            "careers" => "nullable|array",
+            "careers.*" => "exists:careers,id",
             "name" => "required|string|max:255",
             "document_number" => "required|string|max:50|unique:teachers,document_number",
             "email" => "nullable|email|max:255|unique:teachers,email",
@@ -48,7 +51,8 @@ class TeacherController extends Controller
             "hire_date" => "required|date",
         ]);
 
-        Teacher::create($validated);
+        $teacher = Teacher::create($validated);
+        $teacher->careers()->sync($request->input("careers", []));
 
         return redirect()->route("teachers.index")->with("success", "Profesor creado exitosamente.");
     }
@@ -58,6 +62,7 @@ class TeacherController extends Controller
      */
     public function show(Teacher $teacher)
     {
+        $teacher->load("careers");
         return view("teachers.show", compact("teacher"));
     }
 
@@ -66,7 +71,8 @@ class TeacherController extends Controller
      */
     public function edit(Teacher $teacher)
     {
-        return view("teachers.edit", compact("teacher"));
+        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
+        return view("teachers.edit", compact("teacher", "careers"));
     }
 
     /**
@@ -75,6 +81,8 @@ class TeacherController extends Controller
     public function update(Request $request, Teacher $teacher)
     {
         $validated = $request->validate([
+            "careers" => "nullable|array",
+            "careers.*" => "exists:careers,id",
             "name" => "required|string|max:255",
             "document_number" => "required|string|max:50|unique:teachers,document_number," . $teacher->id,
             "email" => "nullable|email|max:255|unique:teachers,email," . $teacher->id,
@@ -85,6 +93,7 @@ class TeacherController extends Controller
         ]);
 
         $teacher->update($validated);
+        $teacher->careers()->sync($request->input("careers", []));
 
         return redirect()->route("teachers.index")->with("success", "Profesor actualizado exitosamente.");
     }

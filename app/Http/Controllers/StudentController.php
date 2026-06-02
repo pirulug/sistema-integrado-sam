@@ -14,7 +14,7 @@ class StudentController extends Controller
     {
         $status = $request->input("status");
 
-        $query = Student::query();
+        $query = Student::query()->with("careers");
 
         if ($status && $status !== "todos") {
             $query->where("status", $status);
@@ -30,7 +30,8 @@ class StudentController extends Controller
      */
     public function create()
     {
-        return view("students.create");
+        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
+        return view("students.create", compact("careers"));
     }
 
     /**
@@ -39,6 +40,8 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            "careers" => "nullable|array",
+            "careers.*" => "exists:careers,id",
             "name" => "required|string|max:255",
             "document_number" => "required|string|max:50|unique:students,document_number",
             "email" => "nullable|email|max:255",
@@ -48,7 +51,8 @@ class StudentController extends Controller
             "graduation_date" => "nullable|date|required_if:status,egresado",
         ]);
 
-        Student::create($validated);
+        $student = Student::create($validated);
+        $student->careers()->sync($request->input("careers", []));
 
         return redirect()->route("students.index")->with("success", "Estudiante creado exitosamente.");
     }
@@ -58,6 +62,7 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
+        $student->load("careers");
         return view("students.show", compact("student"));
     }
 
@@ -66,7 +71,8 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        return view("students.edit", compact("student"));
+        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
+        return view("students.edit", compact("student", "careers"));
     }
 
     /**
@@ -75,6 +81,8 @@ class StudentController extends Controller
     public function update(Request $request, Student $student)
     {
         $validated = $request->validate([
+            "careers" => "nullable|array",
+            "careers.*" => "exists:careers,id",
             "name" => "required|string|max:255",
             "document_number" => "required|string|max:50|unique:students,document_number," . $student->id,
             "email" => "nullable|email|max:255",
@@ -85,6 +93,7 @@ class StudentController extends Controller
         ]);
 
         $student->update($validated);
+        $student->careers()->sync($request->input("careers", []));
 
         return redirect()->route("students.index")->with("success", "Estudiante actualizado exitosamente.");
     }

@@ -70,6 +70,28 @@
                         </div>
 
                         <div class="row mb-3">
+                            <label class="col-md-4 col-form-label text-md-end">{{ __("Programas de Estudio / Carreras") }}</label>
+                            <div class="col-md-6">
+                                <div class="card p-3 @error("careers") border-danger @enderror" style="max-height: 200px; overflow-y: auto;">
+                                    @foreach ($careers as $career)
+                                        <div class="form-check mb-1">
+                                            <input class="form-check-input" type="checkbox" name="careers[]" value="{{ $career->id }}" id="career_{{ $career->id }}"
+                                                {{ (is_array(old("careers", $student->careers->pluck("id")->toArray())) && in_array($career->id, old("careers", $student->careers->pluck("id")->toArray()))) ? "checked" : "" }}>
+                                            <label class="form-check-label" for="career_{{ $career->id }}">
+                                                {{ $career->name }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error("careers")
+                                    <span class="text-danger small" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
                             <label for="status" class="col-md-4 col-form-label text-md-end">{{ __("Estado") }} *</label>
                             <div class="col-md-6">
                                 <select id="status" class="form-select @error("status") is-invalid @enderror" name="status" required>

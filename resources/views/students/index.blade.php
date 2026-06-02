@@ -47,6 +47,7 @@
                                 <tr>
                                     <th>{{ __("Documento") }}</th>
                                     <th>{{ __("Nombre") }}</th>
+                                    <th>{{ __("Carrera") }}</th>
                                     <th>{{ __("Email") }}</th>
                                     <th>{{ __("Teléfono") }}</th>
                                     <th>{{ __("Estado") }}</th>
@@ -59,6 +60,13 @@
                                     <tr>
                                         <td>{{ $student->document_number }}</td>
                                         <td>{{ $student->name }}</td>
+                                        <td>
+                                            @forelse ($student->careers as $career)
+                                                <span class="badge bg-secondary mb-1" style="font-size: 0.8rem;">{{ $career->name }}</span>
+                                            @empty
+                                                <span class="text-muted">{{ __("Sin asignar") }}</span>
+                                            @endforelse
+                                        </td>
                                         <td>{{ $student->email ?? __("N/A") }}</td>
                                         <td>{{ $student->phone ?? __("N/A") }}</td>
                                         <td>

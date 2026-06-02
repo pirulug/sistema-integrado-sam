@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Student;
+use App\Models\Teacher;
+use App\Models\Career;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -13,7 +16,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware("auth");
     }
 
     /**
@@ -23,6 +26,10 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $studentsCount = Student::count();
+        $teachersCount = Teacher::count();
+        $careersCount = Career::count();
+
+        return view("home", compact("studentsCount", "teachersCount", "careersCount"));
     }
 }

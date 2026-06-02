@@ -19,4 +19,12 @@ class Teacher extends Model
         "status",
         "hire_date",
     ];
+
+    /**
+     * Get the careers/study programs that the teacher belongs to.
+     */
+    public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Career::class)->withTimestamps();
+    }
 }
