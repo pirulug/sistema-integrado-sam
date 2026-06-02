@@ -34,6 +34,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route("students.index") }}">{{ __("Estudiantes") }}</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route("teachers.index") }}">{{ __("Profesores") }}</a>
+                            </li>
                         @endauth
                     </ul>
 
