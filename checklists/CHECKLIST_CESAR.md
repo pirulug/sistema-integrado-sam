@@ -13,9 +13,9 @@ Este documento contiene la hoja de ruta, especificaciones de procesos académico
 * Entregables: Casos de Uso Multi-Carrera y Reglas de Negocio Iniciales.
 
 ### Tareas y Actividades
-* [ ] Diseñar el mapa de procesos de titulación general de forma conceptual y detallada:
-  * [ ] Definir el flujograma de procesos desde el registro del estudiante hasta la obtención del grado.
-  * [ ] Establecer las dependencias lógicas entre los diferentes módulos del sistema (SAM).
+* [X] Diseñar el mapa de procesos de titulación general de forma conceptual y detallada:
+  * [X] Definir el flujograma de procesos desde el registro del estudiante hasta la obtención del grado.
+  * [X] Establecer las dependencias lógicas entre los diferentes módulos del sistema (SAM).
 * [ ] Especificar los requisitos mínimos documentales para egresados de cada carrera profesional de la universidad:
   * [ ] Requisitos documentales específicos para la carrera de Ingeniería de Sistemas.
   * [ ] Requisitos documentales específicos para la carrera de Ingeniería Civil.
