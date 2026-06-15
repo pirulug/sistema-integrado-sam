@@ -38,7 +38,7 @@
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md bg-body-tertiary shadow-sm">
+        <nav class="navbar navbar-expand-md bg-body-tertiary shadow-sm sticky-top">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
@@ -59,6 +59,9 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route("careers.index") }}">{{ __("Carreras") }}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route("curriculums.index") }}">{{ __("Mallas Curriculares") }}</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route("courses.index") }}">{{ __("Cursos") }}</a>
@@ -156,5 +159,6 @@
             }
         });
     </script>
+    @yield('scripts')
 </body>
 </html>

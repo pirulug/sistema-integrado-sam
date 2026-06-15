@@ -46,5 +46,13 @@ class Career extends Model
     {
         return $this->hasMany(Course::class);
     }
+
+    /**
+     * Get the curriculums associated with this career.
+     */
+    public function curriculums(): HasMany
+    {
+        return $this->hasMany(Curriculum::class);
+    }
 }
 

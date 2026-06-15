@@ -18,6 +18,8 @@ Route::resource("careers", App\Http\Controllers\CareerController::class)->middle
 
 Route::resource("courses", App\Http\Controllers\CourseController::class)->middleware("auth");
 
+Route::resource("curriculums", App\Http\Controllers\CurriculumController::class)->middleware("auth");
+
 Route::post("students/{student}/courses", [App\Http\Controllers\StudentCourseController::class, "store"])
     ->name("students.courses.store")
     ->middleware("auth");

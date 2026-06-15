@@ -15,7 +15,7 @@ class CourseController extends Controller
     {
         $careerId = $request->input("career_id");
 
-        $query = Course::query()->with("career");
+        $query = Course::query()->with(["career", "curriculum"]);
 
         if ($careerId) {
             $query->where("career_id", $careerId);
@@ -33,7 +33,8 @@ class CourseController extends Controller
     public function create()
     {
         $careers = Career::where("status", "activo")->orderBy("name")->get();
-        return view("courses.create", compact("careers"));
+        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
+        return view("courses.create", compact("careers", "curriculums"));
     }
 
     /**
@@ -45,8 +46,13 @@ class CourseController extends Controller
             "name" => "required|string|max:255",
             "code" => "required|string|max:50|unique:courses,code",
             "credits" => "required|integer|min:1|max:10",
+            "hours" => "required|integer|min:0",
             "career_id" => "required|exists:careers,id",
+            "curriculum_id" => "required|exists:curriculums,id",
+            "is_actualizacion" => "boolean",
         ]);
+
+        $validated["is_actualizacion"] = $request->has("is_actualizacion");
 
         Course::create($validated);
 
@@ -59,7 +65,8 @@ class CourseController extends Controller
     public function edit(Course $course)
     {
         $careers = Career::where("status", "activo")->orderBy("name")->get();
-        return view("courses.edit", compact("course", "careers"));
+        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
+        return view("courses.edit", compact("course", "careers", "curriculums"));
     }
 
     /**
@@ -71,8 +78,13 @@ class CourseController extends Controller
             "name" => "required|string|max:255",
             "code" => "required|string|max:50|unique:courses,code," . $course->id,
             "credits" => "required|integer|min:1|max:10",
+            "hours" => "required|integer|min:0",
             "career_id" => "required|exists:careers,id",
+            "curriculum_id" => "required|exists:curriculums,id",
+            "is_actualizacion" => "boolean",
         ]);
+
+        $validated["is_actualizacion"] = $request->has("is_actualizacion");
 
         $course->update($validated);
 

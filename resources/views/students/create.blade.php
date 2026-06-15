@@ -131,7 +131,7 @@
                                                 <div>
                                                     <label class="small d-block" style="font-size: 0.75rem;">Turno</label>
                                                     <select name="career_shifts[{{ $career->id }}]" class="form-select form-select-sm w-auto" id="shift_select_{{ $career->id }}"
-                                                        {{ $isChecked ? "" : "disabled" }}>
+                                                         {{ $isChecked ? "" : "disabled" }}>
                                                         @foreach ($availableShifts as $shift)
                                                             <option value="{{ $shift }}" {{ old("career_shifts." . $career->id) == $shift ? "selected" : "" }}>
                                                                 {{ $shift }}
@@ -144,6 +144,18 @@
                                                     <input type="number" name="career_entry_years[{{ $career->id }}]" class="form-control form-control-sm" id="entry_year_{{ $career->id }}" 
                                                            value="{{ old('career_entry_years.' . $career->id, date('Y')) }}" min="1900" max="2100" required {{ $isChecked ? "" : "disabled" }}>
                                                 </div>
+                                                <div style="width: 150px;">
+                                                     <label class="small d-block" style="font-size: 0.75rem;">Malla *</label>
+                                                     <select name="career_curriculums[{{ $career->id }}]" class="form-select form-select-sm w-100" id="curriculum_select_{{ $career->id }}"
+                                                          {{ $isChecked ? "" : "disabled" }} required>
+                                                         <option value="">-- {{ __("Seleccionar") }} --</option>
+                                                         @foreach ($curriculums->where('career_id', $career->id) as $curr)
+                                                             <option value="{{ $curr->id }}" {{ old("career_curriculums." . $career->id) == $curr->id ? "selected" : "" }}>
+                                                                 {{ $curr->name }} ({{ $curr->year }})
+                                                             </option>
+                                                         @endforeach
+                                                     </select>
+                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -236,14 +248,17 @@
             const careerId = checkbox.getAttribute("data-career-id");
             const select = document.getElementById("shift_select_" + careerId);
             const entryInput = document.getElementById("entry_year_" + careerId);
+            const curriculumSelect = document.getElementById("curriculum_select_" + careerId);
 
             checkbox.addEventListener("change", function () {
                 if (checkbox.checked) {
                     if (select) select.disabled = false;
                     if (entryInput) entryInput.disabled = false;
+                    if (curriculumSelect) curriculumSelect.disabled = false;
                 } else {
                     if (select) select.disabled = true;
                     if (entryInput) entryInput.disabled = true;
+                    if (curriculumSelect) curriculumSelect.disabled = true;
                 }
             });
         });

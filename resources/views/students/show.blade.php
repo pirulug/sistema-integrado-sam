@@ -39,7 +39,7 @@
                                     <th>{{ __("Programas de Estudio / Carreras") }}</th>
                                     <td>
                                         @forelse ($student->careers as $career)
-                                             <span class="badge bg-secondary mb-1 p-2">
+                                             <span class="badge border border-secondary text-reset mb-1 p-2">
                                                  <a href="{{ route("careers.show", $career->id) }}" class="text-decoration-none text-reset">
                                                      {{ $career->name }}
                                                     @if($career->pivot->shift)
@@ -47,6 +47,9 @@
                                                     @endif
                                                     @if($career->pivot->entry_year)
                                                         [{{ $career->pivot->entry_year }}{{ $career->pivot->graduation_year ? ' - ' . $career->pivot->graduation_year : '' }}]
+                                                    @endif
+                                                    @if($career->pivot->curriculum_id && isset($curriculums) && $curriculums->has($career->pivot->curriculum_id))
+                                                        <span class="ms-1">| Malla: {{ $curriculums->get($career->pivot->curriculum_id)->name }}</span>
                                                     @endif
                                                     @if($career->pivot->title_date)
                                                         <small class="ms-1">({{ __('Titulado:') }} {{ \Carbon\Carbon::parse($career->pivot->title_date)->format('d/m/Y') }})</small>
@@ -195,16 +198,28 @@
                     @else
                         @foreach ($student->careers as $career)
                             @php
-                                $allCareerCourses = $career->courses;
-                                $registeredCoursesCount = $student->courses->where('career_id', $career->id)->count();
+                                $studentCurriculumId = $career->pivot->curriculum_id;
+                                $curriculumName = $studentCurriculumId && isset($curriculums) && $curriculums->has($studentCurriculumId) 
+                                    ? $curriculums->get($studentCurriculumId)->name 
+                                    : __('Sin asignar');
+                                // Regular courses of the student's assigned curriculum
+                                $regularCareerCourses = $career->courses->where('curriculum_id', $studentCurriculumId)->where('is_actualizacion', false);
+                                
+                                // Courses registered by the student for this career (regular curriculum courses only)
+                                $registeredRegularCourses = $student->courses->where('career_id', $career->id)->filter(function($course) use ($regularCareerCourses) {
+                                    return $regularCareerCourses->pluck('id')->contains($course->id);
+                                });
+                                
+                                // Update/Transition courses registered by the student for this career (where is_actualizacion = true)
+                                $registeredUpdateCourses = $student->courses->where('career_id', $career->id)->where('is_actualizacion', true);
                             @endphp
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
-                                    <span class="fw-bold text-uppercase small">{{ $career->name }}</span>
-                                    <span class="badge bg-secondary small">{{ $registeredCoursesCount }} / {{ $allCareerCourses->count() }} {{ $allCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                    <span class="fw-bold text-uppercase small">{{ $career->name }} (Malla: {{ $curriculumName }})</span>
+                                    <span class="badge border border-secondary text-reset small">{{ $registeredRegularCourses->count() }} / {{ $regularCareerCourses->count() }} {{ $regularCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
                                 </div>
-                                @if ($allCareerCourses->isEmpty())
-                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta carrera.") }}</div>
+                                @if ($regularCareerCourses->isEmpty())
+                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta malla curricular.") }}</div>
                                 @else
                                     <div class="table-responsive">
                                         <table class="table table-striped align-middle mb-0">
@@ -219,7 +234,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($allCareerCourses as $course)
+                                                @foreach ($regularCareerCourses as $course)
                                                     @php
                                                         $registeredCourse = $student->courses->firstWhere('id', $course->id);
                                                     @endphp
@@ -261,6 +276,48 @@
                                                 @endforeach
                                             </tbody>
                                         </table>
+                                    </div>
+                                @endif
+
+                                @if ($registeredUpdateCourses->isNotEmpty())
+                                    <div class="mt-3 border p-2 rounded">
+                                        <div class="fw-bold small text-uppercase mb-2"><i class="bi bi-arrow-repeat me-1"></i>{{ __("Cursos de Actualización Registrados") }}</div>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ __("Código") }}</th>
+                                                        <th>{{ __("Curso") }}</th>
+                                                        <th>{{ __("Créditos") }}</th>
+                                                        <th>{{ __("Nota") }}</th>
+                                                        <th>{{ __("Estado") }}</th>
+                                                        <th class="text-center">{{ __("Acciones") }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($registeredUpdateCourses as $course)
+                                                        <tr>
+                                                            <td><strong>{{ $course->code }}</strong></td>
+                                                            <td>{{ $course->name }}</td>
+                                                            <td>{{ $course->credits }}</td>
+                                                            <td>{{ $course->pivot->grade ?? __("N/A") }}</td>
+                                                            <td>
+                                                                @if ($course->pivot->status === "aprobado")
+                                                                    <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                                @else
+                                                                    <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" class="btn btn-warning btn-sm">
+                                                                    <i class="bi bi-pencil"></i> {{ __("Editar") }}
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 @endif
                             </div>

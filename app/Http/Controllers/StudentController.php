@@ -77,7 +77,8 @@ class StudentController extends Controller
     public function create()
     {
         $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
-        return view("students.create", compact("careers"));
+        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
+        return view("students.create", compact("careers", "curriculums"));
     }
 
     /**
@@ -92,6 +93,8 @@ class StudentController extends Controller
             "career_shifts.*" => "in:Mañana,Tarde,Noche",
             "career_entry_years" => "nullable|array",
             "career_entry_years.*" => "nullable|integer|min:1900|max:2100",
+            "career_curriculums" => "nullable|array",
+            "career_curriculums.*" => "nullable|exists:curriculums,id",
             "name" => "required|string|max:255",
             "student_code" => "nullable|string|max:50|unique:students,student_code",
             "document_number" => "required|string|max:50|unique:students,document_number",
@@ -107,6 +110,7 @@ class StudentController extends Controller
         $careers = $request->input("careers", []);
         $careerShifts = $request->input("career_shifts", []);
         $careerEntryYears = $request->input("career_entry_years", []);
+        $careerCurriculums = $request->input("career_curriculums", []);
 
         $firstCareerId = !empty($careers) ? $careers[0] : null;
         $studentEntryYear = $request->input("entry_year") ?? ($firstCareerId && isset($careerEntryYears[$firstCareerId]) ? $careerEntryYears[$firstCareerId] : date("Y"));
@@ -122,6 +126,7 @@ class StudentController extends Controller
                 "shift" => $careerShifts[$careerId] ?? "Mañana",
                 "entry_year" => $careerEntryYears[$careerId] ?? date("Y"),
                 "graduation_year" => null,
+                "curriculum_id" => $careerCurriculums[$careerId] ?? (\App\Models\Curriculum::where('career_id', $careerId)->value('id') ?? null),
             ];
         }
         $student->careers()->sync($syncData);
@@ -147,17 +152,19 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load(["careers", "courses", "job"]);
+        $student->load(["careers.courses", "courses", "job"]);
 
         $careerIds = $student->careers->pluck("id");
         $registeredCourseIds = $student->courses->pluck("id");
+
+        $curriculums = \App\Models\Curriculum::whereIn('career_id', $careerIds)->get()->keyBy('id');
 
         $availableCourses = \App\Models\Course::whereIn("career_id", $careerIds)
             ->whereNotIn("id", $registeredCourseIds)
             ->orderBy("name")
             ->get();
 
-        return view("students.show", compact("student", "availableCourses"));
+        return view("students.show", compact("student", "availableCourses", "curriculums"));
     }
 
     /**
@@ -166,7 +173,8 @@ class StudentController extends Controller
     public function edit(Student $student)
     {
         $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
-        return view("students.edit", compact("student", "careers"));
+        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
+        return view("students.edit", compact("student", "careers", "curriculums"));
     }
 
     /**
@@ -183,6 +191,8 @@ class StudentController extends Controller
             "career_entry_years.*" => "nullable|integer|min:1900|max:2100",
             "career_graduation_years" => "nullable|array",
             "career_graduation_years.*" => "nullable|integer|min:1900|max:2100",
+            "career_curriculums" => "nullable|array",
+            "career_curriculums.*" => "nullable|exists:curriculums,id",
             "name" => "required|string|max:255",
             "student_code" => "nullable|string|max:50|unique:students,student_code," . $student->id,
             "document_number" => "required|string|max:50|unique:students,document_number," . $student->id,
@@ -198,6 +208,7 @@ class StudentController extends Controller
         $careers = $request->input("careers", []);
         $careerShifts = $request->input("career_shifts", []);
         $careerEntryYears = $request->input("career_entry_years", []);
+        $careerCurriculums = $request->input("career_curriculums", []);
 
         $student->loadMissing('careers');
         $existingCareers = $student->careers->keyBy('id');
@@ -212,6 +223,7 @@ class StudentController extends Controller
                 "shift" => $careerShifts[$careerId] ?? "Mañana",
                 "entry_year" => $careerEntryYears[$careerId] ?? date("Y"),
                 "graduation_year" => $existingPivot ? $existingPivot->pivot->graduation_year : null,
+                "curriculum_id" => $careerCurriculums[$careerId] ?? ($existingPivot ? $existingPivot->pivot->curriculum_id : (\App\Models\Curriculum::where('career_id', $careerId)->value('id') ?? null)),
             ];
         }
         $student->careers()->sync($syncData);

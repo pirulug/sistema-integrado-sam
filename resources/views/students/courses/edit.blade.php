@@ -66,11 +66,26 @@
                                         <option value="">{{ __("Seleccione un curso...") }}</option>
                                         @foreach ($student->careers as $career)
                                             @php
+                                                $studentCurriculumId = $career->pivot->curriculum_id;
+                                                $curriculumName = $studentCurriculumId && isset($curriculums) && $curriculums->has($studentCurriculumId) 
+                                                    ? $curriculums->get($studentCurriculumId)->name 
+                                                    : __('Sin asignar');
                                                 $careerAvailableCourses = $availableCourses->where('career_id', $career->id);
+                                                $regularAvailable = $careerAvailableCourses->where('is_actualizacion', false);
+                                                $updateAvailable = $careerAvailableCourses->where('is_actualizacion', true);
                                             @endphp
-                                            @if ($careerAvailableCourses->isNotEmpty())
-                                                <optgroup label="{{ $career->name }}">
-                                                    @foreach ($careerAvailableCourses as $c)
+                                            @if ($regularAvailable->isNotEmpty())
+                                                <optgroup label="{{ $career->name }} - Regular (Malla: {{ $curriculumName }})">
+                                                    @foreach ($regularAvailable as $c)
+                                                        <option value="{{ $c->id }}" {{ old("course_id", request("select_course_id")) == $c->id ? "selected" : "" }}>
+                                                            {{ $c->code }} - {{ $c->name }} ({{ $c->credits }} cr)
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endif
+                                            @if ($updateAvailable->isNotEmpty())
+                                                <optgroup label="{{ $career->name }} - Cursos de Actualización">
+                                                    @foreach ($updateAvailable as $c)
                                                         <option value="{{ $c->id }}" {{ old("course_id", request("select_course_id")) == $c->id ? "selected" : "" }}>
                                                             {{ $c->code }} - {{ $c->name }} ({{ $c->credits }} cr)
                                                         </option>
@@ -137,16 +152,28 @@
                     @else
                         @foreach ($student->careers as $career)
                             @php
-                                $allCareerCourses = $career->courses;
-                                $registeredCoursesCount = $student->courses->where('career_id', $career->id)->count();
+                                $studentCurriculumId = $career->pivot->curriculum_id;
+                                $curriculumName = $studentCurriculumId && isset($curriculums) && $curriculums->has($studentCurriculumId) 
+                                    ? $curriculums->get($studentCurriculumId)->name 
+                                    : __('Sin asignar');
+                                // Regular courses of the student's assigned curriculum
+                                $regularCareerCourses = $career->courses->where('curriculum_id', $studentCurriculumId)->where('is_actualizacion', false);
+                                
+                                // Courses registered by the student for this career (regular curriculum courses only)
+                                $registeredRegularCourses = $student->courses->where('career_id', $career->id)->filter(function($course) use ($regularCareerCourses) {
+                                    return $regularCareerCourses->pluck('id')->contains($course->id);
+                                });
+                                
+                                // Update/Transition courses registered by the student for this career (where is_actualizacion = true)
+                                $registeredUpdateCourses = $student->courses->where('career_id', $career->id)->where('is_actualizacion', true);
                             @endphp
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
-                                    <span class="fw-bold text-uppercase small">{{ $career->name }}</span>
-                                    <span class="badge bg-secondary small">{{ $registeredCoursesCount }} / {{ $allCareerCourses->count() }} {{ $allCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                    <span class="fw-bold text-uppercase small">{{ $career->name }} (Malla: {{ $curriculumName }})</span>
+                                    <span class="badge border border-secondary text-reset small">{{ $registeredRegularCourses->count() }} / {{ $regularCareerCourses->count() }} {{ $regularCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
                                 </div>
-                                @if ($allCareerCourses->isEmpty())
-                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta carrera.") }}</div>
+                                @if ($regularCareerCourses->isEmpty())
+                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta malla curricular.") }}</div>
                                 @else
                                     <div class="table-responsive">
                                         <table class="table table-striped align-middle mb-0">
@@ -161,7 +188,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($allCareerCourses as $course)
+                                                @foreach ($regularCareerCourses as $course)
                                                     @php
                                                         $registeredCourse = $student->courses->firstWhere('id', $course->id);
                                                     @endphp
@@ -216,6 +243,60 @@
                                                 @endforeach
                                             </tbody>
                                         </table>
+                                    </div>
+                                @endif
+
+                                @if ($registeredUpdateCourses->isNotEmpty())
+                                    <div class="mt-3 border p-2 rounded">
+                                        <div class="fw-bold small text-uppercase mb-2"><i class="bi bi-arrow-repeat me-1"></i>{{ __("Cursos de Actualización Registrados") }}</div>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>{{ __("Código") }}</th>
+                                                        <th>{{ __("Curso") }}</th>
+                                                        <th class="text-center">{{ __("Créditos") }}</th>
+                                                        <th class="text-center">{{ __("Nota") }}</th>
+                                                        <th>{{ __("Estado") }}</th>
+                                                        <th class="text-center">{{ __("Acciones") }}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($registeredUpdateCourses as $course)
+                                                        <tr class="{{ ($editingCourse && $editingCourse->id === $course->id) ? "table-warning" : "" }}">
+                                                            <td><strong>{{ $course->code }}</strong></td>
+                                                            <td>{{ $course->name }}</td>
+                                                            <td class="text-center">{{ $course->credits }}</td>
+                                                            <td class="text-center fw-bold">{{ $course->pivot->grade ?? __("N/A") }}</td>
+                                                            <td>
+                                                                @if ($course->pivot->status === "aprobado")
+                                                                    <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                                @else
+                                                                    <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <div class="btn-group" role="group">
+                                                                    <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" 
+                                                                       class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
+                                                                        {{ __("Editar") }}
+                                                                    </a>
+                                                                    
+                                                                    <form action="{{ route("students.courses.destroy", [$student->id, $course->id]) }}" method="POST" class="d-inline"
+                                                                          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso del historial?');">
+                                                                        @csrf
+                                                                        @method("DELETE")
+                                                                        <button type="submit" class="btn btn-danger btn-sm" title="{{ __("Eliminar") }}">
+                                                                            {{ __("Eliminar") }}
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 @endif
                             </div>

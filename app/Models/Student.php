@@ -38,7 +38,7 @@ class Student extends Model
      */
     public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Career::class)->withPivot("shift", "entry_year", "graduation_year", "title_date")->withTimestamps();
+        return $this->belongsToMany(Career::class)->withPivot("shift", "entry_year", "graduation_year", "title_date", "curriculum_id")->withTimestamps();
     }
 
     /**
@@ -62,9 +62,16 @@ class Student extends Model
      */
     public function getPendingCoursesAttribute()
     {
-        // Get all courses from the loaded careers
+        // Get all courses from the loaded careers matching the student's assigned curriculum
         $allCareerCourses = $this->careers->flatMap(function ($career) {
-            return $career->courses;
+            $studentCurriculumId = $career->pivot->curriculum_id;
+            if (!$studentCurriculumId) {
+                return collect();
+            }
+            return $career->courses()
+                ->where('curriculum_id', $studentCurriculumId)
+                ->where('is_actualizacion', false)
+                ->get();
         })->unique('id');
 
         // Get the IDs of the courses the student has passed

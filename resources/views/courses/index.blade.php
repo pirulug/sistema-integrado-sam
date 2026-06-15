@@ -45,6 +45,8 @@
                                      <th>{{ __("Código") }}</th>
                                     <th>{{ __("Nombre del Curso") }}</th>
                                     <th>{{ __("Créditos") }}</th>
+                                    <th>{{ __("Horas") }}</th>
+                                    <th>{{ __("Malla / Tipo") }}</th>
                                     <th>{{ __("Carrera Profesional") }}</th>
                                     <th class="text-center">{{ __("Acciones") }}</th>
                                 </tr>
@@ -55,8 +57,16 @@
                                         <td><strong>{{ $course->code }}</strong></td>
                                         <td>{{ $course->name }}</td>
                                         <td>{{ $course->credits }}</td>
+                                        <td>{{ $course->hours ? $course->hours . " hrs" : "-" }}</td>
                                         <td>
-                                            <span class="badge bg-secondary">{{ $course->career->name }}</span>
+                                            @if ($course->is_actualizacion)
+                                                <span class="badge border border-warning text-reset">{{ __("Actualización") }}</span>
+                                            @else
+                                                <span class="badge border border-secondary text-reset">{{ __("Malla: ") }}{{ $course->curriculum ? $course->curriculum->name : '-' }}</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <span class="badge border border-secondary text-reset">{{ $course->career->name }}</span>
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
@@ -76,7 +86,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                         <td colspan="5" class="text-center py-4">
+                                         <td colspan="7" class="text-center py-4">
                                              {{ __("No se encontraron cursos registrados.") }}
                                          </td>
                                     </tr>

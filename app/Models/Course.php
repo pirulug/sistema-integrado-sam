@@ -17,6 +17,12 @@ class Course extends Model
         "credits",
         "hours",
         "career_id",
+        "curriculum_id",
+        "is_actualizacion",
+    ];
+
+    protected $casts = [
+        "is_actualizacion" => "boolean",
     ];
 
     /**
@@ -25,6 +31,14 @@ class Course extends Model
     public function career(): BelongsTo
     {
         return $this->belongsTo(Career::class);
+    }
+
+    /**
+     * Get the curriculum map this course belongs to.
+     */
+    public function curriculum(): BelongsTo
+    {
+        return $this->belongsTo(Curriculum::class);
     }
 
     /**

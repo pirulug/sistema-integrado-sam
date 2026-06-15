@@ -21,16 +21,39 @@ class StudentCourseController extends Controller
             $editingCourse = $student->courses()->where("course_id", $editCourseId)->first();
         }
 
-        $careerIds = $student->careers->pluck("id");
         $registeredCourseIds = $student->courses->pluck("id");
 
-        // Available courses to register: belongs to the student's career(s) and is not registered yet.
-        $availableCourses = \App\Models\Course::whereIn("career_id", $careerIds)
-            ->whereNotIn("id", $registeredCourseIds)
-            ->orderBy("name")
-            ->get();
+        // Available courses to register: regular courses of student's curriculum map + update courses
+        $availableCoursesQuery = \App\Models\Course::whereNotIn("id", $registeredCourseIds);
 
-        return view("students.courses.edit", compact("student", "availableCourses", "editingCourse"));
+        $careerIds = $student->careers->pluck("id");
+        $curriculums = \App\Models\Curriculum::whereIn('career_id', $careerIds)->get()->keyBy('id');
+
+        if ($student->careers->isEmpty()) {
+            $availableCourses = collect();
+        } else {
+            $availableCoursesQuery->where(function ($query) use ($student) {
+                foreach ($student->careers as $career) {
+                    $studentCurriculumId = $career->pivot->curriculum_id;
+                    if ($studentCurriculumId) {
+                        // Regular courses matching the curriculum
+                        $query->orWhere(function ($q) use ($career, $studentCurriculumId) {
+                            $q->where('career_id', $career->id)
+                              ->where('is_actualizacion', false)
+                              ->where('curriculum_id', $studentCurriculumId);
+                        });
+                    }
+                    // Update courses for the career
+                    $query->orWhere(function ($q) use ($career) {
+                        $q->where('career_id', $career->id)
+                          ->where('is_actualizacion', true);
+                    });
+                }
+            });
+            $availableCourses = $availableCoursesQuery->orderBy("name")->get();
+        }
+
+        return view("students.courses.edit", compact("student", "availableCourses", "editingCourse", "curriculums"));
     }
 
     /**
