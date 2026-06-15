@@ -16,11 +16,11 @@ Este documento contiene la hoja de ruta, especificaciones de procesos académico
 * [X] Diseñar el mapa de procesos de titulación general de forma conceptual y detallada:
   * [X] Definir el flujograma de procesos desde el registro del estudiante hasta la obtención del grado.
   * [X] Establecer las dependencias lógicas entre los diferentes módulos del sistema (SAM).
-* [ ] Especificar los requisitos mínimos documentales para egresados de cada carrera profesional de la universidad:
-  * [ ] Requisitos documentales específicos para la carrera de Ingeniería de Sistemas.
-  * [ ] Requisitos documentales específicos para la carrera de Ingeniería Civil.
-  * [ ] Requisitos documentales específicos para la carrera de Administración de Empresas.
-  * [ ] Requisitos documentales específicos para la carrera de Derecho y Ciencias Políticas.
+* [X] Especificar los requisitos mínimos documentales para egresados de cada carrera profesional de la universidad:
+  * [X] Requisitos documentales específicos para la carrera de Ingeniería de Sistemas.
+  * [X] Requisitos documentales específicos para la carrera de Ingeniería Civil.
+  * [X] Requisitos documentales específicos para la carrera de Administración de Empresas.
+  * [X] Requisitos documentales específicos para la carrera de Derecho y Ciencias Políticas.
 * [ ] Validar el flujo de datos del estudiante en múltiples programas de estudio concurrentes:
   * [ ] Definir reglas para estudiantes matriculados en dos carreras en paralelo.
   * [ ] Especificar cómo se separa el historial académico de cada carrera en el backend.
