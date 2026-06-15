@@ -40,9 +40,9 @@
 
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>{{ __("Código") }}</th>
+                             <thead>
+                                 <tr>
+                                     <th>{{ __("Código") }}</th>
                                     <th>{{ __("Nombre del Curso") }}</th>
                                     <th>{{ __("Créditos") }}</th>
                                     <th>{{ __("Carrera Profesional") }}</th>
@@ -60,9 +60,9 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route("courses.edit", $course->id) }}" class="btn btn-warning btn-sm text-white" title="{{ __("Editar") }}">
-                                                    <i class="bi bi-pencil">{{ __("Editar") }}</i>
-                                                </a>
+                                                 <a href="{{ route("courses.edit", $course->id) }}" class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
+                                                     <i class="bi bi-pencil">{{ __("Editar") }}</i>
+                                                 </a>
                                                 <form action="{{ route("courses.destroy", $course->id) }}" method="POST" class="d-inline"
                                                       onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso?');">
                                                     @csrf
@@ -76,9 +76,9 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
-                                            {{ __("No se encontraron cursos registrados.") }}
-                                        </td>
+                                         <td colspan="5" class="text-center py-4">
+                                             {{ __("No se encontraron cursos registrados.") }}
+                                         </td>
                                     </tr>
                                 @endforelse
                             </tbody>

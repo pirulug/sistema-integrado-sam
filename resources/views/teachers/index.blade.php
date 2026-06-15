@@ -19,7 +19,7 @@
                         </div>
                     @endif
 
-                    <div class="mb-4">
+                     <div class="mb-4">
                         <span class="me-2">{{ __("Filtrar por estado:") }}</span>
                         <div class="btn-group" role="group">
                             <a href="{{ route("teachers.index", ["status" => "todos"]) }}" 
@@ -27,11 +27,11 @@
                                 {{ __("Todos") }}
                             </a>
                             <a href="{{ route("teachers.index", ["status" => "activo"]) }}" 
-                               class="btn btn-sm {{ $status === "activo" ? "btn-success text-white" : "btn-outline-success" }}">
+                               class="btn btn-sm {{ $status === "activo" ? "btn-success" : "btn-outline-success" }}">
                                 {{ __("Activos") }}
                             </a>
                             <a href="{{ route("teachers.index", ["status" => "inactivo"]) }}" 
-                               class="btn btn-sm {{ $status === "inactivo" ? "btn-danger text-white" : "btn-outline-danger" }}">
+                               class="btn btn-sm {{ $status === "inactivo" ? "btn-danger" : "btn-outline-danger" }}">
                                 {{ __("Inactivos") }}
                             </a>
                         </div>
@@ -39,7 +39,7 @@
 
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>{{ __("Documento") }}</th>
                                     <th>{{ __("Nombre") }}</th>
@@ -64,7 +64,7 @@
                                             @forelse ($teacher->careers as $career)
                                                 <span class="badge bg-secondary mb-1" style="font-size: 0.8rem;">{{ $career->name }}</span>
                                             @empty
-                                                <span class="text-muted">{{ __("Sin asignar") }}</span>
+                                                <span>{{ __("Sin asignar") }}</span>
                                             @endforelse
                                         </td>
                                         <td>
@@ -79,10 +79,10 @@
                                         <td>{{ $teacher->hire_date }}</td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
-                                                <a href="{{ route("teachers.show", $teacher->id) }}" class="btn btn-info btn-sm text-white" title="{{ __("Ver") }}">
+                                                <a href="{{ route("teachers.show", $teacher->id) }}" class="btn btn-info btn-sm" title="{{ __("Ver") }}">
                                                     <i class="bi bi-eye">{{ __("Ver") }}</i>
                                                 </a>
-                                                <a href="{{ route("teachers.edit", $teacher->id) }}" class="btn btn-warning btn-sm text-white" title="{{ __("Editar") }}">
+                                                <a href="{{ route("teachers.edit", $teacher->id) }}" class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
                                                     <i class="bi bi-pencil">{{ __("Editar") }}</i>
                                                 </a>
                                                 <form action="{{ route("teachers.destroy", $teacher->id) }}" method="POST" class="d-inline"
@@ -98,7 +98,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center py-4 text-muted">
+                                        <td colspan="8" class="text-center py-4">
                                             {{ __("No se encontraron profesores registrados.") }}
                                         </td>
                                     </tr>

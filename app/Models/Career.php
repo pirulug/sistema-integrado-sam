@@ -28,7 +28,7 @@ class Career extends Model
      */
     public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Student::class)->withPivot("shift", "entry_year", "graduation_year")->withTimestamps();
+        return $this->belongsToMany(Student::class)->withPivot("shift", "entry_year", "graduation_year", "title_date")->withTimestamps();
     }
 
     /**

@@ -37,7 +37,6 @@ class StudentController extends Controller
                   ->orWhere("phone", "like", "%" . $search . "%")
                   ->orWhere("whatsapp", "like", "%" . $search . "%")
                   ->orWhere("student_code", "like", "%" . $search . "%")
-                  ->orWhere("email", "like", "%" . $search . "%")
                   ->orWhere("personal_email", "like", "%" . $search . "%")
                   ->orWhere("institutional_email", "like", "%" . $search . "%");
             });
@@ -93,12 +92,9 @@ class StudentController extends Controller
             "career_shifts.*" => "in:Mañana,Tarde,Noche",
             "career_entry_years" => "nullable|array",
             "career_entry_years.*" => "nullable|integer|min:1900|max:2100",
-            "career_graduation_years" => "nullable|array",
-            "career_graduation_years.*" => "nullable|integer|min:1900|max:2100",
             "name" => "required|string|max:255",
             "student_code" => "nullable|string|max:50|unique:students,student_code",
             "document_number" => "required|string|max:50|unique:students,document_number",
-            "email" => "nullable|email|max:255",
             "personal_email" => "nullable|email|max:255",
             "institutional_email" => "nullable|email|max:255",
             "phone" => "nullable|string|max:50",
@@ -106,22 +102,17 @@ class StudentController extends Controller
             "status" => "required|in:matriculado,egresado,retirado",
             "enrollment_date" => "required|date",
             "graduation_date" => "nullable|date|required_if:status,egresado",
-            "current_job" => "nullable|string|max:255",
-            "workplace" => "nullable|string|max:255",
-            "is_related" => "nullable|boolean",
         ]);
 
         $careers = $request->input("careers", []);
         $careerShifts = $request->input("career_shifts", []);
         $careerEntryYears = $request->input("career_entry_years", []);
-        $careerGraduationYears = $request->input("career_graduation_years", []);
 
         $firstCareerId = !empty($careers) ? $careers[0] : null;
         $studentEntryYear = $request->input("entry_year") ?? ($firstCareerId && isset($careerEntryYears[$firstCareerId]) ? $careerEntryYears[$firstCareerId] : date("Y"));
-        $studentGraduationYear = $request->input("graduation_year") ?? ($firstCareerId && isset($careerGraduationYears[$firstCareerId]) ? $careerGraduationYears[$firstCareerId] : null);
 
         $validated["entry_year"] = $studentEntryYear;
-        $validated["graduation_year"] = $studentGraduationYear;
+        $validated["graduation_year"] = null;
 
         $student = Student::create($validated);
         
@@ -130,27 +121,10 @@ class StudentController extends Controller
             $syncData[$careerId] = [
                 "shift" => $careerShifts[$careerId] ?? "Mañana",
                 "entry_year" => $careerEntryYears[$careerId] ?? date("Y"),
-                "graduation_year" => $careerGraduationYears[$careerId] ?? null,
+                "graduation_year" => null,
             ];
         }
         $student->careers()->sync($syncData);
-
-        // Seed student job info if titled (has graduation_year on any career)
-        $isTitled = false;
-        foreach ($careers as $careerId) {
-            if (!empty($careerGraduationYears[$careerId])) {
-                $isTitled = true;
-                break;
-            }
-        }
-
-        if ($isTitled && ($request->filled("current_job") || $request->filled("workplace") || $request->has("is_related"))) {
-            $student->job()->create([
-                "current_job" => $request->input("current_job"),
-                "workplace" => $request->input("workplace"),
-                "is_related" => $request->boolean("is_related"),
-            ]);
-        }
 
         // Manage EFSRT records
         $student->efsrtRecords()->whereNotIn("career_id", $careers)->delete();
@@ -212,7 +186,6 @@ class StudentController extends Controller
             "name" => "required|string|max:255",
             "student_code" => "nullable|string|max:50|unique:students,student_code," . $student->id,
             "document_number" => "required|string|max:50|unique:students,document_number," . $student->id,
-            "email" => "nullable|email|max:255",
             "personal_email" => "nullable|email|max:255",
             "institutional_email" => "nullable|email|max:255",
             "phone" => "nullable|string|max:50",
@@ -220,51 +193,51 @@ class StudentController extends Controller
             "status" => "required|in:matriculado,egresado,retirado",
             "enrollment_date" => "required|date",
             "graduation_date" => "nullable|date|required_if:status,egresado",
-            "current_job" => "nullable|string|max:255",
-            "workplace" => "nullable|string|max:255",
-            "is_related" => "nullable|boolean",
         ]);
 
         $careers = $request->input("careers", []);
         $careerShifts = $request->input("career_shifts", []);
         $careerEntryYears = $request->input("career_entry_years", []);
-        $careerGraduationYears = $request->input("career_graduation_years", []);
+
+        $student->loadMissing('careers');
+        $existingCareers = $student->careers->keyBy('id');
 
         $firstCareerId = !empty($careers) ? $careers[0] : null;
         $studentEntryYear = $request->input("entry_year") ?? ($firstCareerId && isset($careerEntryYears[$firstCareerId]) ? $careerEntryYears[$firstCareerId] : date("Y"));
-        $studentGraduationYear = $request->input("graduation_year") ?? ($firstCareerId && isset($careerGraduationYears[$firstCareerId]) ? $careerGraduationYears[$firstCareerId] : null);
 
-        $validated["entry_year"] = $studentEntryYear;
-        $validated["graduation_year"] = $studentGraduationYear;
-
-        $student->update($validated);
-        
         $syncData = [];
         foreach ($careers as $careerId) {
+            $existingPivot = $existingCareers->get($careerId);
             $syncData[$careerId] = [
                 "shift" => $careerShifts[$careerId] ?? "Mañana",
                 "entry_year" => $careerEntryYears[$careerId] ?? date("Y"),
-                "graduation_year" => $careerGraduationYears[$careerId] ?? null,
+                "graduation_year" => $existingPivot ? $existingPivot->pivot->graduation_year : null,
             ];
         }
         $student->careers()->sync($syncData);
 
+        $studentGraduationYear = null;
+        foreach ($syncData as $cData) {
+            if (!empty($cData["graduation_year"])) {
+                $studentGraduationYear = $cData["graduation_year"];
+                break;
+            }
+        }
+
+        $validated["entry_year"] = $studentEntryYear;
+        $validated["graduation_year"] = $studentGraduationYear;
+        $student->update($validated);
+
         // Update or delete student job info if titled (has graduation_year on any career)
         $isTitled = false;
-        foreach ($careers as $careerId) {
-            if (!empty($careerGraduationYears[$careerId])) {
+        foreach ($syncData as $cData) {
+            if (!empty($cData["graduation_year"])) {
                 $isTitled = true;
                 break;
             }
         }
 
-        if ($isTitled) {
-            $student->job()->updateOrCreate([], [
-                "current_job" => $request->input("current_job"),
-                "workplace" => $request->input("workplace"),
-                "is_related" => $request->boolean("is_related"),
-            ]);
-        } else {
+        if (!$isTitled) {
             $student->job()->delete();
         }
 

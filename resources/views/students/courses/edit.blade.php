@@ -8,14 +8,14 @@
             @if ($editingCourse)
                 <!-- Edit Course Grade & Status Card -->
                 <div class="card mb-3">
-                    <div class="card-header bg-warning text-white">
+                    <div class="card-header">
                         <span class="h6 mb-0">{{ __("Editar Nota de Curso") }}</span>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label class="form-label fw-bold">{{ __("Curso") }}</label>
                             <div>{{ $editingCourse->code }} - {{ $editingCourse->name }}</div>
-                            <small class="text-muted">({{ $editingCourse->credits }} {{ __("créditos") }})</small>
+                            <small>({{ $editingCourse->credits }} {{ __("créditos") }})</small>
                         </div>
 
                         <form method="POST" action="{{ route("students.courses.update", [$student->id, $editingCourse->id]) }}">
@@ -37,7 +37,7 @@
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-warning text-white">{{ __("Actualizar Nota") }}</button>
+                                <button type="submit" class="btn btn-warning">{{ __("Actualizar Nota") }}</button>
                                 <a href="{{ route("students.courses.edit", $student->id) }}" class="btn btn-secondary">
                                     {{ __("Cancelar") }}
                                 </a>
@@ -48,7 +48,7 @@
             @else
                 <!-- Register New Course Card -->
                 <div class="card mb-3">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <span class="h6 mb-0">{{ __("Registrar Curso") }}</span>
                     </div>
                     <div class="card-body">
@@ -64,10 +64,19 @@
                                     <label for="course_id" class="form-label">{{ __("Curso") }} *</label>
                                     <select class="form-select" id="course_id" name="course_id" required>
                                         <option value="">{{ __("Seleccione un curso...") }}</option>
-                                        @foreach ($availableCourses as $c)
-                                            <option value="{{ $c->id }}" {{ old("course_id") == $c->id ? "selected" : "" }}>
-                                                {{ $c->code }} - {{ $c->name }} ({{ $c->credits }} cr)
-                                            </option>
+                                        @foreach ($student->careers as $career)
+                                            @php
+                                                $careerAvailableCourses = $availableCourses->where('career_id', $career->id);
+                                            @endphp
+                                            @if ($careerAvailableCourses->isNotEmpty())
+                                                <optgroup label="{{ $career->name }}">
+                                                    @foreach ($careerAvailableCourses as $c)
+                                                        <option value="{{ $c->id }}" {{ old("course_id", request("select_course_id")) == $c->id ? "selected" : "" }}>
+                                                            {{ $c->code }} - {{ $c->name }} ({{ $c->credits }} cr)
+                                                        </option>
+                                                    @endforeach
+                                                </optgroup>
+                                            @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -121,60 +130,160 @@
                         </div>
                     @endif
 
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>{{ __("Código") }}</th>
-                                    <th>{{ __("Curso") }}</th>
-                                    <th class="text-center">{{ __("Créditos") }}</th>
-                                    <th class="text-center">{{ __("Nota") }}</th>
-                                    <th>{{ __("Estado") }}</th>
-                                    <th class="text-center">{{ __("Acciones") }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($student->courses as $course)
-                                    <tr class="{{ ($editingCourse && $editingCourse->id === $course->id) ? "table-warning" : "" }}">
-                                        <td><strong>{{ $course->code }}</strong></td>
-                                        <td>{{ $course->name }}</td>
-                                        <td class="text-center">{{ $course->credits }}</td>
-                                        <td class="text-center fw-bold">{{ $course->pivot->grade ?? __("N/A") }}</td>
-                                        <td>
-                                            @if ($course->pivot->status === "aprobado")
-                                                <span class="badge bg-success">{{ __("Aprobado") }}</span>
-                                            @else
-                                                <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" 
-                                                   class="btn btn-warning btn-sm text-white" title="{{ __("Editar") }}">
-                                                    {{ __("Editar") }}
-                                                </a>
-                                                
-                                                <form action="{{ route("students.courses.destroy", [$student->id, $course->id]) }}" method="POST" class="d-inline"
-                                                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso del historial?');">
-                                                    @csrf
-                                                    @method("DELETE")
-                                                    <button type="submit" class="btn btn-danger btn-sm" title="{{ __("Eliminar") }}">
-                                                        {{ __("Eliminar") }}
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            {{ __("No hay cursos registrados en el historial de este estudiante.") }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    @if ($student->careers->isEmpty())
+                        <div class="alert alert-info text-center py-4 mb-0">
+                            {{ __("No hay carreras asignadas a este estudiante.") }}
+                        </div>
+                    @else
+                        @foreach ($student->careers as $career)
+                            @php
+                                $allCareerCourses = $career->courses;
+                                $registeredCoursesCount = $student->courses->where('career_id', $career->id)->count();
+                            @endphp
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ $career->name }}</span>
+                                    <span class="badge bg-secondary small">{{ $registeredCoursesCount }} / {{ $allCareerCourses->count() }} {{ $allCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                </div>
+                                @if ($allCareerCourses->isEmpty())
+                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta carrera.") }}</div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ __("Código") }}</th>
+                                                    <th>{{ __("Curso") }}</th>
+                                                    <th class="text-center">{{ __("Créditos") }}</th>
+                                                    <th class="text-center">{{ __("Nota") }}</th>
+                                                    <th>{{ __("Estado") }}</th>
+                                                    <th class="text-center">{{ __("Acciones") }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($allCareerCourses as $course)
+                                                    @php
+                                                        $registeredCourse = $student->courses->firstWhere('id', $course->id);
+                                                    @endphp
+                                                    @if ($registeredCourse)
+                                                        <tr class="{{ ($editingCourse && $editingCourse->id === $registeredCourse->id) ? "table-warning" : "" }}">
+                                                            <td><strong>{{ $registeredCourse->code }}</strong></td>
+                                                            <td>{{ $registeredCourse->name }}</td>
+                                                            <td class="text-center">{{ $registeredCourse->credits }}</td>
+                                                            <td class="text-center fw-bold">{{ $registeredCourse->pivot->grade ?? __("N/A") }}</td>
+                                                            <td>
+                                                                @if ($registeredCourse->pivot->status === "aprobado")
+                                                                    <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                                @else
+                                                                    <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <div class="btn-group" role="group">
+                                                                    <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $registeredCourse->id]) }}" 
+                                                                       class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
+                                                                        {{ __("Editar") }}
+                                                                    </a>
+                                                                    
+                                                                    <form action="{{ route("students.courses.destroy", [$student->id, $registeredCourse->id]) }}" method="POST" class="d-inline"
+                                                                          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso del historial?');">
+                                                                        @csrf
+                                                                        @method("DELETE")
+                                                                        <button type="submit" class="btn btn-danger btn-sm" title="{{ __("Eliminar") }}">
+                                                                            {{ __("Eliminar") }}
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @else
+                                                        <tr>
+                                                            <td><strong>{{ $course->code }}</strong></td>
+                                                            <td>{{ $course->name }}</td>
+                                                            <td class="text-center">{{ $course->credits }}</td>
+                                                            <td class="text-center">-</td>
+                                                            <td>
+                                                                <span class="badge bg-secondary">{{ __("Pendiente") }}</span>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="{{ route("students.courses.edit", [$student->id, 'select_course_id' => $course->id]) }}" 
+                                                                   class="btn btn-outline-primary btn-sm px-3" title="{{ __("Registrar") }}">
+                                                                    <i class="bi bi-plus-lg me-1"></i>{{ __("Registrar") }}
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endif
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @php
+                            $careerIds = $student->careers->pluck('id')->toArray();
+                            $otherCourses = $student->courses->filter(function($course) use ($careerIds) {
+                                return !in_array($course->career_id, $careerIds);
+                            });
+                        @endphp
+                        @if ($otherCourses->isNotEmpty())
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ __("Otros Cursos (Sin Carrera Activa)") }}</span>
+                                    <span class="badge bg-secondary small">{{ $otherCourses->count() }} {{ $otherCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ __("Código") }}</th>
+                                                <th>{{ __("Curso") }}</th>
+                                                <th class="text-center">{{ __("Créditos") }}</th>
+                                                <th class="text-center">{{ __("Nota") }}</th>
+                                                <th>{{ __("Estado") }}</th>
+                                                <th class="text-center">{{ __("Acciones") }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($otherCourses as $course)
+                                                <tr class="{{ ($editingCourse && $editingCourse->id === $course->id) ? "table-warning" : "" }}">
+                                                    <td><strong>{{ $course->code }}</strong></td>
+                                                    <td>{{ $course->name }}</td>
+                                                    <td class="text-center">{{ $course->credits }}</td>
+                                                    <td class="text-center fw-bold">{{ $course->pivot->grade ?? __("N/A") }}</td>
+                                                    <td>
+                                                        @if ($course->pivot->status === "aprobado")
+                                                            <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                        @else
+                                                            <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="btn-group" role="group">
+                                                            <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" 
+                                                               class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
+                                                                {{ __("Editar") }}
+                                                            </a>
+                                                            
+                                                            <form action="{{ route("students.courses.destroy", [$student->id, $course->id]) }}" method="POST" class="d-inline"
+                                                                  onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso del historial?');">
+                                                                @csrf
+                                                                @method("DELETE")
+                                                                <button type="submit" class="btn btn-danger btn-sm" title="{{ __("Eliminar") }}">
+                                                                    {{ __("Eliminar") }}
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
         </div>

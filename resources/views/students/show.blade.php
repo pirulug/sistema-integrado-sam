@@ -7,7 +7,10 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="h5 mb-0">{{ __("Detalles del Estudiante") }}</span>
                     <div>
-                        <a href="{{ route("students.edit", $student->id) }}" class="btn btn-warning btn-sm text-white me-2">
+                        <a href="{{ route("students.graduation.edit", $student->id) }}" class="btn btn-secondary btn-sm me-2">
+                            <i class="bi bi-mortarboard-fill me-1"></i> {{ __("Graduación/Titulación") }}
+                        </a>
+                        <a href="{{ route("students.edit", $student->id) }}" class="btn btn-warning btn-sm me-2">
                             {{ __("Editar") }}
                         </a>
                         <a href="{{ route("students.index") }}" class="btn btn-secondary btn-sm">
@@ -36,14 +39,17 @@
                                     <th>{{ __("Programas de Estudio / Carreras") }}</th>
                                     <td>
                                         @forelse ($student->careers as $career)
-                                            <span class="badge bg-secondary mb-1 p-2">
-                                                <a href="{{ route("careers.show", $career->id) }}" class="text-white text-decoration-none">
-                                                    {{ $career->name }}
+                                             <span class="badge bg-secondary mb-1 p-2">
+                                                 <a href="{{ route("careers.show", $career->id) }}" class="text-decoration-none text-reset">
+                                                     {{ $career->name }}
                                                     @if($career->pivot->shift)
                                                         ({{ $career->pivot->shift }})
                                                     @endif
                                                     @if($career->pivot->entry_year)
                                                         [{{ $career->pivot->entry_year }}{{ $career->pivot->graduation_year ? ' - ' . $career->pivot->graduation_year : '' }}]
+                                                    @endif
+                                                    @if($career->pivot->title_date)
+                                                        <small class="ms-1">({{ __('Titulado:') }} {{ \Carbon\Carbon::parse($career->pivot->title_date)->format('d/m/Y') }})</small>
                                                     @endif
                                                 </a>
                                             </span>
@@ -52,10 +58,7 @@
                                         @endforelse
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th>{{ __("Correo General") }}</th>
-                                    <td>{{ $student->email ?? __("No registrado") }}</td>
-                                </tr>
+
                                 <tr>
                                     <th>{{ __("Correo Personal") }}</th>
                                     <td>{{ $student->personal_email ?? __("No registrado") }}</td>
@@ -96,8 +99,8 @@
                                 </tr>
                                 @if ($student->status === "egresado")
                                     <tr>
-                                        <th>{{ __("Fecha de Egreso") }}</th>
-                                        <td>{{ $student->graduation_date ?? __("No registrada") }}</td>
+                                        <th>{{ __("Fecha de Titulación") }}</th>
+                                        <td>{{ $student->graduation_date ? \Carbon\Carbon::parse($student->graduation_date)->format('d/m/Y') : __("No registrada") }}</td>
                                     </tr>
                                     <tr>
                                         <th>{{ __("Año de Egreso") }}</th>
@@ -120,9 +123,14 @@
 
             @if ($student->job)
                 <!-- Información Laboral -->
-                <div class="card mt-4 border-success">
-                    <div class="card-header bg-success text-white py-3">
-                        <span class="h5 mb-0"><i class="bi bi-briefcase-fill me-2"></i>{{ __("Información Laboral (Titulados)") }}</span>
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0"><i class="bi bi-briefcase-fill me-2"></i>{{ __("Información Laboral (Titulados)") }}</span>
+                            <a href="{{ route("students.graduation.edit", $student->id) }}" class="btn btn-outline-secondary btn-sm fw-bold">
+                                <i class="bi bi-mortarboard-fill"></i> {{ __("Gestionar Titulación") }}
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -155,11 +163,13 @@
 
             <!-- Historial Académico de Cursos -->
             <div class="card mt-4">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0">{{ __("Historial Académico (Cursos)") }}</span>
-                    <a href="{{ route("students.courses.edit", $student->id) }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-pencil-square"></i> {{ __("Gestionar Cursos") }}
-                    </a>
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">{{ __("Historial Académico (Cursos)") }}</span>
+                        <a href="{{ route("students.courses.edit", $student->id) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil-square"></i> {{ __("Gestionar Cursos") }}
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     @if (session("success"))
@@ -178,63 +188,152 @@
                         </div>
                     @endif
 
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>{{ __("Código") }}</th>
-                                    <th>{{ __("Curso") }}</th>
-                                    <th>{{ __("Créditos") }}</th>
-                                    <th>{{ __("Nota") }}</th>
-                                    <th>{{ __("Estado") }}</th>
-                                    <th class="text-center">{{ __("Acciones") }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($student->courses as $course)
-                                    <tr>
-                                        <td><strong>{{ $course->code }}</strong></td>
-                                        <td>{{ $course->name }}</td>
-                                        <td>{{ $course->credits }}</td>
-                                        <td>{{ $course->pivot->grade ?? __("N/A") }}</td>
-                                        <td>
-                                            @if ($course->pivot->status === "aprobado")
-                                                <span class="badge bg-success">{{ __("Aprobado") }}</span>
-                                            @else
-                                                <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" class="btn btn-warning btn-sm text-white">
-                                                <i class="bi bi-pencil"></i> {{ __("Editar") }}
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            {{ __("No hay cursos registrados en el historial de este estudiante.") }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    @if ($student->careers->isEmpty())
+                        <div class="alert alert-info text-center py-4 mb-0">
+                            {{ __("No hay carreras asignadas a este estudiante.") }}
+                        </div>
+                    @else
+                        @foreach ($student->careers as $career)
+                            @php
+                                $allCareerCourses = $career->courses;
+                                $registeredCoursesCount = $student->courses->where('career_id', $career->id)->count();
+                            @endphp
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ $career->name }}</span>
+                                    <span class="badge bg-secondary small">{{ $registeredCoursesCount }} / {{ $allCareerCourses->count() }} {{ $allCareerCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                </div>
+                                @if ($allCareerCourses->isEmpty())
+                                    <div class="small ps-2 py-2">{{ __("No hay cursos definidos para esta carrera.") }}</div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ __("Código") }}</th>
+                                                    <th>{{ __("Curso") }}</th>
+                                                    <th>{{ __("Créditos") }}</th>
+                                                    <th>{{ __("Nota") }}</th>
+                                                    <th>{{ __("Estado") }}</th>
+                                                    <th class="text-center">{{ __("Acciones") }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($allCareerCourses as $course)
+                                                    @php
+                                                        $registeredCourse = $student->courses->firstWhere('id', $course->id);
+                                                    @endphp
+                                                    @if ($registeredCourse)
+                                                        <tr>
+                                                            <td><strong>{{ $registeredCourse->code }}</strong></td>
+                                                            <td>{{ $registeredCourse->name }}</td>
+                                                            <td>{{ $registeredCourse->credits }}</td>
+                                                            <td>{{ $registeredCourse->pivot->grade ?? __("N/A") }}</td>
+                                                            <td>
+                                                                @if ($registeredCourse->pivot->status === "aprobado")
+                                                                    <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                                @else
+                                                                    <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $registeredCourse->id]) }}" class="btn btn-warning btn-sm">
+                                                                    <i class="bi bi-pencil"></i> {{ __("Editar") }}
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @else
+                                                        <tr>
+                                                            <td><strong>{{ $course->code }}</strong></td>
+                                                            <td>{{ $course->name }}</td>
+                                                            <td>{{ $course->credits }}</td>
+                                                            <td class="text-center">-</td>
+                                                            <td>
+                                                                <span class="badge bg-secondary">{{ __("Pendiente") }}</span>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a href="{{ route("students.courses.edit", [$student->id, 'select_course_id' => $course->id]) }}" class="btn btn-primary btn-sm">
+                                                                    <i class="bi bi-plus-lg"></i> {{ __("Registrar") }}
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    @endif
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @php
+                            $careerIds = $student->careers->pluck('id')->toArray();
+                            $otherCourses = $student->courses->filter(function($course) use ($careerIds) {
+                                return !in_array($course->career_id, $careerIds);
+                            });
+                        @endphp
+                        @if ($otherCourses->isNotEmpty())
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ __("Otros Cursos (Sin Carrera Activa)") }}</span>
+                                    <span class="badge bg-warning small">{{ $otherCourses->count() }} {{ $otherCourses->count() == 1 ? 'curso' : 'cursos' }}</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ __("Código") }}</th>
+                                                <th>{{ __("Curso") }}</th>
+                                                <th>{{ __("Créditos") }}</th>
+                                                <th>{{ __("Nota") }}</th>
+                                                <th>{{ __("Estado") }}</th>
+                                                <th class="text-center">{{ __("Acciones") }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($otherCourses as $course)
+                                                <tr>
+                                                    <td><strong>{{ $course->code }}</strong></td>
+                                                    <td>{{ $course->name }}</td>
+                                                    <td>{{ $course->credits }}</td>
+                                                    <td>{{ $course->pivot->grade ?? __("N/A") }}</td>
+                                                    <td>
+                                                        @if ($course->pivot->status === "aprobado")
+                                                            <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                        @else
+                                                            <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <a href="{{ route("students.courses.edit", [$student->id, 'edit_course_id' => $course->id]) }}" class="btn btn-warning btn-sm">
+                                                            <i class="bi bi-pencil"></i> {{ __("Editar") }}
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 
             <!-- Módulos EFSRT -->
             <div class="card mt-4">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0">{{ __("Módulos EFSRT (Experiencias Formativas)") }}</span>
-                    <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-pencil-square"></i> {{ __("Gestionar EFSRT") }}
-                    </a>
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">{{ __("Módulos EFSRT (Experiencias Formativas)") }}</span>
+                        <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil-square"></i> {{ __("Gestionar EFSRT") }}
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped align-middle">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>{{ __("Módulo") }}</th>
                                     <th>{{ __("Empresa") }}</th>
@@ -261,14 +360,14 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-warning btn-sm text-white">
+                                            <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-warning btn-sm">
                                                 <i class="bi bi-pencil"></i> {{ __("Editar") }}
                                             </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
+                                        <td colspan="6" class="text-center py-4">
                                             {{ __("No hay registros EFSRT asociados.") }}
                                         </td>
                                     </tr>

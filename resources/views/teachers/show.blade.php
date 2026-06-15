@@ -8,7 +8,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <span class="h5 mb-0">{{ __("Detalles del Profesor") }}</span>
                     <div>
-                        <a href="{{ route("teachers.edit", $teacher->id) }}" class="btn btn-warning btn-sm text-white me-2">
+                        <a href="{{ route("teachers.edit", $teacher->id) }}" class="btn btn-warning btn-sm me-2">
                             {{ __("Editar") }}
                         </a>
                         <a href="{{ route("teachers.index") }}" class="btn btn-secondary btn-sm">
@@ -45,14 +45,14 @@
                                     <th>{{ __("Programas de Estudio / Carreras") }}</th>
                                     <td>
                                         @forelse ($teacher->careers as $career)
-                                            <span class="badge bg-secondary mb-1 p-2">
-                                                <a href="{{ route("careers.show", $career->id) }}" class="text-white text-decoration-none">
-                                                    {{ $career->name }}
-                                                </a>
-                                            </span>
-                                        @empty
-                                            <span class="text-muted">{{ __("Sin asignar") }}</span>
-                                        @endforelse
+                                             <span class="badge bg-secondary mb-1 p-2">
+                                                 <a href="{{ route("careers.show", $career->id) }}" class="text-decoration-none text-reset">
+                                                     {{ $career->name }}
+                                                 </a>
+                                             </span>
+                                         @empty
+                                             <span>{{ __("Sin asignar") }}</span>
+                                         @endforelse
                                     </td>
                                 </tr>
                                 <tr>

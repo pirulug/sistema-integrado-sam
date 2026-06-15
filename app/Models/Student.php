@@ -14,7 +14,6 @@ class Student extends Model
         "name",
         "student_code",
         "document_number",
-        "email",
         "personal_email",
         "institutional_email",
         "phone",
@@ -39,7 +38,7 @@ class Student extends Model
      */
     public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Career::class)->withPivot("shift", "entry_year", "graduation_year")->withTimestamps();
+        return $this->belongsToMany(Career::class)->withPivot("shift", "entry_year", "graduation_year", "title_date")->withTimestamps();
     }
 
     /**

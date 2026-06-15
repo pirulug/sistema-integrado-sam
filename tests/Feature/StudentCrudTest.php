@@ -33,7 +33,8 @@ test("authenticated user can create student", function () {
     $studentData = [
         "name" => "Pepito Perez",
         "document_number" => "98765432",
-        "email" => "pepito@example.com",
+        "personal_email" => "pepito@example.com",
+        "institutional_email" => "pepito@sam.edu.pe",
         "phone" => "555-1234",
         "status" => "matriculado",
         "enrollment_date" => "2026-06-01",

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string("shift")->nullable();
             $table->integer("entry_year")->nullable();
             $table->integer("graduation_year")->nullable();
+            $table->date("title_date")->nullable();
             $table->timestamps();
         });
     }

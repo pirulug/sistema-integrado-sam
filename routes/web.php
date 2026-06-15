@@ -50,3 +50,12 @@ Route::get("students/{student}/courses/edit", [App\Http\Controllers\StudentCours
     ->name("students.courses.edit")
     ->middleware("auth");
 
+Route::get("students/{student}/graduation", [App\Http\Controllers\StudentGraduationController::class, "edit"])
+    ->name("students.graduation.edit")
+    ->middleware("auth");
+
+Route::put("students/{student}/graduation", [App\Http\Controllers\StudentGraduationController::class, "update"])
+    ->name("students.graduation.update")
+    ->middleware("auth");
+
+

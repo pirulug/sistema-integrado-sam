@@ -26,7 +26,6 @@ class StudentFactory extends Factory
             "name" => $firstName . ' ' . $lastName,
             "student_code" => 'EST-' . $this->faker->unique()->numerify("#####"),
             "document_number" => $this->faker->unique()->numerify("########"),
-            "email" => $emailName . "@example.com",
             "personal_email" => $emailName . "@gmail.com",
             "institutional_email" => $emailName . "@sam.edu.pe",
             "phone" => $this->faker->numerify("9########"),

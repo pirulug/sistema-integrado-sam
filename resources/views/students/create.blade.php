@@ -81,18 +81,7 @@
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __("Correo General") }}</label>
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error("email") is-invalid @enderror" 
-                                       name="email" value="{{ old("email") }}">
-                                @error("email")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
+
 
                         <div class="row mb-3">
                             <label for="personal_email" class="col-md-4 col-form-label text-md-end">{{ __("Correo Personal") }}</label>
@@ -140,7 +129,7 @@
                                             </div>
                                             <div class="d-flex gap-2 align-items-center" id="details_group_{{ $career->id }}">
                                                 <div>
-                                                    <label class="small text-muted d-block" style="font-size: 0.75rem;">Turno</label>
+                                                    <label class="small d-block" style="font-size: 0.75rem;">Turno</label>
                                                     <select name="career_shifts[{{ $career->id }}]" class="form-select form-select-sm w-auto" id="shift_select_{{ $career->id }}"
                                                         {{ $isChecked ? "" : "disabled" }}>
                                                         @foreach ($availableShifts as $shift)
@@ -151,14 +140,9 @@
                                                     </select>
                                                 </div>
                                                 <div style="width: 80px;">
-                                                    <label class="small text-muted d-block" style="font-size: 0.75rem;">Ingreso</label>
+                                                    <label class="small d-block" style="font-size: 0.75rem;">Ingreso</label>
                                                     <input type="number" name="career_entry_years[{{ $career->id }}]" class="form-control form-control-sm" id="entry_year_{{ $career->id }}" 
                                                            value="{{ old('career_entry_years.' . $career->id, date('Y')) }}" min="1900" max="2100" required {{ $isChecked ? "" : "disabled" }}>
-                                                </div>
-                                                <div style="width: 80px;">
-                                                    <label class="small text-muted d-block" style="font-size: 0.75rem;">Egreso</label>
-                                                    <input type="number" name="career_graduation_years[{{ $career->id }}]" class="form-control form-control-sm" id="graduation_year_{{ $career->id }}" 
-                                                           value="{{ old('career_graduation_years.' . $career->id) }}" min="1900" max="2100" placeholder="Opcional" {{ $isChecked ? "" : "disabled" }}>
                                                 </div>
                                             </div>
                                         </div>
@@ -214,50 +198,6 @@
                             </div>
                         </div>
 
-                        <div class="card mb-4 border-success d-none" id="employment_info_card">
-                            <div class="card-header bg-success text-white py-2">
-                                <h6 class="mb-0 fw-bold"><i class="bi bi-briefcase-fill me-2"></i>{{ __("Información Laboral (Titulados)") }}</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <label for="current_job" class="col-md-4 col-form-label text-md-end">{{ __("Trabajo Actual") }}</label>
-                                    <div class="col-md-6">
-                                        <input id="current_job" type="text" class="form-control @error("current_job") is-invalid @enderror" 
-                                               name="current_job" value="{{ old("current_job") }}" placeholder="Ej: Desarrollador Junior">
-                                        @error("current_job")
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <label for="workplace" class="col-md-4 col-form-label text-md-end">{{ __("Lugar (Empresa/Institución)") }}</label>
-                                    <div class="col-md-6">
-                                        <input id="workplace" type="text" class="form-control @error("workplace") is-invalid @enderror" 
-                                               name="workplace" value="{{ old("workplace") }}" placeholder="Ej: Banco de la Nación">
-                                        @error("workplace")
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col-md-6 offset-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="is_related" id="is_related" value="1" {{ old("is_related") ? "checked" : "" }}>
-                                            <label class="form-check-label fw-semibold" for="is_related">
-                                                {{ __("Es de la carrera que estudió") }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">
@@ -277,7 +217,6 @@
         const statusSelect = document.getElementById("status");
         const graduationGroup = document.getElementById("graduation_date_group");
         const graduationInput = document.getElementById("graduation_date");
-        const employmentCard = document.getElementById("employment_info_card");
         const checkboxes = document.querySelectorAll(".career-checkbox");
 
         function toggleGraduationFields() {
@@ -290,25 +229,6 @@
             }
         }
 
-        function checkTituladoStatus() {
-            let isTitled = false;
-            checkboxes.forEach(function (checkbox) {
-                if (checkbox.checked) {
-                    const careerId = checkbox.getAttribute("data-career-id");
-                    const gradInput = document.getElementById("graduation_year_" + careerId);
-                    if (gradInput && gradInput.value.trim() !== "") {
-                        isTitled = true;
-                    }
-                }
-            });
-
-            if (isTitled) {
-                employmentCard.classList.remove("d-none");
-            } else {
-                employmentCard.classList.add("d-none");
-            }
-        }
-
         statusSelect.addEventListener("change", toggleGraduationFields);
         toggleGraduationFields();
 
@@ -316,30 +236,17 @@
             const careerId = checkbox.getAttribute("data-career-id");
             const select = document.getElementById("shift_select_" + careerId);
             const entryInput = document.getElementById("entry_year_" + careerId);
-            const gradInput = document.getElementById("graduation_year_" + careerId);
 
             checkbox.addEventListener("change", function () {
                 if (checkbox.checked) {
                     if (select) select.disabled = false;
                     if (entryInput) entryInput.disabled = false;
-                    if (gradInput) gradInput.disabled = false;
                 } else {
                     if (select) select.disabled = true;
                     if (entryInput) entryInput.disabled = true;
-                    if (gradInput) gradInput.disabled = true;
-                    if (gradInput) gradInput.value = ""; // clear when unchecked
                 }
-                checkTituladoStatus();
             });
-
-            if (gradInput) {
-                gradInput.addEventListener("input", checkTituladoStatus);
-                gradInput.addEventListener("change", checkTituladoStatus);
-            }
         });
-
-        // Run initial check
-        checkTituladoStatus();
     });
 </script>
 @endsection
