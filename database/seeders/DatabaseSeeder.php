@@ -55,9 +55,10 @@ class DatabaseSeeder extends Seeder
 
                 // Create the 3 EFSRT records for this student and career
                 foreach (["MODULO I", "MODULO II", "MODULO III"] as $module) {
-                    $student->efsrtRecords()->create([
+                    $student->efsrtRecords()->firstOrCreate([
                         "career_id" => $career->id,
                         "module_name" => $module,
+                    ], [
                         "status" => "pendiente"
                     ]);
                 }

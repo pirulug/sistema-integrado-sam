@@ -15,6 +15,7 @@ class Course extends Model
         "name",
         "code",
         "credits",
+        "hours",
         "career_id",
     ];
 

@@ -13,39 +13,63 @@ class CourseSeeder extends Seeder
      */
     public function run(): void
     {
-        $careerAA = Career::where("code", "AA")->first();
-        $careerCONT = Career::where("code", "CONT")->first();
-        $careerDPW = Career::where("code", "DPW")->first();
-        $careerET = Career::where("code", "ET")->first();
-
-        $courses = [];
-
-        if ($careerAA) {
-            $courses[] = ["name" => "Documentación Comercial y Archivo", "code" => "AA-101", "credits" => 4, "career_id" => $careerAA->id];
-            $courses[] = ["name" => "Digitación de Textos", "code" => "AA-102", "credits" => 3, "career_id" => $careerAA->id];
-            $courses[] = ["name" => "Atención al Cliente y Protocolo", "code" => "AA-103", "credits" => 3, "career_id" => $careerAA->id];
+        $csvFile = database_path('csv/sam_unidades.csv');
+        if (!file_exists($csvFile)) {
+            $this->command->error("El archivo CSV no existe en la ruta: {$csvFile}");
+            return;
         }
 
-        if ($careerCONT) {
-            $courses[] = ["name" => "Contabilidad General I", "code" => "CONT-101", "credits" => 5, "career_id" => $careerCONT->id];
-            $courses[] = ["name" => "Documentación Comercial", "code" => "CONT-102", "credits" => 3, "career_id" => $careerCONT->id];
-            $courses[] = ["name" => "Tributación I", "code" => "CONT-103", "credits" => 4, "career_id" => $careerCONT->id];
+        $file = fopen($csvFile, 'r');
+        // Omitir cabecera
+        fgetcsv($file);
+
+        $romansMap = [
+            'I' => 1,
+            'II' => 2,
+            'III' => 3,
+            'IV' => 4,
+            'V' => 5,
+            'VI' => 6,
+        ];
+
+        $counters = [];
+        $careers = Career::all()->keyBy('name');
+
+        while (($row = fgetcsv($file)) !== false) {
+            if (count($row) < 5) {
+                continue;
+            }
+
+            $careerName = trim($row[0]);
+            $period = trim($row[1]);
+            $courseName = trim($row[2]);
+            $credits = (int)trim($row[3]);
+            $hours = (int)trim($row[4]);
+
+            // Buscar carrera por nombre exacto en mayúsculas
+            $career = $careers->get(strtoupper($careerName));
+            if (!$career) {
+                $this->command->warn("Carrera no encontrada para el curso: {$courseName} (Carrera: {$careerName})");
+                continue;
+            }
+
+            $careerCode = $career->code;
+            $periodNum = $romansMap[$period] ?? 1;
+            $key = $careerCode . '_' . $periodNum;
+
+            $counters[$key] = ($counters[$key] ?? 0) + 1;
+            $sequence = str_pad($counters[$key], 2, '0', STR_PAD_LEFT);
+            $code = "{$careerCode}-{$periodNum}{$sequence}";
+
+            Course::create([
+                'name' => $courseName,
+                'code' => $code,
+                'credits' => $credits,
+                'hours' => $hours,
+                'career_id' => $career->id,
+            ]);
         }
 
-        if ($careerDPW) {
-            $courses[] = ["name" => "Fundamentos de Programación", "code" => "DPW-101", "credits" => 4, "career_id" => $careerDPW->id];
-            $courses[] = ["name" => "Diseño Web Frontend", "code" => "DPW-102", "credits" => 4, "career_id" => $careerDPW->id];
-            $courses[] = ["name" => "Bases de Datos Relacionales", "code" => "DPW-103", "credits" => 5, "career_id" => $careerDPW->id];
-        }
-
-        if ($careerET) {
-            $courses[] = ["name" => "Anatomía Fisiología y Patología", "code" => "ET-101", "credits" => 5, "career_id" => $careerET->id];
-            $courses[] = ["name" => "Primeros Auxilios", "code" => "ET-102", "credits" => 3, "career_id" => $careerET->id];
-            $courses[] = ["name" => "Administración de Medicamentos", "code" => "ET-103", "credits" => 4, "career_id" => $careerET->id];
-        }
-
-        foreach ($courses as $course) {
-            Course::create($course);
-        }
+        fclose($file);
     }
 }

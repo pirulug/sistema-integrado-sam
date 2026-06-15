@@ -38,7 +38,7 @@
                             @php
                                 $career = $records->first()->career;
                             @endphp
-                            <h5 class="mt-4 mb-3 text-primary fw-bold" style="font-size: 1.1rem;">{{ $career ? $career->name : 'General' }}</h5>
+                            <h5 class="mt-4 mb-3 fw-bold" style="font-size: 1.1rem;">{{ $career ? $career->name : 'General' }}</h5>
                             @foreach ($records as $efsrt)
                                 <div class="card mb-3">
                                     <div class="card-header">

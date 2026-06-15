@@ -23,6 +23,7 @@ class CourseFactory extends Factory
             "name" => $this->faker->words(3, true),
             "code" => strtoupper($this->faker->unique()->bothify("??-###")),
             "credits" => $this->faker->numberBetween(2, 5),
+            "hours" => $this->faker->numberBetween(32, 128),
             "career_id" => Career::factory(),
         ];
     }

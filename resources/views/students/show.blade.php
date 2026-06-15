@@ -54,7 +54,7 @@
                                                 </a>
                                             </span>
                                         @empty
-                                            <span class="text-muted">{{ __("Sin asignar") }}</span>
+                                            <span>{{ __("Sin asignar") }}</span>
                                         @endforelse
                                     </td>
                                 </tr>
@@ -331,50 +331,118 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead>
-                                <tr>
-                                    <th>{{ __("Módulo") }}</th>
-                                    <th>{{ __("Empresa") }}</th>
-                                    <th>{{ __("Horas") }}</th>
-                                    <th>{{ __("Nota") }}</th>
-                                    <th>{{ __("Estado") }}</th>
-                                    <th class="text-center">{{ __("Acciones") }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($student->efsrtRecords as $efsrt)
-                                    <tr>
-                                        <td><strong>{{ $efsrt->module_name }}</strong></td>
-                                        <td>{{ $efsrt->company ?? __("No registrada") }}</td>
-                                        <td>{{ $efsrt->hours ? $efsrt->hours . " hrs" : __("N/A") }}</td>
-                                        <td>{{ $efsrt->grade ?? __("N/A") }}</td>
-                                        <td>
-                                            @if ($efsrt->status === "aprobado")
-                                                <span class="badge bg-success">{{ __("Aprobado") }}</span>
-                                            @elseif ($efsrt->status === "desaprobado")
-                                                <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
-                                            @else
-                                                <span class="badge bg-secondary">{{ __("Pendiente") }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-warning btn-sm">
-                                                <i class="bi bi-pencil"></i> {{ __("Editar") }}
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4">
-                                            {{ __("No hay registros EFSRT asociados.") }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                    @if ($student->careers->isEmpty())
+                        <div class="alert alert-info text-center py-4 mb-0">
+                            {{ __("No hay carreras asignadas a este estudiante.") }}
+                        </div>
+                    @else
+                        @foreach ($student->careers as $career)
+                            @php
+                                $careerEfsrt = $student->efsrtRecords->where('career_id', $career->id);
+                            @endphp
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ $career->name }}</span>
+                                    <span class="badge bg-secondary small">{{ $careerEfsrt->where('status', 'aprobado')->count() }} / {{ $careerEfsrt->count() }} {{ __("módulos aprobados") }}</span>
+                                </div>
+                                @if ($careerEfsrt->isEmpty())
+                                    <div class="small ps-2 py-2">{{ __("No hay registros EFSRT para esta carrera.") }}</div>
+                                @else
+                                    <div class="table-responsive">
+                                        <table class="table table-striped align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>{{ __("Módulo") }}</th>
+                                                    <th>{{ __("Empresa") }}</th>
+                                                    <th>{{ __("Horas") }}</th>
+                                                    <th>{{ __("Nota") }}</th>
+                                                    <th>{{ __("Estado") }}</th>
+                                                    <th class="text-center">{{ __("Acciones") }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($careerEfsrt as $efsrt)
+                                                    <tr>
+                                                        <td><strong>{{ $efsrt->module_name }}</strong></td>
+                                                        <td>{{ $efsrt->company ?? __("No registrada") }}</td>
+                                                        <td>{{ $efsrt->hours ? $efsrt->hours . " hrs" : __("N/A") }}</td>
+                                                        <td>{{ $efsrt->grade ?? __("N/A") }}</td>
+                                                        <td>
+                                                            @if ($efsrt->status === "aprobado")
+                                                                <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                            @elseif ($efsrt->status === "desaprobado")
+                                                                <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                            @else
+                                                                <span class="badge bg-secondary">{{ __("Pendiente") }}</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-warning btn-sm">
+                                                                <i class="bi bi-pencil"></i> {{ __("Editar") }}
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+
+                        @php
+                            $careerIds = $student->careers->pluck('id')->toArray();
+                            $otherEfsrt = $student->efsrtRecords->filter(function($record) use ($careerIds) {
+                                return !in_array($record->career_id, $careerIds);
+                            });
+                        @endphp
+                        @if ($otherEfsrt->isNotEmpty())
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center border p-2 rounded mb-2">
+                                    <span class="fw-bold text-uppercase small">{{ __("Otros Módulos EFSRT (Sin Carrera Activa)") }}</span>
+                                    <span class="badge bg-warning small">{{ $otherEfsrt->where('status', 'aprobado')->count() }} / {{ $otherEfsrt->count() }} {{ __("módulos aprobados") }}</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-striped align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ __("Módulo") }}</th>
+                                                <th>{{ __("Empresa") }}</th>
+                                                <th>{{ __("Horas") }}</th>
+                                                <th>{{ __("Nota") }}</th>
+                                                <th>{{ __("Estado") }}</th>
+                                                <th class="text-center">{{ __("Acciones") }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($otherEfsrt as $efsrt)
+                                                <tr>
+                                                    <td><strong>{{ $efsrt->module_name }}</strong></td>
+                                                    <td>{{ $efsrt->company ?? __("No registrada") }}</td>
+                                                    <td>{{ $efsrt->hours ? $efsrt->hours . " hrs" : __("N/A") }}</td>
+                                                    <td>{{ $efsrt->grade ?? __("N/A") }}</td>
+                                                    <td>
+                                                        @if ($efsrt->status === "aprobado")
+                                                            <span class="badge bg-success">{{ __("Aprobado") }}</span>
+                                                        @elseif ($efsrt->status === "desaprobado")
+                                                            <span class="badge bg-danger">{{ __("Desaprobado") }}</span>
+                                                        @else
+                                                            <span class="badge bg-secondary">{{ __("Pendiente") }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <a href="{{ route("students.efsrt.edit", $student->id) }}" class="btn btn-warning btn-sm">
+                                                            <i class="bi bi-pencil"></i> {{ __("Editar") }}
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 

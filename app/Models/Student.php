@@ -80,5 +80,33 @@ class Student extends Model
             return !in_array($course->id, $passedCourseIds);
         });
     }
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted()
+    {
+        static::created(function ($student) {
+            $career = Career::first() ?? Career::factory()->create();
+            
+            // Attach career if not already attached
+            if (!$student->careers()->where('career_id', $career->id)->exists()) {
+                $student->careers()->attach($career->id, [
+                    'shift' => 'Mañana',
+                    'entry_year' => $student->entry_year ?? date('Y'),
+                ]);
+            }
+
+            // Create 3 EFSRT records for this career
+            foreach (["MODULO I", "MODULO II", "MODULO III"] as $module) {
+                $student->efsrtRecords()->firstOrCreate([
+                    "career_id" => $career->id,
+                    "module_name" => $module,
+                ], [
+                    "status" => "pendiente"
+                ]);
+            }
+        });
+    }
 }
 

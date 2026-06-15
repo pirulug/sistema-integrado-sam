@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string("name");
             $table->string("code")->unique();
             $table->integer("credits");
+            $table->integer("hours");
             $table->foreignId("career_id")->constrained("careers")->onDelete("cascade");
             $table->timestamps();
         });

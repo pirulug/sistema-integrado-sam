@@ -217,11 +217,15 @@ class StudentController extends Controller
         $student->careers()->sync($syncData);
 
         $studentGraduationYear = null;
-        foreach ($syncData as $cData) {
-            if (!empty($cData["graduation_year"])) {
-                $studentGraduationYear = $cData["graduation_year"];
-                break;
+        if (!empty($careers)) {
+            foreach ($syncData as $cData) {
+                if (!empty($cData["graduation_year"])) {
+                    $studentGraduationYear = $cData["graduation_year"];
+                    break;
+                }
             }
+        } else {
+            $studentGraduationYear = $request->input("graduation_year", $student->graduation_year);
         }
 
         $validated["entry_year"] = $studentEntryYear;
