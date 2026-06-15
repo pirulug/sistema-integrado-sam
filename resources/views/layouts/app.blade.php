@@ -1,7 +1,24 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
+    <!-- Theme Detection Script -->
+    <script>
+        (function () {
+            const getStoredTheme = () => localStorage.getItem('theme')
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) {
+                    return storedTheme
+                }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+            const setTheme = theme => {
+                document.documentElement.setAttribute('data-bs-theme', theme)
+            }
+            setTheme(getPreferredTheme())
+        })()
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSRF Token -->
@@ -13,12 +30,15 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md bg-body-tertiary shadow-sm">
             <div class="container">
                 <a class="navbar-brand" href="{{ url('/') }}">
                     {{ config('app.name', 'Laravel') }}
@@ -40,11 +60,20 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route("careers.index") }}">{{ __("Carreras") }}</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route("courses.index") }}">{{ __("Cursos") }}</a>
+                            </li>
                         @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <li class="nav-item me-3">
+                            <button id="theme-toggle" class="btn btn-link nav-link text-secondary p-1" type="button" title="Alternar modo oscuro" style="border: none; background: none;">
+                                <i class="bi bi-sun-fill d-none fs-5 text-warning" id="theme-icon-light"></i>
+                                <i class="bi bi-moon-stars-fill fs-5" id="theme-icon-dark"></i>
+                            </button>
+                        </li>
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
@@ -86,5 +115,46 @@
             @yield('content')
         </main>
     </div>
+    <!-- Theme Toggle Event Listener -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const themeToggle = document.getElementById('theme-toggle');
+            const lightIcon = document.getElementById('theme-icon-light');
+            const darkIcon = document.getElementById('theme-icon-dark');
+            
+            const getStoredTheme = () => localStorage.getItem('theme')
+            const setStoredTheme = theme => localStorage.setItem('theme', theme)
+            const getPreferredTheme = () => {
+                const storedTheme = getStoredTheme()
+                if (storedTheme) {
+                    return storedTheme
+                }
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            }
+            
+            const updateToggleUI = (theme) => {
+                if (theme === 'dark') {
+                    lightIcon.classList.remove('d-none');
+                    darkIcon.classList.add('d-none');
+                } else {
+                    lightIcon.classList.add('d-none');
+                    darkIcon.classList.remove('d-none');
+                }
+            }
+            
+            const currentTheme = getPreferredTheme();
+            updateToggleUI(currentTheme);
+            
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const activeTheme = document.documentElement.getAttribute('data-bs-theme');
+                    const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+                    setStoredTheme(newTheme);
+                    document.documentElement.setAttribute('data-bs-theme', newTheme);
+                    updateToggleUI(newTheme);
+                });
+            }
+        });
+    </script>
 </body>
 </html>

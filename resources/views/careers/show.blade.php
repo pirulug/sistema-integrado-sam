@@ -44,6 +44,18 @@
                                 </td>
                             </tr>
                             <tr>
+                                <th class="w-25 bg-light">{{ __("Turnos Disponibles") }}</th>
+                                <td>
+                                    @if (!empty($career->shifts))
+                                        @foreach ($career->shifts as $shift)
+                                            <span class="badge bg-secondary me-1">{{ $shift }}</span>
+                                        @endforeach
+                                    @else
+                                        <span class="text-muted">{{ __("Sin turnos asignados") }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
                                 <th class="w-25 bg-light">{{ __("Fecha de Registro") }}</th>
                                 <td>{{ $career->created_at->format("d/m/Y H:i") }}</td>
                             </tr>
@@ -121,6 +133,7 @@
                                     <th>{{ __("Nombre") }}</th>
                                     <th>{{ __("Email") }}</th>
                                     <th>{{ __("Teléfono") }}</th>
+                                    <th>{{ __("Turno") }}</th>
                                     <th>{{ __("Estado") }}</th>
                                     <th class="text-center">{{ __("Acciones") }}</th>
                                 </tr>
@@ -132,6 +145,13 @@
                                         <td>{{ $student->name }}</td>
                                         <td>{{ $student->email ?? __("N/A") }}</td>
                                         <td>{{ $student->phone ?? __("N/A") }}</td>
+                                        <td>
+                                            @if ($student->pivot->shift)
+                                                <span class="badge bg-info text-white">{{ $student->pivot->shift }}</span>
+                                            @else
+                                                <span class="text-muted">{{ __("N/A") }}</span>
+                                            @endif
+                                        </td>
                                         <td>
                                             @if ($student->status === "matriculado")
                                                 <span class="badge bg-success">{{ __("Matriculado") }}</span>

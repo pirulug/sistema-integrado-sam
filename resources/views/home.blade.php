@@ -21,7 +21,7 @@
                                 <div class="card-body d-flex flex-column justify-content-between">
                                     <div>
                                         <h5 class="card-title text-primary">{{ __("Estudiantes") }}</h5>
-                                        <h2 class="display-4 my-3 text-dark font-weight-bold">{{ $studentsCount }}</h2>
+                                        <h2 class="display-4 my-3 text-body font-weight-bold">{{ $studentsCount }}</h2>
                                         <p class="card-text text-muted">{{ __("Estudiantes registrados en el sistema.") }}</p>
                                     </div>
                                     <div class="mt-3">
@@ -39,7 +39,7 @@
                                 <div class="card-body d-flex flex-column justify-content-between">
                                     <div>
                                         <h5 class="card-title text-warning">{{ __("Profesores") }}</h5>
-                                        <h2 class="display-4 my-3 text-dark font-weight-bold">{{ $teachersCount }}</h2>
+                                        <h2 class="display-4 my-3 text-body font-weight-bold">{{ $teachersCount }}</h2>
                                         <p class="card-text text-muted">{{ __("Profesores y personal docente activo.") }}</p>
                                     </div>
                                     <div class="mt-3">
@@ -57,7 +57,7 @@
                                 <div class="card-body d-flex flex-column justify-content-between">
                                     <div>
                                         <h5 class="card-title text-success">{{ __("Programas de Estudio") }}</h5>
-                                        <h2 class="display-4 my-3 text-dark font-weight-bold">{{ $careersCount }}</h2>
+                                        <h2 class="display-4 my-3 text-body font-weight-bold">{{ $careersCount }}</h2>
                                         <p class="card-text text-muted">{{ __("Carreras y especialidades ofertadas.") }}</p>
                                     </div>
                                     <div class="mt-3">

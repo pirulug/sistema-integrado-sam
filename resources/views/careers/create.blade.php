@@ -70,6 +70,32 @@
                             </div>
                         </div>
 
+                        <div class="row mb-3">
+                            <label class="col-md-4 col-form-label text-md-end">{{ __("Turnos Disponibles") }}</label>
+                            <div class="col-md-6 pt-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="shifts[]" value="Mañana" id="shift_morning"
+                                        {{ (is_array(old("shifts")) && in_array("Mañana", old("shifts"))) ? "checked" : "" }}>
+                                    <label class="form-check-label" for="shift_morning">{{ __("Mañana") }}</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="shifts[]" value="Tarde" id="shift_afternoon"
+                                        {{ (is_array(old("shifts")) && in_array("Tarde", old("shifts"))) ? "checked" : "" }}>
+                                    <label class="form-check-label" for="shift_afternoon">{{ __("Tarde") }}</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="shifts[]" value="Noche" id="shift_evening"
+                                        {{ (is_array(old("shifts")) && in_array("Noche", old("shifts"))) ? "checked" : "" }}>
+                                    <label class="form-check-label" for="shift_evening">{{ __("Noche") }}</label>
+                                </div>
+                                @error("shifts")
+                                    <span class="text-danger small d-block mt-1" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary">

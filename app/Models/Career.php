@@ -16,6 +16,11 @@ class Career extends Model
         "code",
         "description",
         "status",
+        "shifts",
+    ];
+
+    protected $casts = [
+        "shifts" => "array",
     ];
 
     /**
@@ -23,7 +28,7 @@ class Career extends Model
      */
     public function students(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Student::class)->withTimestamps();
+        return $this->belongsToMany(Student::class)->withPivot("shift", "entry_year", "graduation_year")->withTimestamps();
     }
 
     /**
@@ -33,4 +38,13 @@ class Career extends Model
     {
         return $this->belongsToMany(Teacher::class)->withTimestamps();
     }
+
+    /**
+     * Get the courses that belong to this career.
+     */
+    public function courses(): HasMany
+    {
+        return $this->hasMany(Course::class);
+    }
 }
+

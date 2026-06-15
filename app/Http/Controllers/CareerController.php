@@ -43,7 +43,11 @@ class CareerController extends Controller
             "code" => "nullable|string|max:50|unique:careers,code",
             "description" => "nullable|string",
             "status" => "required|in:activo,inactivo",
+            "shifts" => "nullable|array",
+            "shifts.*" => "in:Mañana,Tarde,Noche",
         ]);
+
+        $validated["shifts"] = $validated["shifts"] ?? [];
 
         Career::create($validated);
 
@@ -78,7 +82,11 @@ class CareerController extends Controller
             "code" => "nullable|string|max:50|unique:careers,code," . $career->id,
             "description" => "nullable|string",
             "status" => "required|in:activo,inactivo",
+            "shifts" => "nullable|array",
+            "shifts.*" => "in:Mañana,Tarde,Noche",
         ]);
+
+        $validated["shifts"] = $validated["shifts"] ?? [];
 
         $career->update($validated);
 

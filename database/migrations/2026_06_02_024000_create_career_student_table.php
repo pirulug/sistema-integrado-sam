@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId("career_id")->constrained()->cascadeOnDelete();
             $table->foreignId("student_id")->constrained()->cascadeOnDelete();
+            $table->string("shift")->nullable();
+            $table->integer("entry_year")->nullable();
+            $table->integer("graduation_year")->nullable();
             $table->timestamps();
         });
     }

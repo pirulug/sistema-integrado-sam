@@ -37,6 +37,7 @@ test("authenticated user can create student", function () {
         "phone" => "555-1234",
         "status" => "matriculado",
         "enrollment_date" => "2026-06-01",
+        "entry_year" => 2026,
     ];
 
     $response = $this->actingAs($user)->post("/students", $studentData);
@@ -45,6 +46,7 @@ test("authenticated user can create student", function () {
     $this->assertDatabaseHas("students", [
         "document_number" => "98765432",
         "name" => "Pepito Perez",
+        "entry_year" => 2026,
     ]);
 });
 
@@ -61,6 +63,8 @@ test("authenticated user can update student", function () {
         "status" => "egresado",
         "enrollment_date" => "2026-06-01",
         "graduation_date" => "2026-06-02",
+        "entry_year" => 2025,
+        "graduation_year" => 2026,
     ];
 
     $response = $this->actingAs($user)->put("/students/" . $student->id, $updateData);
@@ -70,6 +74,8 @@ test("authenticated user can update student", function () {
         "id" => $student->id,
         "name" => "New Name",
         "status" => "egresado",
+        "entry_year" => 2025,
+        "graduation_year" => 2026,
     ]);
 });
 
