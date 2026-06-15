@@ -16,24 +16,24 @@ Este documento contiene la hoja de ruta, especificaciones de procesos académico
 * [X] Diseñar el mapa de procesos de titulación general de forma conceptual y detallada:
   * [X] Definir el flujograma de procesos desde el registro del estudiante hasta la obtención del grado.
   * [X] Establecer las dependencias lógicas entre los diferentes módulos del sistema (SAM).
-* [ ] Especificar los requisitos mínimos documentales para egresados de cada carrera profesional de la universidad:
-  * [ ] Requisitos documentales específicos para la carrera de Ingeniería de Sistemas.
-  * [ ] Requisitos documentales específicos para la carrera de Ingeniería Civil.
-  * [ ] Requisitos documentales específicos para la carrera de Administración de Empresas.
-  * [ ] Requisitos documentales específicos para la carrera de Derecho y Ciencias Políticas.
-* [ ] Validar el flujo de datos del estudiante en múltiples programas de estudio concurrentes:
-  * [ ] Definir reglas para estudiantes matriculados en dos carreras en paralelo.
-  * [ ] Especificar cómo se separa el historial académico de cada carrera en el backend.
-* [ ] Documentar los flujos de transición de estados del expediente de titulación a nivel de reglas de negocio:
-  * [ ] Definir los estados válidos del expediente (registrado, en revisión, subsanado, aprobado, apto).
-  * [ ] Mapear las transiciones permitidas e identificar las transiciones prohibidas.
-* [ ] Elaborar los requerimientos funcionales detallados para el registro de estudiantes en la base de datos:
-  * [ ] Definir campos requeridos y opcionales para la ficha del estudiante.
-* [ ] Elaborar los requerimientos funcionales detallados para el registro de docentes en la base de datos:
-  * [ ] Definir campos requeridos, especialidades y restricciones por departamento académico.
-* [ ] Definir los campos obligatorios para las tablas de enlace de carreras en formato de diccionario de datos conceptual:
-  * [ ] Detallar la estructura y llaves foráneas de la tabla pivote de carreras y estudiantes.
-  * [ ] Detallar la estructura y llaves foráneas de la tabla pivote de docentes y carreras.
+* [X] Especificar los requisitos mínimos documentales para egresados de cada carrera profesional de la universidad:
+  * [X] Requisitos documentales específicos para la carrera de Ingeniería de Sistemas.
+  * [X] Requisitos documentales específicos para la carrera de Ingeniería Civil.
+  * [X] Requisitos documentales específicos para la carrera de Administración de Empresas.
+  * [X] Requisitos documentales específicos para la carrera de Derecho y Ciencias Políticas.
+* [X] Validar el flujo de datos del estudiante en múltiples programas de estudio concurrentes:
+  * [X] Definir reglas para estudiantes matriculados en dos carreras en paralelo.
+  * [X] Especificar cómo se separa el historial académico de cada carrera en el backend.
+* [X] Documentar los flujos de transición de estados del expediente de titulación a nivel de reglas de negocio:
+  * [X] Definir los estados válidos del expediente (registrado, en revisión, subsanado, aprobado, apto).
+  * [X] Mapear las transiciones permitidas e identificar las transiciones prohibidas.
+* [X] Elaborar los requerimientos funcionales detallados para el registro de estudiantes en la base de datos:
+  * [X] Definir campos requeridos y opcionales para la ficha del estudiante.
+* [X] Elaborar los requerimientos funcionales detallados para el registro de docentes en la base de datos:
+  * [X] Definir campos requeridos, especialidades y restricciones por departamento académico.
+* [X] Definir los campos obligatorios para las tablas de enlace de carreras en formato de diccionario de datos conceptual:
+  * [X] Detallar la estructura y llaves foráneas de la tabla pivote de carreras y estudiantes.
+  * [X] Detallar la estructura y llaves foráneas de la tabla pivote de docentes y carreras.
 * [ ] Detallar los Casos de Uso del core relacional del sistema:
   * [ ] Caso de Uso: Registrar Estudiante en la Plataforma
   * [ ] Caso de Uso: Listar Estudiantes con Filtros Académicos
