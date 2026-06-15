@@ -246,4 +246,3 @@ git log --oneline
 # Objetivo
 
 Mantener un desarrollo ordenado, evitar conflictos entre integrantes y proteger la estabilidad de la rama principal del proyecto.
-flo

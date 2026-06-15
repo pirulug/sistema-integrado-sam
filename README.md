@@ -97,7 +97,5 @@ La aplicación estará disponible en la dirección [http://127.0.0.1:8000](http:
 
 ## Credenciales de Acceso
 
-Para ingresar al panel administrativo, utilice las siguientes credenciales preconfiguradas:
-
 * **Usuario:** `admin@example.com`
 * **Contraseña:** `admin123`
