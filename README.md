@@ -1,5 +1,10 @@
 # SI SAM - Sistema Integral SAM
 
+> [!WARNING]
+> ### 🚨 PROHIBIDO PUSHEAR A MASTER 🚨
+> Está **total y terminantemente prohibido** realizar commits o pushes directos a la rama `master`.
+> Todos los cambios deben pasar obligatoriamente por Pull Request y validarse en la rama `develop` antes de integrarse. Para más detalles del flujo, consulte [GIT_WORKFLOW.md](file:///c:/Pirulug/Laravel/sistema-integrado-sam/GIT_WORKFLOW.md).
+
 Este es el repositorio de SI SAM (Sistema Integral SAM). A continuación, se detallan las instrucciones paso a paso para desplegar el proyecto en un entorno de desarrollo local.
 
 ## Requisitos Previos

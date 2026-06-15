@@ -28,15 +28,23 @@ master
 
 # Responsables
 
-| Integrante             | Rama Asignada    |
-| ---------------------- | ---------------- |
-| Desarrollador Backend  | feature/backend  |
-| Desarrollador Procesos | feature/procesos |
-| Desarrollador Frontend | feature/frontend |
+| Integrante (Nombre) | Rama Asignada | Rol / Tarea |
+| :--- | :--- | :--- |
+| **GUIDO** | `feature/backend` | Desarrollo del backend y base de datos |
+| **CESAR** | `feature/procesos` | Desarrollo de la lógica de negocio y procesos de titulación |
+| **CIRILO** | `feature/frontend` | Desarrollo de interfaces y experiencia de usuario |
 
 ---
 
 # Reglas del Proyecto
+
+> [!WARNING]
+> ### 🚨 PROHIBIDO PUSHEAR A MASTER 🚨
+> Está **total y terminantemente prohibido** realizar commits o pushes directos a la rama `master`.
+>
+> Todos los cambios deben pasar obligatoriamente por Pull Request y validarse en la rama `develop` antes de integrarse.
+
+---
 
 ## No trabajar directamente en master
 
