@@ -4,116 +4,131 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Student extends Model
 {
-    /** @use HasFactory<\Database\Factories\StudentFactory> */
     use HasFactory;
 
     protected $fillable = [
-        "name",
-        "student_code",
-        "document_number",
-        "personal_email",
-        "institutional_email",
-        "phone",
-        "whatsapp",
-        "status",
-        "enrollment_date",
-        "graduation_date",
-        "entry_year",
-        "graduation_year",
+        'dni',
+        'student_code',
+        'study_program',
+        'paternal_last_name',
+        'maternal_last_name',
+        'first_name',
+        'personal_email',
+        'institutional_email',
+        'phone',
+        'mobile',
+        'admission_date',
+        'graduation_date',
+        'degree_date',
+        'curriculum_id',
+        'shift',
     ];
 
     /**
-     * Get the job record associated with the student.
+     * Get full name.
      */
-    public function job(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function getFullNameAttribute(): string
     {
-        return $this->hasOne(StudentJob::class);
+        return "{$this->paternal_last_name} {$this->maternal_last_name}, {$this->first_name}";
     }
 
     /**
-     * Get the careers that the student belongs to.
+     * Get associated curriculum.
      */
-    public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function curriculum()
     {
-        return $this->belongsToMany(Career::class)->withPivot("shift", "entry_year", "graduation_year", "title_date", "curriculum_id")->withTimestamps();
+        return $this->belongsTo(Curriculum::class);
     }
 
     /**
-     * Get the courses taken by the student.
+     * The courses that belong to the student.
      */
-    public function courses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function courses(): BelongsToMany
     {
-        return $this->belongsToMany(Course::class)->withPivot("grade", "status")->withTimestamps();
+        return $this->belongsToMany(Course::class)->withTimestamps();
     }
 
     /**
-     * Get the EFSRT pre-professional practice records for the student.
+     * The EFSRT records that belong to the student.
      */
-    public function efsrtRecords(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function efsrts(): BelongsToMany
     {
-        return $this->hasMany(EfsrtRecord::class);
+        return $this->belongsToMany(Efsrt::class)
+                    ->withPivot(['company_name', 'hours', 'start_date', 'end_date', 'status'])
+                    ->withTimestamps();
     }
 
     /**
-     * Get the courses that the student has not yet passed from their careers.
+     * Approved courses of the assigned curriculum.
      */
-    public function getPendingCoursesAttribute()
+    public function approvedCourses()
     {
-        // Get all courses from the loaded careers matching the student's assigned curriculum
-        $allCareerCourses = $this->careers->flatMap(function ($career) {
-            $studentCurriculumId = $career->pivot->curriculum_id;
-            if (!$studentCurriculumId) {
-                return collect();
-            }
-            return $career->courses()
-                ->where('curriculum_id', $studentCurriculumId)
-                ->where('is_actualizacion', false)
-                ->get();
-        })->unique('id');
+        if (!$this->curriculum) {
+            return collect();
+        }
+        return $this->curriculum->courses()->whereIn('courses.id', $this->courses->pluck('id'))->get();
+    }
 
-        // Get the IDs of the courses the student has passed
-        $passedCourseIds = $this->courses
-            ->filter(function ($course) {
-                return $course->pivot->status === 'aprobado';
-            })
-            ->pluck('id')
-            ->toArray();
+    /**
+     * Pending courses of the assigned curriculum.
+     */
+    public function pendingCourses()
+    {
+        if (!$this->curriculum) {
+            return collect();
+        }
+        return $this->curriculum->courses()->whereNotIn('courses.id', $this->courses->pluck('id'))->get();
+    }
 
-        // Return courses that are in the careers but not passed
-        return $allCareerCourses->filter(function ($course) use ($passedCourseIds) {
-            return !in_array($course->id, $passedCourseIds);
+    /**
+     * EFSRT status list mapped to the student.
+     */
+    public function efsrtStatusList()
+    {
+        if (!$this->curriculum) {
+            return collect();
+        }
+        $studentEfsrts = $this->efsrts->keyBy('id');
+        return $this->curriculum->efsrts->map(function ($efsrt) use ($studentEfsrts) {
+            $studentEfs = $studentEfsrts->get($efsrt->id);
+            return [
+                'id' => $efsrt->id,
+                'module' => $efsrt->module,
+                'module_name' => $efsrt->module_name,
+                'status' => $studentEfs ? $studentEfs->pivot->status : 'pending',
+                'pivot' => $studentEfs ? $studentEfs->pivot : null,
+            ];
         });
     }
 
     /**
-     * Boot the model.
+     * General graduation status attribute.
      */
-    protected static function booted()
+    public function getOverallStatusAttribute(): string
     {
-        static::created(function ($student) {
-            $career = Career::first() ?? Career::factory()->create();
-            
-            // Attach career if not already attached
-            if (!$student->careers()->where('career_id', $career->id)->exists()) {
-                $student->careers()->attach($career->id, [
-                    'shift' => 'Mañana',
-                    'entry_year' => $student->entry_year ?? date('Y'),
-                ]);
-            }
-
-            // Create 3 EFSRT records for this career
-            foreach (["MODULO I", "MODULO II", "MODULO III"] as $module) {
-                $student->efsrtRecords()->firstOrCreate([
-                    "career_id" => $career->id,
-                    "module_name" => $module,
-                ], [
-                    "status" => "pendiente"
-                ]);
-            }
+        if ($this->degree_date) {
+            return 'Titulado';
+        }
+        
+        if (!$this->curriculum) {
+            return 'Sin Malla';
+        }
+        
+        $pendingCount = $this->pendingCourses()->count();
+        
+        $efsrts = $this->efsrtStatusList();
+        $allEfsrtsApproved = $efsrts->isNotEmpty() && $efsrts->every(function ($efsrt) {
+            return $efsrt['status'] === 'approved';
         });
+        
+        if ($pendingCount === 0 && $allEfsrtsApproved) {
+            return 'Apto';
+        }
+        
+        return 'En Proceso';
     }
 }
-

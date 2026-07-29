@@ -1,275 +1,143 @@
-@extends("layouts.app")
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Editar Estudiante') }}
+        </h2>
+    </x-slot>
 
-@section("content")
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0">{{ __("Editar Estudiante") }}</span>
-                    <a href="{{ route("students.index") }}" class="btn btn-secondary btn-sm">
-                        {{ __("Volver") }}
-                    </a>
-                </div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route("students.update", $student->id) }}">
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <form method="POST" action="{{ route('students.update', $student) }}" class="space-y-6">
                         @csrf
-                        @method("PUT")
+                        @method('PUT')
 
-                        <div class="row mb-3">
-                            <label for="name" class="col-md-4 col-form-label text-md-end">{{ __("Nombre Completo") }} *</label>
-                            <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error("name") is-invalid @enderror" 
-                                       name="name" value="{{ old("name", $student->name) }}" required autofocus>
-                                @error("name")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- DNI -->
+                            <div>
+                                <x-input-label for="dni" :value="__('DNI')" />
+                                <x-text-input id="dni" name="dni" type="text" class="mt-1 block w-full" :value="old('dni', $student->dni)" required autofocus />
+                                <x-input-error class="mt-2" :messages="$errors->get('dni')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="student_code" class="col-md-4 col-form-label text-md-end">{{ __("Código de Estudiante") }}</label>
-                            <div class="col-md-6">
-                                <input id="student_code" type="text" class="form-control @error("student_code") is-invalid @enderror" 
-                                       name="student_code" value="{{ old("student_code", $student->student_code) }}">
-                                @error("student_code")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Student Code -->
+                            <div>
+                                <x-input-label for="student_code" :value="__('Código de Estudiante')" />
+                                <x-text-input id="student_code" name="student_code" type="text" class="mt-1 block w-full" :value="old('student_code', $student->student_code)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('student_code')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="document_number" class="col-md-4 col-form-label text-md-end">{{ __("Documento Identidad") }} *</label>
-                            <div class="col-md-6">
-                                <input id="document_number" type="text" class="form-control @error("document_number") is-invalid @enderror" 
-                                       name="document_number" value="{{ old("document_number", $student->document_number) }}" required>
-                                @error("document_number")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- First Name -->
+                            <div>
+                                <x-input-label for="first_name" :value="__('Nombres')" />
+                                <x-text-input id="first_name" name="first_name" type="text" class="mt-1 block w-full" :value="old('first_name', $student->first_name)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('first_name')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="phone" class="col-md-4 col-form-label text-md-end">{{ __("Teléfono") }}</label>
-                            <div class="col-md-6">
-                                <input id="phone" type="text" class="form-control @error("phone") is-invalid @enderror" 
-                                       name="phone" value="{{ old("phone", $student->phone) }}">
-                                @error("phone")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Paternal Last Name -->
+                            <div>
+                                <x-input-label for="paternal_last_name" :value="__('Apellido Paterno')" />
+                                <x-text-input id="paternal_last_name" name="paternal_last_name" type="text" class="mt-1 block w-full" :value="old('paternal_last_name', $student->paternal_last_name)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('paternal_last_name')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="whatsapp" class="col-md-4 col-form-label text-md-end">{{ __("WhatsApp") }}</label>
-                            <div class="col-md-6">
-                                <input id="whatsapp" type="text" class="form-control @error("whatsapp") is-invalid @enderror" 
-                                       name="whatsapp" value="{{ old("whatsapp", $student->whatsapp) }}">
-                                @error("whatsapp")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Maternal Last Name -->
+                            <div>
+                                <x-input-label for="maternal_last_name" :value="__('Apellido Materno')" />
+                                <x-text-input id="maternal_last_name" name="maternal_last_name" type="text" class="mt-1 block w-full" :value="old('maternal_last_name', $student->maternal_last_name)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('maternal_last_name')" />
                             </div>
-                        </div>
 
-
-
-                        <div class="row mb-3">
-                            <label for="personal_email" class="col-md-4 col-form-label text-md-end">{{ __("Correo Personal") }}</label>
-                            <div class="col-md-6">
-                                <input id="personal_email" type="email" class="form-control @error("personal_email") is-invalid @enderror" 
-                                       name="personal_email" value="{{ old("personal_email", $student->personal_email) }}">
-                                @error("personal_email")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Study Program -->
+                            <div>
+                                <x-input-label for="study_program" :value="__('Programa de Estudio')" />
+                                <x-text-input id="study_program" name="study_program" type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-700 cursor-not-allowed" :value="old('study_program', $student->study_program)" readonly required />
+                                <x-input-error class="mt-2" :messages="$errors->get('study_program')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="institutional_email" class="col-md-4 col-form-label text-md-end">{{ __("Correo Institucional") }}</label>
-                            <div class="col-md-6">
-                                <input id="institutional_email" type="email" class="form-control @error("institutional_email") is-invalid @enderror" 
-                                       name="institutional_email" value="{{ old("institutional_email", $student->institutional_email) }}">
-                                @error("institutional_email")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Institutional Email -->
+                            <div>
+                                <x-input-label for="institutional_email" :value="__('Email Institucional')" />
+                                <x-text-input id="institutional_email" name="institutional_email" type="email" class="mt-1 block w-full" :value="old('institutional_email', $student->institutional_email)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('institutional_email')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label class="col-md-4 col-form-label text-md-end">{{ __("Programas de Estudio / Carreras y Turnos") }}</label>
-                            <div class="col-md-6">
-                                <div class="card p-3 @error("careers") border-danger @enderror" style="max-height: 400px; overflow-y: auto;">
-                                    @foreach ($careers as $career)
-                                        @php
-                                            $isChecked = (is_array(old("careers", $student->careers->pluck("id")->toArray())) && in_array($career->id, old("careers", $student->careers->pluck("id")->toArray())));
-                                            $studentCareer = $student->careers->firstWhere("id", $career->id);
-                                            $currentShift = $studentCareer ? $studentCareer->pivot->shift : null;
-                                            $currentEntryYear = $studentCareer ? $studentCareer->pivot->entry_year : null;
-                                            $currentGraduationYear = $studentCareer ? $studentCareer->pivot->graduation_year : null;
-                                            $currentCurriculumId = $studentCareer ? $studentCareer->pivot->curriculum_id : null;
-                                            $availableShifts = $career->shifts ?? ["Mañana", "Tarde", "Noche"];
-                                        @endphp
-                                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                                            <div class="form-check mb-0 flex-grow-1">
-                                                <input class="form-check-input career-checkbox" type="checkbox" name="careers[]" value="{{ $career->id }}" id="career_{{ $career->id }}"
-                                                    {{ $isChecked ? "checked" : "" }}
-                                                    data-career-id="{{ $career->id }}">
-                                                <label class="form-check-label fw-bold" for="career_{{ $career->id }}">
-                                                    {{ $career->name }}
-                                                </label>
-                                            </div>
-                                            <div class="d-flex gap-2 align-items-center" id="details_group_{{ $career->id }}">
-                                                 <div>
-                                                     <label class="small d-block" style="font-size: 0.75rem;">Turno</label>
-                                                     <select name="career_shifts[{{ $career->id }}]" class="form-select form-select-sm w-auto" id="shift_select_{{ $career->id }}"
-                                                        {{ $isChecked ? "" : "disabled" }}>
-                                                        @foreach ($availableShifts as $shift)
-                                                            <option value="{{ $shift }}" {{ old("career_shifts." . $career->id, $currentShift) == $shift ? "selected" : "" }}>
-                                                                {{ $shift }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                 <div style="width: 80px;">
-                                                     <label class="small d-block" style="font-size: 0.75rem;">Ingreso</label>
-                                                     <input type="number" name="career_entry_years[{{ $career->id }}]" class="form-control form-control-sm" id="entry_year_{{ $career->id }}" 
-                                                           value="{{ old('career_entry_years.' . $career->id, $currentEntryYear ?? date('Y')) }}" min="1900" max="2100" required {{ $isChecked ? "" : "disabled" }}>
-                                                </div>
-                                                <div style="width: 150px;">
-                                                     <label class="small d-block" style="font-size: 0.75rem;">Malla *</label>
-                                                     <select name="career_curriculums[{{ $career->id }}]" class="form-select form-select-sm w-100" id="curriculum_select_{{ $career->id }}"
-                                                        {{ $isChecked ? "" : "disabled" }} required>
-                                                         <option value="">-- {{ __("Seleccionar") }} --</option>
-                                                         @foreach ($curriculums->where('career_id', $career->id) as $curr)
-                                                             <option value="{{ $curr->id }}" {{ old("career_curriculums." . $career->id, $currentCurriculumId) == $curr->id ? "selected" : "" }}>
-                                                                 {{ $curr->name }} ({{ $curr->year }})
-                                                             </option>
-                                                         @endforeach
-                                                     </select>
-                                                 </div>
-                                            </div>
-                                        </div>
+                            <!-- Personal Email -->
+                            <div>
+                                <x-input-label for="personal_email" :value="__('Email Personal')" />
+                                <x-text-input id="personal_email" name="personal_email" type="email" class="mt-1 block w-full" :value="old('personal_email', $student->personal_email)" />
+                                <x-input-error class="mt-2" :messages="$errors->get('personal_email')" />
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <x-input-label for="phone" :value="__('Teléfono Fijo')" />
+                                <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $student->phone)" />
+                                <x-input-error class="mt-2" :messages="$errors->get('phone')" />
+                            </div>
+
+                            <!-- Mobile -->
+                            <div>
+                                <x-input-label for="mobile" :value="__('Celular')" />
+                                <x-text-input id="mobile" name="mobile" type="text" class="mt-1 block w-full" :value="old('mobile', $student->mobile)" />
+                                <x-input-error class="mt-2" :messages="$errors->get('mobile')" />
+                            </div>
+
+                            <!-- Admission Date -->
+                            <div>
+                                <x-input-label for="admission_date" :value="__('Fecha de Ingreso')" />
+                                <x-text-input id="admission_date" name="admission_date" type="date" class="mt-1 block w-full" :value="old('admission_date', $student->admission_date ? \Carbon\Carbon::parse($student->admission_date)->format('Y-m-d') : '')" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('admission_date')" />
+                            </div>
+
+                            <!-- Graduation Date -->
+                            <div>
+                                <x-input-label for="graduation_date" :value="__('Fecha de Egreso')" />
+                                <x-text-input id="graduation_date" name="graduation_date" type="date" class="mt-1 block w-full" :value="old('graduation_date', $student->graduation_date ? \Carbon\Carbon::parse($student->graduation_date)->format('Y-m-d') : '')" />
+                                <x-input-error class="mt-2" :messages="$errors->get('graduation_date')" />
+                            </div>
+
+
+
+                            <!-- Malla Curricular -->
+                            <div>
+                                <x-input-label for="curriculum_id" :value="__('Malla Curricular')" />
+                                <select id="curriculum_id" name="curriculum_id" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
+                                    <option value="">-- Seleccionar Malla --</option>
+                                    @foreach($curriculums as $curriculum)
+                                        <option value="{{ $curriculum->id }}" {{ old('curriculum_id', $student->curriculum_id) == $curriculum->id ? 'selected' : '' }}>
+                                            {{ $curriculum->name }} ({{ $curriculum->year }})
+                                        </option>
                                     @endforeach
-                                </div>
-                                @error("careers")
-                                    <span class="text-danger small" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="status" class="col-md-4 col-form-label text-md-end">{{ __("Estado Estudiante") }} *</label>
-                            <div class="col-md-6">
-                                <select id="status" class="form-select @error("status") is-invalid @enderror" name="status" required>
-                                    <option value="matriculado" {{ old("status", $student->status) === "matriculado" ? "selected" : "" }}>{{ __("Matriculado") }}</option>
-                                    <option value="egresado" {{ old("status", $student->status) === "egresado" ? "selected" : "" }}>{{ __("Egresado") }}</option>
-                                    <option value="retirado" {{ old("status", $student->status) === "retirado" ? "selected" : "" }}>{{ __("Retirado") }}</option>
                                 </select>
-                                @error("status")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                                <x-input-error class="mt-2" :messages="$errors->get('curriculum_id')" />
+                            </div>
+
+                            <!-- Turno (Shift) -->
+                            <div>
+                                <x-input-label for="shift" :value="__('Turno')" />
+                                <select id="shift" name="shift" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
+                                    <option value="">-- Seleccionar Turno --</option>
+                                    <option value="Diurno (Mañana)" {{ old('shift', $student->shift) == 'Diurno (Mañana)' ? 'selected' : '' }}>Diurno (Mañana)</option>
+                                    <option value="Diurno (Tarde)" {{ old('shift', $student->shift) == 'Diurno (Tarde)' ? 'selected' : '' }}>Diurno (Tarde)</option>
+                                    <option value="Nocturno (Noche)" {{ old('shift', $student->shift) == 'Nocturno (Noche)' ? 'selected' : '' }}>Nocturno (Noche)</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('shift')" />
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="enrollment_date" class="col-md-4 col-form-label text-md-end">{{ __("Fecha de Matrícula") }} *</label>
-                            <div class="col-md-6">
-                                <input id="enrollment_date" type="date" class="form-control @error("enrollment_date") is-invalid @enderror" 
-                                       name="enrollment_date" value="{{ old("enrollment_date", $student->enrollment_date) }}" required>
-                                @error("enrollment_date")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div id="graduation_date_group" class="row mb-3 d-none">
-                            <label for="graduation_date" class="col-md-4 col-form-label text-md-end">{{ __("Fecha de Egreso") }} *</label>
-                            <div class="col-md-6">
-                                <input id="graduation_date" type="date" class="form-control @error("graduation_date") is-invalid @enderror" 
-                                       name="graduation_date" value="{{ old("graduation_date", $student->graduation_date) }}">
-                                @error("graduation_date")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-
-
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __("Actualizar") }}
-                                </button>
-                            </div>
+                        <div class="flex items-center justify-end space-x-3 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-25 transition ease-in-out duration-150">
+                                Cancelar
+                            </a>
+                            <x-primary-button>
+                                {{ __('Actualizar') }}
+                            </x-primary-button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const statusSelect = document.getElementById("status");
-        const graduationGroup = document.getElementById("graduation_date_group");
-        const graduationInput = document.getElementById("graduation_date");
-        const checkboxes = document.querySelectorAll(".career-checkbox");
-
-        function toggleGraduationFields() {
-            if (statusSelect.value === "egresado") {
-                graduationGroup.classList.remove("d-none");
-                graduationInput.setAttribute("required", "required");
-            } else {
-                graduationGroup.classList.add("d-none");
-                graduationInput.removeAttribute("required");
-            }
-        }
-
-        statusSelect.addEventListener("change", toggleGraduationFields);
-        toggleGraduationFields();
-
-        checkboxes.forEach(function (checkbox) {
-            const careerId = checkbox.getAttribute("data-career-id");
-            const select = document.getElementById("shift_select_" + careerId);
-            const entryInput = document.getElementById("entry_year_" + careerId);
-            const curriculumSelect = document.getElementById("curriculum_select_" + careerId);
-
-            checkbox.addEventListener("change", function () {
-                if (checkbox.checked) {
-                    if (select) select.disabled = false;
-                    if (entryInput) entryInput.disabled = false;
-                    if (curriculumSelect) curriculumSelect.disabled = false;
-                } else {
-                    if (select) select.disabled = true;
-                    if (entryInput) entryInput.disabled = true;
-                    if (curriculumSelect) curriculumSelect.disabled = true;
-                }
-            });
-        });
-    });
-</script>
-@endsection
+</x-app-layout>

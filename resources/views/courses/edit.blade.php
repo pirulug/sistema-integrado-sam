@@ -1,171 +1,92 @@
-@extends("layouts.app")
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Editar Curso') }}
+        </h2>
+    </x-slot>
 
-@section("content")
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0">{{ __("Editar Curso") }}</span>
-                    <a href="{{ route("courses.index") }}" class="btn btn-secondary btn-sm">
-                        {{ __("Volver") }}
-                    </a>
-                </div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route("courses.update", $course->id) }}">
+    <div class="py-12">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <form method="POST" action="{{ route('courses.update', $course) }}" class="space-y-6">
                         @csrf
-                        @method("PUT")
+                        @method('PUT')
 
-                        <div class="row mb-3">
-                            <label for="code" class="col-md-4 col-form-label text-md-end">{{ __("Código") }} *</label>
-                            <div class="col-md-6">
-                                <input id="code" type="text" class="form-control @error("code") is-invalid @enderror" 
-                                       name="code" value="{{ old("code", $course->code) }}" required autofocus>
-                                @error("code")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Code -->
+                            <div>
+                                <x-input-label for="code" :value="__('Código del Curso')" />
+                                <x-text-input id="code" name="code" type="text" class="mt-1 block w-full" :value="old('code', $course->code)" required autofocus />
+                                <x-input-error class="mt-2" :messages="$errors->get('code')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="name" class="col-md-4 col-form-label text-md-end">{{ __("Nombre del Curso") }} *</label>
-                            <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error("name") is-invalid @enderror" 
-                                       name="name" value="{{ old("name", $course->name) }}" required>
-                                @error("name")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Name -->
+                            <div>
+                                <x-input-label for="name" :value="__('Nombre del Curso')" />
+                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $course->name)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('name')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="credits" class="col-md-4 col-form-label text-md-end">{{ __("Créditos") }} *</label>
-                            <div class="col-md-6">
-                                <input id="credits" type="number" class="form-control @error("credits") is-invalid @enderror" 
-                                       name="credits" value="{{ old("credits", $course->credits) }}" required min="1" max="10">
-                                @error("credits")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="career_id" class="col-md-4 col-form-label text-md-end">{{ __("Carrera Profesional") }} *</label>
-                            <div class="col-md-6">
-                                <select id="career_id" class="form-select @error("career_id") is-invalid @enderror" name="career_id" required>
-                                    @foreach ($careers as $career)
-                                        <option value="{{ $career->id }}" {{ old("career_id", $course->career_id) == $career->id ? "selected" : "" }}>
-                                            {{ $career->name }}
-                                        </option>
-                                    @endforeach
+                            <!-- Period -->
+                            <div>
+                                <x-input-label for="period" :value="__('Periodo Académico (Semestre)')" />
+                                <select id="period" name="period" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
+                                    <option value="">Seleccione Periodo</option>
+                                    <option value="I" {{ old('period', $course->period) == 'I' ? 'selected' : '' }}>I</option>
+                                    <option value="II" {{ old('period', $course->period) == 'II' ? 'selected' : '' }}>II</option>
+                                    <option value="III" {{ old('period', $course->period) == 'III' ? 'selected' : '' }}>III</option>
+                                    <option value="IV" {{ old('period', $course->period) == 'IV' ? 'selected' : '' }}>IV</option>
+                                    <option value="V" {{ old('period', $course->period) == 'V' ? 'selected' : '' }}>V</option>
+                                    <option value="VI" {{ old('period', $course->period) == 'VI' ? 'selected' : '' }}>VI</option>
                                 </select>
-                                @error("career_id")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                                <x-input-error class="mt-2" :messages="$errors->get('period')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="hours" class="col-md-4 col-form-label text-md-end">{{ __("Horas") }} *</label>
-                            <div class="col-md-6">
-                                <input id="hours" type="number" class="form-control @error("hours") is-invalid @enderror" 
-                                       name="hours" value="{{ old("hours", $course->hours) }}" required min="0">
-                                @error("hours")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Credits -->
+                            <div>
+                                <x-input-label for="credits" :value="__('Créditos')" />
+                                <x-text-input id="credits" name="credits" type="number" class="mt-1 block w-full" :value="old('credits', $course->credits)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('credits')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <label for="curriculum_id" class="col-md-4 col-form-label text-md-end">{{ __("Malla Curricular") }} *</label>
-                            <div class="col-md-6">
-                                <select id="curriculum_id" class="form-select @error("curriculum_id") is-invalid @enderror" name="curriculum_id" required>
-                                    <option value="">{{ __("Seleccionar Malla...") }}</option>
-                                    @foreach ($curriculums as $curr)
-                                        <option value="{{ $curr->id }}" data-career-id="{{ $curr->career_id }}" {{ old("curriculum_id", $course->curriculum_id) == $curr->id ? "selected" : "" }}>
-                                            {{ $curr->name }} ({{ $curr->year }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error("curriculum_id")
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                            <!-- Hours -->
+                            <div>
+                                <x-input-label for="hours" :value="__('Horas Académicas')" />
+                                <x-text-input id="hours" name="hours" type="number" class="mt-1 block w-full" :value="old('hours', $course->hours)" required />
+                                <x-input-error class="mt-2" :messages="$errors->get('hours')" />
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6 offset-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="is_actualizacion" id="is_actualizacion" value="1" {{ old("is_actualizacion", $course->is_actualizacion) ? "checked" : "" }}>
-                                    <label class="form-check-label" for="is_actualizacion">
-                                        {{ __("Es curso de actualización (Alumnos antiguos)") }}
-                                    </label>
+                            <!-- Curriculums Selection (Pivot) -->
+                            <div class="md:col-span-2">
+                                <x-input-label :value="__('Asociar a Mallas Curriculares')" />
+                                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    @if($curriculums->isEmpty())
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">No hay mallas creadas aún.</p>
+                                    @else
+                                        @foreach($curriculums as $curriculum)
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" name="curriculums[]" value="{{ $curriculum->id }}" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" {{ (is_array(old('curriculums')) && in_array($curriculum->id, old('curriculums'))) || (!is_array(old('curriculums')) && $course->curriculums->contains($curriculum->id)) ? 'checked' : '' }}>
+                                                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ $curriculum->name }} ({{ $curriculum->year }})</span>
+                                            </label>
+                                        @endforeach
+                                    @endif
                                 </div>
+                                <x-input-error class="mt-2" :messages="$errors->get('curriculums')" />
                             </div>
                         </div>
 
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __("Actualizar") }}
-                                </button>
-                            </div>
+                        <div class="flex items-center justify-end space-x-3 mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <a href="{{ route('courses.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-25 transition ease-in-out duration-150">
+                                Cancelar
+                            </a>
+                            <x-primary-button>
+                                {{ __('Actualizar') }}
+                            </x-primary-button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@endsection
-
-@section("scripts")
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const careerSelect = document.getElementById("career_id");
-        const curriculumSelect = document.getElementById("curriculum_id");
-        
-        if (careerSelect && curriculumSelect) {
-            const allOptions = Array.from(curriculumSelect.options);
-            const selectedVal = "{{ old('curriculum_id', $course->curriculum_id) }}";
-            
-            function filterCurriculums() {
-                const careerId = careerSelect.value;
-                curriculumSelect.innerHTML = "";
-                
-                // Add empty option
-                const defaultOption = allOptions[0];
-                curriculumSelect.appendChild(defaultOption);
-                
-                allOptions.forEach(option => {
-                    if (option.value !== "" && option.getAttribute("data-career-id") == careerId) {
-                        curriculumSelect.appendChild(option);
-                    }
-                });
-                
-                if (selectedVal) {
-                    curriculumSelect.value = selectedVal;
-                }
-            }
-            
-            careerSelect.addEventListener("change", filterCurriculums);
-            if (careerSelect.value !== "") {
-                filterCurriculums();
-            }
-        }
-    });
-</script>
-@endsection
+</x-app-layout>

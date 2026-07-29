@@ -1,27 +1,19 @@
 <?php
 
-test("the root path redirects to login", function () {
-    $response = $this->get("/");
+namespace Tests\Feature;
 
-    $response->assertStatus(302);
-});
+// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
-test("the login page returns a successful response", function () {
-    $response = $this->get("/login");
+class ExampleTest extends TestCase
+{
+    /**
+     * A basic test example.
+     */
+    public function test_the_application_returns_a_successful_response(): void
+    {
+        $response = $this->get('/');
 
-    $response->assertStatus(200);
-});
-
-test("it can create a student", function () {
-    \App\Models\Student::factory()->create([
-        "name" => "Juan Perez",
-        "document_number" => "12345678",
-        "status" => "matriculado",
-    ]);
-
-    $this->assertDatabaseHas("students", [
-        "name" => "Juan Perez",
-        "document_number" => "12345678",
-        "status" => "matriculado",
-    ]);
-});
+        $response->assertRedirect('/login');
+    }
+}

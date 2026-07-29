@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Course extends Model
@@ -12,42 +11,26 @@ class Course extends Model
     use HasFactory;
 
     protected $fillable = [
-        "name",
-        "code",
-        "credits",
-        "hours",
-        "career_id",
-        "curriculum_id",
-        "is_actualizacion",
-    ];
-
-    protected $casts = [
-        "is_actualizacion" => "boolean",
+        'code',
+        'name',
+        'period',
+        'credits',
+        'hours',
     ];
 
     /**
-     * Get the career professional program that this course belongs to.
+     * The curriculums that belong to the course.
      */
-    public function career(): BelongsTo
+    public function curriculums(): BelongsToMany
     {
-        return $this->belongsTo(Career::class);
+        return $this->belongsToMany(Curriculum::class, 'course_curriculum')->withTimestamps();
     }
 
     /**
-     * Get the curriculum map this course belongs to.
-     */
-    public function curriculum(): BelongsTo
-    {
-        return $this->belongsTo(Curriculum::class);
-    }
-
-    /**
-     * Get the students enrolled in this course.
+     * The students that belong to the course.
      */
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class)
-            ->withPivot("grade", "status")
-            ->withTimestamps();
+        return $this->belongsToMany(Student::class)->withTimestamps();
     }
 }

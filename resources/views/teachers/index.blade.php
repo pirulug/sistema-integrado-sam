@@ -1,118 +1,87 @@
-@extends("layouts.app")
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Profesores') }}
+        </h2>
+    </x-slot>
 
-@section("content")
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <span class="h5 mb-0">{{ __("Gestión de Profesores") }}</span>
-                    <a href="{{ route("teachers.create") }}" class="btn btn-primary btn-sm">
-                        {{ __("Registrar Profesor") }}
-                    </a>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Success Alert -->
+            @if (session('success'))
+                <div class="mb-6 p-4 bg-green-50 border-l-4 border-green-400 text-green-700 rounded dark:bg-green-900/30 dark:text-green-400" role="alert">
+                    <p class="font-medium">{{ session('success') }}</p>
                 </div>
+            @endif
 
-                <div class="card-body">
-                    @if (session("success"))
-                        <div class="alert alert-success" role="alert">
-                            {{ session("success") }}
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-6 space-y-4 md:space-y-0">
+                        <!-- Search Form -->
+                        <form method="GET" action="{{ route('teachers.index') }}" class="w-full md:w-1/2 flex items-center">
+                            <input type="text" name="search" value="{{ $search }}" placeholder="Buscar por DNI, Código o Nombre..." class="w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm" />
+                            <button type="submit" class="ms-3 inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                Buscar
+                            </button>
+                            @if ($search)
+                                <a href="{{ route('teachers.index') }}" class="ms-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </form>
+
+                        <!-- Add Button -->
+                        <a href="{{ route('teachers.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
+                            Registrar Profesor
+                        </a>
+                    </div>
+
+                    <!-- Teachers Table -->
+                    @if ($teachers->isEmpty())
+                        <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                            No se encontraron profesores.
+                        </div>
+                    @else
+                        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Código</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">DNI</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Apellidos y Nombres</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email Institucional</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach ($teachers as $teacher)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $teacher->teacher_code }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $teacher->dni }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $teacher->full_name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $teacher->institutional_email }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
+                                                <a href="{{ route('teachers.show', $teacher) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">Ver</a>
+                                                <a href="{{ route('teachers.edit', $teacher) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300">Editar</a>
+                                                <form action="{{ route('teachers.destroy', $teacher) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar a este profesor?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Eliminar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-4">
+                            {{ $teachers->links() }}
                         </div>
                     @endif
-
-                     <div class="mb-4">
-                        <span class="me-2">{{ __("Filtrar por estado:") }}</span>
-                        <div class="btn-group" role="group">
-                            <a href="{{ route("teachers.index", ["status" => "todos"]) }}" 
-                               class="btn btn-sm {{ !$status || $status === "todos" ? "btn-secondary" : "btn-outline-secondary" }}">
-                                {{ __("Todos") }}
-                            </a>
-                            <a href="{{ route("teachers.index", ["status" => "activo"]) }}" 
-                               class="btn btn-sm {{ $status === "activo" ? "btn-success" : "btn-outline-success" }}">
-                                {{ __("Activos") }}
-                            </a>
-                            <a href="{{ route("teachers.index", ["status" => "inactivo"]) }}" 
-                               class="btn btn-sm {{ $status === "inactivo" ? "btn-danger" : "btn-outline-danger" }}">
-                                {{ __("Inactivos") }}
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle">
-                            <thead>
-                                <tr>
-                                    <th>{{ __("Documento") }}</th>
-                                    <th>{{ __("Nombre") }}</th>
-                                    <th>{{ __("Email") }}</th>
-                                    <th>{{ __("Teléfono") }}</th>
-                                    <th>{{ __("Especialidad") }}</th>
-                                    <th>{{ __("Carreras") }}</th>
-                                    <th>{{ __("Estado") }}</th>
-                                    <th>{{ __("Contratación") }}</th>
-                                    <th class="text-center">{{ __("Acciones") }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($teachers as $teacher)
-                                    <tr>
-                                        <td>{{ $teacher->document_number }}</td>
-                                        <td>{{ $teacher->name }}</td>
-                                        <td>{{ $teacher->email ?? __("N/A") }}</td>
-                                        <td>{{ $teacher->phone ?? __("N/A") }}</td>
-                                        <td>{{ $teacher->specialty }}</td>
-                                        <td>
-                                            @forelse ($teacher->careers as $career)
-                                                <span class="badge bg-secondary mb-1" style="font-size: 0.8rem;">{{ $career->name }}</span>
-                                            @empty
-                                                <span>{{ __("Sin asignar") }}</span>
-                                            @endforelse
-                                        </td>
-                                        <td>
-                                            @if ($teacher->status === "activo")
-                                                <span class="badge bg-success">{{ __("Activo") }}</span>
-                                            @elseif ($teacher->status === "inactivo")
-                                                <span class="badge bg-danger">{{ __("Inactivo") }}</span>
-                                            @else
-                                                <span class="badge bg-secondary">{{ $teacher->status }}</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $teacher->hire_date }}</td>
-                                        <td class="text-center">
-                                            <div class="btn-group" role="group">
-                                                <a href="{{ route("teachers.show", $teacher->id) }}" class="btn btn-info btn-sm" title="{{ __("Ver") }}">
-                                                    <i class="bi bi-eye">{{ __("Ver") }}</i>
-                                                </a>
-                                                <a href="{{ route("teachers.edit", $teacher->id) }}" class="btn btn-warning btn-sm" title="{{ __("Editar") }}">
-                                                    <i class="bi bi-pencil">{{ __("Editar") }}</i>
-                                                </a>
-                                                <form action="{{ route("teachers.destroy", $teacher->id) }}" method="POST" class="d-inline"
-                                                      onsubmit="return confirm('¿Estás seguro de que deseas eliminar este profesor?');">
-                                                    @csrf
-                                                    @method("DELETE")
-                                                    <button type="submit" class="btn btn-danger btn-sm" title="{{ __("Eliminar") }}">
-                                                        <i class="bi bi-trash">{{ __("Eliminar") }}</i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="8" class="text-center py-4">
-                                            {{ __("No se encontraron profesores registrados.") }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="mt-3">
-                        {{ $teachers->links() }}
-                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-@endsection
+</x-app-layout>

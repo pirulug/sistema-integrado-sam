@@ -1,63 +1,49 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\CurriculumController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\EfsrtController;
+use App\Http\Controllers\GraduationController;
 use Illuminate\Support\Facades\Route;
 
-Route::get("/", function () {
-    return redirect("/login");
+Route::get('/', function () {
+    $curriculum = \App\Models\Curriculum::with('courses')->first();
+    $coursesByPeriod = $curriculum ? $curriculum->courses->groupBy('period') : collect();
+    return view('landing', compact('coursesByPeriod'));
+})->name('home');
+
+Route::get('/consulta', [GraduationController::class, 'publicLookup'])->name('graduation.public-lookup');
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Teacher & Admin routes
+    Route::middleware('role:teacher')->group(function () {
+        Route::resource('students', StudentController::class);
+        Route::resource('curriculums', CurriculumController::class);
+        Route::resource('courses', CourseController::class);
+        Route::resource('efsrts', EfsrtController::class);
+
+        Route::get('/graduation', [GraduationController::class, 'index'])->name('graduation.index');
+        Route::post('/graduation/{student}/toggle-course/{course}', [GraduationController::class, 'toggleCourse'])->name('graduation.toggle-course');
+        Route::post('/graduation/{student}/update-efsrt/{efsrt}', [GraduationController::class, 'updateEfsrt'])->name('graduation.update-efsrt');
+        Route::post('/graduation/{student}/titular', [GraduationController::class, 'titular'])->name('graduation.titular');
+        Route::post('/graduation/{student}/bulk-courses', [GraduationController::class, 'bulkCourses'])->name('graduation.bulk-courses');
+    });
+
+    // Admin only routes
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('teachers', TeacherController::class);
+    });
 });
 
-Auth::routes();
-
-Route::get("/home", [App\Http\Controllers\HomeController::class, "index"])->name("home");
-
-Route::resource("students", App\Http\Controllers\StudentController::class)->middleware("auth");
-
-Route::resource("teachers", App\Http\Controllers\TeacherController::class)->middleware("auth");
-
-Route::resource("careers", App\Http\Controllers\CareerController::class)->middleware("auth");
-
-Route::resource("courses", App\Http\Controllers\CourseController::class)->middleware("auth");
-
-Route::resource("curriculums", App\Http\Controllers\CurriculumController::class)->middleware("auth");
-
-Route::post("students/{student}/courses", [App\Http\Controllers\StudentCourseController::class, "store"])
-    ->name("students.courses.store")
-    ->middleware("auth");
-
-Route::put("students/{student}/courses/{course}", [App\Http\Controllers\StudentCourseController::class, "update"])
-    ->name("students.courses.update")
-    ->middleware("auth");
-
-Route::delete("students/{student}/courses/{course}", [App\Http\Controllers\StudentCourseController::class, "destroy"])
-    ->name("students.courses.destroy")
-    ->middleware("auth");
-
-Route::get("students/{student}/efsrt/edit", [App\Http\Controllers\StudentEfsrtController::class, "edit"])
-    ->name("students.efsrt.edit")
-    ->middleware("auth");
-
-Route::put("students/{student}/efsrt/all", [App\Http\Controllers\StudentEfsrtController::class, "updateAll"])
-    ->name("students.efsrt.updateAll")
-    ->middleware("auth");
-
-Route::put("students/{student}/efsrt/{efsrt}", [App\Http\Controllers\StudentEfsrtController::class, "update"])
-    ->name("students.efsrt.update")
-    ->middleware("auth");
-
-Route::put("students/{student}/efsrt", [App\Http\Controllers\StudentEfsrtController::class, "updateBatch"])
-    ->name("students.efsrt.updateBatch")
-    ->middleware("auth");
-
-Route::get("students/{student}/courses/edit", [App\Http\Controllers\StudentCourseController::class, "edit"])
-    ->name("students.courses.edit")
-    ->middleware("auth");
-
-Route::get("students/{student}/graduation", [App\Http\Controllers\StudentGraduationController::class, "edit"])
-    ->name("students.graduation.edit")
-    ->middleware("auth");
-
-Route::put("students/{student}/graduation", [App\Http\Controllers\StudentGraduationController::class, "update"])
-    ->name("students.graduation.update")
-    ->middleware("auth");
-
-
+require __DIR__.'/auth.php';

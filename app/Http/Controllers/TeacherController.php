@@ -3,108 +3,114 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class TeacherController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $status = $request->input("status");
+        $search = $request->input('search');
 
-        $query = Teacher::query()->with("careers");
+        $teachers = Teacher::query()
+            ->when($search, function ($query, $search) {
+                $query->where('dni', 'like', "%{$search}%")
+                    ->orWhere('teacher_code', 'like', "%{$search}%")
+                    ->orWhere('paternal_last_name', 'like', "%{$search}%")
+                    ->orWhere('maternal_last_name', 'like', "%{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%");
+            })
+            ->orderBy('paternal_last_name')
+            ->paginate(10)
+            ->withQueryString();
 
-        if ($status && $status !== "todos") {
-            $query->where("status", $status);
-        }
-
-        $teachers = $query->latest()->paginate(10)->withQueryString();
-
-        return view("teachers.index", compact("teachers", "status"));
+        return view('teachers.index', compact('teachers', 'search'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
-        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
-        return view("teachers.create", compact("careers"));
+        return view('teachers.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            "careers" => "nullable|array",
-            "careers.*" => "exists:careers,id",
-            "name" => "required|string|max:255",
-            "document_number" => "required|string|max:50|unique:teachers,document_number",
-            "email" => "nullable|email|max:255|unique:teachers,email",
-            "phone" => "nullable|string|max:50",
-            "specialty" => "required|string|max:255",
-            "status" => "required|in:activo,inactivo",
-            "hire_date" => "required|date",
+            'dni' => 'required|string|unique:teachers,dni|max:20',
+            'teacher_code' => 'required|string|unique:teachers,teacher_code|max:50',
+            'paternal_last_name' => 'required|string|max:100',
+            'maternal_last_name' => 'required|string|max:100',
+            'first_name' => 'required|string|max:100',
+            'personal_email' => 'nullable|email|max:255',
+            'institutional_email' => 'required|email|unique:teachers,institutional_email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'mobile' => 'nullable|string|max:20',
+            'hire_date' => 'required|date',
         ]);
 
-        $teacher = Teacher::create($validated);
-        $teacher->careers()->sync($request->input("careers", []));
+        Teacher::create($validated);
 
-        return redirect()->route("teachers.index")->with("success", "Profesor creado exitosamente.");
+        return redirect()->route('teachers.index')
+            ->with('success', 'Profesor creado exitosamente.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Teacher $teacher)
+    public function show(Teacher $teacher): View
     {
-        $teacher->load("careers");
-        return view("teachers.show", compact("teacher"));
+        return view('teachers.show', compact('teacher'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Teacher $teacher)
+    public function edit(Teacher $teacher): View
     {
-        $careers = \App\Models\Career::where("status", "activo")->orderBy("name")->get();
-        return view("teachers.edit", compact("teacher", "careers"));
+        return view('teachers.edit', compact('teacher'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Teacher $teacher)
+    public function update(Request $request, Teacher $teacher): RedirectResponse
     {
         $validated = $request->validate([
-            "careers" => "nullable|array",
-            "careers.*" => "exists:careers,id",
-            "name" => "required|string|max:255",
-            "document_number" => "required|string|max:50|unique:teachers,document_number," . $teacher->id,
-            "email" => "nullable|email|max:255|unique:teachers,email," . $teacher->id,
-            "phone" => "nullable|string|max:50",
-            "specialty" => "required|string|max:255",
-            "status" => "required|in:activo,inactivo",
-            "hire_date" => "required|date",
+            'dni' => 'required|string|max:20|unique:teachers,dni,' . $teacher->id,
+            'teacher_code' => 'required|string|max:50|unique:teachers,teacher_code,' . $teacher->id,
+            'paternal_last_name' => 'required|string|max:100',
+            'maternal_last_name' => 'required|string|max:100',
+            'first_name' => 'required|string|max:100',
+            'personal_email' => 'nullable|email|max:255',
+            'institutional_email' => 'required|email|max:255|unique:teachers,institutional_email,' . $teacher->id,
+            'phone' => 'nullable|string|max:20',
+            'mobile' => 'nullable|string|max:20',
+            'hire_date' => 'required|date',
         ]);
 
         $teacher->update($validated);
-        $teacher->careers()->sync($request->input("careers", []));
 
-        return redirect()->route("teachers.index")->with("success", "Profesor actualizado exitosamente.");
+        return redirect()->route('teachers.index')
+            ->with('success', 'Profesor actualizado exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Teacher $teacher)
+    public function destroy(Teacher $teacher): RedirectResponse
     {
         $teacher->delete();
 
-        return redirect()->route("teachers.index")->with("success", "Profesor eliminado exitosamente.");
+        return redirect()->route('teachers.index')
+            ->with('success', 'Profesor eliminado exitosamente.');
     }
 }

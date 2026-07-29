@@ -7,24 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Teacher extends Model
 {
-    /** @use HasFactory<\Database\Factories\TeacherFactory> */
     use HasFactory;
 
     protected $fillable = [
-        "name",
-        "document_number",
-        "email",
-        "phone",
-        "specialty",
-        "status",
-        "hire_date",
+        'dni',
+        'teacher_code',
+        'paternal_last_name',
+        'maternal_last_name',
+        'first_name',
+        'personal_email',
+        'institutional_email',
+        'phone',
+        'mobile',
+        'hire_date',
     ];
 
     /**
-     * Get the careers/study programs that the teacher belongs to.
+     * Get full name.
      */
-    public function careers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function getFullNameAttribute(): string
     {
-        return $this->belongsToMany(Career::class)->withTimestamps();
+        return "{$this->paternal_last_name} {$this->maternal_last_name}, {$this->first_name}";
     }
 }

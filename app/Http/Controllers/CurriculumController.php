@@ -3,114 +3,96 @@
 namespace App\Http\Controllers;
 
 use App\Models\Curriculum;
-use App\Models\Career;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class CurriculumController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $careerId = $request->input("career_id");
+        $search = $request->input('search');
 
-        $query = Curriculum::query()->with("career");
+        $curriculums = Curriculum::query()
+            ->when($search, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('year', 'like', "%{$search}%");
+            })
+            ->orderBy('year', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
-        if ($careerId) {
-            $query->where("career_id", $careerId);
-        }
-
-        $curriculums = $query->orderBy("year", "desc")->orderBy("name")->paginate(10)->withQueryString();
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-
-        return view("curriculums.index", compact("curriculums", "careers", "careerId"));
+        return view('curriculums.index', compact('curriculums', 'search'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-        return view("curriculums.create", compact("careers"));
+        return view('curriculums.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "year" => "required|integer|min:1900|max:2100",
-            "career_id" => "required|exists:careers,id",
+            'name' => 'required|string|max:255',
+            'year' => 'required|string|max:4',
         ]);
 
         Curriculum::create($validated);
 
-        return redirect()->route("curriculums.index")->with("success", "Malla curricular creada exitosamente.");
+        return redirect()->route('curriculums.index')
+            ->with('success', 'Malla curricular creada exitosamente.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Curriculum $curriculum)
+    public function show(Curriculum $curriculum): View
     {
-        $curriculum->load(["career", "courses.career"]);
-
-        // Group courses by period parsed from their academic code (e.g. CONT-201 -> period 2)
-        $groupedCourses = $curriculum->courses->groupBy(function ($course) {
-            if (preg_match('/-(\d)/', $course->code, $matches)) {
-                return (int)$matches[1];
-            }
-            return 1; // Default fallback to period 1
-        })->sortKeys();
-
-        $romanPeriods = [
-            1 => 'I',
-            2 => 'II',
-            3 => 'III',
-            4 => 'IV',
-            5 => 'V',
-            6 => 'VI',
-        ];
-
-        return view("curriculums.show", compact("curriculum", "groupedCourses", "romanPeriods"));
+        $curriculum->load(['courses', 'efsrts']);
+        return view('curriculums.show', compact('curriculum'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Curriculum $curriculum)
+    public function edit(Curriculum $curriculum): View
     {
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-        return view("curriculums.edit", compact("curriculum", "careers"));
+        return view('curriculums.edit', compact('curriculum'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Curriculum $curriculum)
+    public function update(Request $request, Curriculum $curriculum): RedirectResponse
     {
         $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "year" => "required|integer|min:1900|max:2100",
-            "career_id" => "required|exists:careers,id",
+            'name' => 'required|string|max:255',
+            'year' => 'required|string|max:4',
         ]);
 
         $curriculum->update($validated);
 
-        return redirect()->route("curriculums.index")->with("success", "Malla curricular actualizada exitosamente.");
+        return redirect()->route('curriculums.index')
+            ->with('success', 'Malla curricular actualizada exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Curriculum $curriculum)
+    public function destroy(Curriculum $curriculum): RedirectResponse
     {
         $curriculum->delete();
 
-        return redirect()->route("curriculums.index")->with("success", "Malla curricular eliminada exitosamente.");
+        return redirect()->route('curriculums.index')
+            ->with('success', 'Malla curricular eliminada exitosamente.');
     }
 }

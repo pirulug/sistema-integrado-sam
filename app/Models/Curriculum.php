@@ -4,8 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Curriculum extends Model
 {
@@ -16,22 +15,21 @@ class Curriculum extends Model
     protected $fillable = [
         'name',
         'year',
-        'career_id',
     ];
 
     /**
-     * Get the career professional program that owns this curriculum.
+     * The courses that belong to the curriculum.
      */
-    public function career(): BelongsTo
+    public function courses(): BelongsToMany
     {
-        return $this->belongsTo(Career::class);
+        return $this->belongsToMany(Course::class, 'course_curriculum')->withTimestamps();
     }
 
     /**
-     * Get the courses associated with this curriculum.
+     * The EFSRT records that belong to the curriculum.
      */
-    public function courses(): HasMany
+    public function efsrts(): BelongsToMany
     {
-        return $this->hasMany(Course::class);
+        return $this->belongsToMany(Efsrt::class, 'curriculum_efsrt')->withTimestamps();
     }
 }

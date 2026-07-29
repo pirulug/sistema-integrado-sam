@@ -1,98 +1,103 @@
-@extends("layouts.app")
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            {{ __('Detalles de Malla Curricular') }}
+        </h2>
+    </x-slot>
 
-@section("content")
-<div class="container">
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <span class="small d-block text-uppercase fw-bold">{{ __("Estructura Curricular") }}</span>
-                <h5 class="mb-0 fw-bold">{{ $curriculum->name }} ({{ $curriculum->year }})</h5>
-            </div>
-            <div>
-                <a href="{{ route("courses.create", ["career_id" => $curriculum->career_id, "curriculum_id" => $curriculum->id]) }}" class="btn btn-primary btn-sm me-2">
-                    <i class="bi bi-plus-lg"></i> {{ __("Agregar Curso") }}
-                </a>
-                <a href="{{ route("curriculums.index") }}" class="btn btn-secondary btn-sm">
-                    {{ __("Volver") }}
-                </a>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <strong>{{ __("Carrera Profesional:") }}</strong> {{ $curriculum->career->name }}
+    <div class="py-12">
+        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            <!-- Curriculum Info Card -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-indigo-600 dark:text-indigo-400">{{ $curriculum->name }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Año de Vigencia: <span class="font-semibold text-gray-700 dark:text-gray-300">{{ $curriculum->year }}</span></p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{{ route('curriculums.edit', $curriculum) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                Editar
+                            </a>
+                            <a href="{{ route('curriculums.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                Volver
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <strong>{{ __("Total Cursos:") }}</strong> {{ $curriculum->courses->count() }}
+            </div>
+
+            <!-- Associated Courses Card -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <h4 class="font-bold text-lg border-b border-gray-200 dark:border-gray-700 pb-3 mb-4 text-indigo-600 dark:text-indigo-400">Cursos en esta Malla</h4>
+
+                    @if ($curriculum->courses->isEmpty())
+                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No hay cursos asociados a esta malla curricular aún.</p>
+                    @else
+                        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Código</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nombre del Curso</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Créditos</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Horas</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach ($curriculum->courses as $course)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $course->code }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-950 dark:text-gray-200">{{ $course->name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $course->credits }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $course->hours }} h</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                                <a href="{{ route('courses.show', $course) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">Ver Detalles</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Associated EFSRT Modules Card -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <h4 class="font-bold text-lg border-b border-gray-200 dark:border-gray-700 pb-3 mb-4 text-indigo-600 dark:text-indigo-400">Prácticas Preprofesionales (EFSRT) asociadas</h4>
+
+                    @if ($curriculum->efsrts->isEmpty())
+                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-4">No hay módulos de prácticas asociados a esta malla curricular aún.</p>
+                    @else
+                        <div class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Módulo</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nombre del Módulo (Práctica)</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    @foreach ($curriculum->efsrts as $efsrt)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $efsrt->module }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-950 dark:text-gray-200">{{ $efsrt->module_name ?? 'Sin nombre personalizado' }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                                                <a href="{{ route('efsrts.show', $efsrt) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">Ver Detalles</a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
-
-    @if ($groupedCourses->isEmpty())
-        <div class="alert alert-info text-center py-4">
-            {{ __("No hay cursos registrados en esta malla curricular.") }}
-        </div>
-    @else
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            @foreach ($groupedCourses as $periodNum => $courses)
-                @php
-                    $romanPeriod = $romanPeriods[$periodNum] ?? $periodNum;
-                    $periodCredits = $courses->sum("credits");
-                    $periodHours = $courses->sum("hours");
-                @endphp
-                <div class="col">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold text-uppercase">{{ __("Periodo ") }}{{ $romanPeriod }}</h6>
-                            <span class="badge border border-secondary text-reset small">
-                                {{ $periodCredits }} cr | {{ $periodHours }} hrs
-                            </span>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover align-middle mb-0" style="font-size: 0.9rem;">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ __("Código") }}</th>
-                                            <th>{{ __("Curso") }}</th>
-                                            <th class="text-center">{{ __("Cr") }}</th>
-                                            <th class="text-center">{{ __("Hrs") }}</th>
-                                            <th class="text-center">{{ __("Acciones") }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($courses as $course)
-                                            <tr>
-                                                <td><strong>{{ $course->code }}</strong></td>
-                                                <td>{{ $course->name }}</td>
-                                                <td class="text-center">{{ $course->credits }}</td>
-                                                <td class="text-center">{{ $course->hours }}</td>
-                                                <td class="text-center">
-                                                    <div class="btn-group" role="group">
-                                                        <a href="{{ route("courses.edit", $course->id) }}" class="btn btn-warning btn-sm py-0 px-1" title="{{ __("Editar") }}">
-                                                            <i class="bi bi-pencil"></i>
-                                                        </a>
-                                                        <form action="{{ route("courses.destroy", $course->id) }}" method="POST" class="d-inline"
-                                                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este curso?');">
-                                                            @csrf
-                                                            @method("DELETE")
-                                                            <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="{{ __("Eliminar") }}">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-</div>
-@endsection
+</x-app-layout>

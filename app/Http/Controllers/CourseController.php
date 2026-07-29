@@ -3,101 +3,118 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
-use App\Models\Career;
+use App\Models\Curriculum;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class CourseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $careerId = $request->input("career_id");
+        $search = $request->input('search');
 
-        $query = Course::query()->with(["career", "curriculum"]);
+        $courses = Course::query()
+            ->when($search, function ($query, $search) {
+                $query->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('period', 'like', "%{$search}%");
+            })
+            ->orderBy('period')
+            ->orderBy('name')
+            ->paginate(10)
+            ->withQueryString();
 
-        if ($careerId) {
-            $query->where("career_id", $careerId);
-        }
-
-        $courses = $query->orderBy("code")->paginate(10)->withQueryString();
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-
-        return view("courses.index", compact("courses", "careers", "careerId"));
+        return view('courses.index', compact('courses', 'search'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): View
     {
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
-        return view("courses.create", compact("careers", "curriculums"));
+        $curriculums = Curriculum::all();
+        return view('courses.create', compact('curriculums'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "code" => "required|string|max:50|unique:courses,code",
-            "credits" => "required|integer|min:1|max:10",
-            "hours" => "required|integer|min:0",
-            "career_id" => "required|exists:careers,id",
-            "curriculum_id" => "required|exists:curriculums,id",
-            "is_actualizacion" => "boolean",
+            'code' => 'required|string|unique:courses,code|max:50',
+            'name' => 'required|string|max:255',
+            'period' => 'nullable|string|max:50',
+            'credits' => 'required|integer|min:0',
+            'hours' => 'required|integer|min:0',
+            'curriculums' => 'nullable|array',
+            'curriculums.*' => 'exists:curriculums,id',
         ]);
 
-        $validated["is_actualizacion"] = $request->has("is_actualizacion");
+        $course = Course::create($validated);
 
-        Course::create($validated);
+        if ($request->has('curriculums')) {
+            $course->curriculums()->sync($request->input('curriculums'));
+        }
 
-        return redirect()->route("courses.index")->with("success", "Curso creado exitosamente.");
+        return redirect()->route('courses.index')
+            ->with('success', 'Curso creado exitosamente.');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Course $course): View
+    {
+        $course->load('curriculums');
+        return view('courses.show', compact('course'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Course $course)
+    public function edit(Course $course): View
     {
-        $careers = Career::where("status", "activo")->orderBy("name")->get();
-        $curriculums = \App\Models\Curriculum::orderBy("year", "desc")->orderBy("name")->get();
-        return view("courses.edit", compact("course", "careers", "curriculums"));
+        $curriculums = Curriculum::all();
+        $course->load('curriculums');
+        return view('courses.edit', compact('course', 'curriculums'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Course $course)
+    public function update(Request $request, Course $course): RedirectResponse
     {
         $validated = $request->validate([
-            "name" => "required|string|max:255",
-            "code" => "required|string|max:50|unique:courses,code," . $course->id,
-            "credits" => "required|integer|min:1|max:10",
-            "hours" => "required|integer|min:0",
-            "career_id" => "required|exists:careers,id",
-            "curriculum_id" => "required|exists:curriculums,id",
-            "is_actualizacion" => "boolean",
+            'code' => 'required|string|max:50|unique:courses,code,' . $course->id,
+            'name' => 'required|string|max:255',
+            'period' => 'nullable|string|max:50',
+            'credits' => 'required|integer|min:0',
+            'hours' => 'required|integer|min:0',
+            'curriculums' => 'nullable|array',
+            'curriculums.*' => 'exists:curriculums,id',
         ]);
-
-        $validated["is_actualizacion"] = $request->has("is_actualizacion");
 
         $course->update($validated);
 
-        return redirect()->route("courses.index")->with("success", "Curso actualizado exitosamente.");
+        $course->curriculums()->sync($request->input('curriculums', []));
+
+        return redirect()->route('courses.index')
+            ->with('success', 'Curso actualizado exitosamente.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Course $course)
+    public function destroy(Course $course): RedirectResponse
     {
         $course->delete();
 
-        return redirect()->route("courses.index")->with("success", "Curso eliminado exitosamente.");
+        return redirect()->route('courses.index')
+            ->with('success', 'Curso eliminado exitosamente.');
     }
 }
