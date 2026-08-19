@@ -6,6 +6,13 @@
         <title>SISAM - Diseño y Programación Web</title>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:300,400,500,600,700,800&display=swap" rel="stylesheet" />
+        <!-- Favicons -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/favicon/apple-touch-icon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/favicon/favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/favicon/favicon-16x16.png') }}">
+        <link rel="manifest" href="{{ asset('assets/favicon/site.webmanifest') }}">
+        <link rel="shortcut icon" href="{{ asset('assets/favicon/favicon.ico') }}">
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <!-- Dark Mode Detection -->
@@ -22,7 +29,8 @@
         <!-- Header -->
         <header class="bg-white/80 dark:bg-gray-800/85 backdrop-blur border-b border-gray-100 dark:border-gray-750 sticky top-0 z-50 transition-colors">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
+                    <img src="{{ asset('assets/logo.webp') }}" alt="SISAM" class="h-9 w-auto object-contain" />
                     <span class="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-tight">
                         SISAM
                     </span>
