@@ -46,8 +46,13 @@ Route::middleware('auth')->group(function () {
     });
 
     // Admin only routes
-    Route::middleware('role:admin')->group(function () {
-        Route::resource('teachers', TeacherController::class);
+    Route::middleware("role:admin")->group(function () {
+        Route::get("teachers/template", [TeacherController::class, "downloadTemplate"])->name("teachers.template");
+        Route::post("teachers/import", [TeacherController::class, "import"])->name("teachers.import");
+        Route::get("teachers/import-conflicts", [TeacherController::class, "showConflicts"])->name("teachers.import-conflicts");
+        Route::post("teachers/import-conflicts/resolve", [TeacherController::class, "resolveConflicts"])->name("teachers.import-conflicts.resolve");
+        Route::post("teachers/import-conflicts/cancel", [TeacherController::class, "cancelConflicts"])->name("teachers.import-conflicts.cancel");
+        Route::resource("teachers", TeacherController::class);
     });
 });
 
