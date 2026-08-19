@@ -27,8 +27,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Teacher & Admin routes
-    Route::middleware('role:teacher')->group(function () {
-        Route::resource('students', StudentController::class);
+    Route::middleware("role:teacher")->group(function () {
+        Route::get("students/template", [StudentController::class, "downloadTemplate"])->name("students.template");
+        Route::post("students/import", [StudentController::class, "import"])->name("students.import");
+        Route::get("students/import-conflicts", [StudentController::class, "showConflicts"])->name("students.import-conflicts");
+        Route::post("students/import-conflicts/resolve", [StudentController::class, "resolveConflicts"])->name("students.import-conflicts.resolve");
+        Route::post("students/import-conflicts/cancel", [StudentController::class, "cancelConflicts"])->name("students.import-conflicts.cancel");
+        Route::resource("students", StudentController::class);
         Route::resource('curriculums', CurriculumController::class);
         Route::resource('courses', CourseController::class);
         Route::resource('efsrts', EfsrtController::class);
