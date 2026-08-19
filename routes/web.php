@@ -34,8 +34,22 @@ Route::middleware('auth')->group(function () {
         Route::post("students/import-conflicts/resolve", [StudentController::class, "resolveConflicts"])->name("students.import-conflicts.resolve");
         Route::post("students/import-conflicts/cancel", [StudentController::class, "cancelConflicts"])->name("students.import-conflicts.cancel");
         Route::resource("students", StudentController::class);
-        Route::resource('curriculums', CurriculumController::class);
-        Route::resource('courses', CourseController::class);
+
+        // Curriculums Import Routes
+        Route::get("curriculums/template", [CurriculumController::class, "downloadTemplate"])->name("curriculums.template");
+        Route::post("curriculums/import", [CurriculumController::class, "import"])->name("curriculums.import");
+        Route::get("curriculums/import-conflicts", [CurriculumController::class, "showConflicts"])->name("curriculums.import-conflicts");
+        Route::post("curriculums/import-conflicts/resolve", [CurriculumController::class, "resolveConflicts"])->name("curriculums.import-conflicts.resolve");
+        Route::post("curriculums/import-conflicts/cancel", [CurriculumController::class, "cancelConflicts"])->name("curriculums.import-conflicts.cancel");
+        Route::resource("curriculums", CurriculumController::class);
+
+        // Courses Import Routes
+        Route::get("courses/template", [CourseController::class, "downloadTemplate"])->name("courses.template");
+        Route::post("courses/import", [CourseController::class, "import"])->name("courses.import");
+        Route::get("courses/import-conflicts", [CourseController::class, "showConflicts"])->name("courses.import-conflicts");
+        Route::post("courses/import-conflicts/resolve", [CourseController::class, "resolveConflicts"])->name("courses.import-conflicts.resolve");
+        Route::post("courses/import-conflicts/cancel", [CourseController::class, "cancelConflicts"])->name("courses.import-conflicts.cancel");
+        Route::resource("courses", CourseController::class);
         Route::resource('efsrts', EfsrtController::class);
 
         Route::get('/graduation', [GraduationController::class, 'index'])->name('graduation.index');
