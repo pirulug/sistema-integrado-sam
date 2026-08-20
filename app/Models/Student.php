@@ -72,7 +72,8 @@ class Student extends Model
         if (!$this->curriculum) {
             return collect();
         }
-        return $this->curriculum->courses()->whereIn("courses.id", $this->courses->pluck("id"))->get();
+        $approvedIds = $this->courses->pluck("id");
+        return $this->curriculum->courses->whereIn("id", $approvedIds);
     }
 
     /**
@@ -83,7 +84,8 @@ class Student extends Model
         if (!$this->curriculum) {
             return collect();
         }
-        return $this->curriculum->courses()->whereNotIn("courses.id", $this->courses->pluck("id"))->get();
+        $approvedIds = $this->courses->pluck("id");
+        return $this->curriculum->courses->whereNotIn("id", $approvedIds);
     }
 
     /**

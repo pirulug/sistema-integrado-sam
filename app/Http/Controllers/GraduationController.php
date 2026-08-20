@@ -27,7 +27,7 @@ class GraduationController extends Controller
         $sinMallaCount = Student::whereNull("curriculum_id")->count();
 
         // Query active students for Aptos and En Proceso metrics
-        $activeStudents = Student::with(["curriculum.courses:id,curriculum_id", "curriculum.efsrts:id,curriculum_id", "courses:id", "efsrts:id"])
+        $activeStudents = Student::with(["curriculum.courses", "curriculum.efsrts", "courses:id", "efsrts:id"])
             ->whereNull("degree_date")
             ->whereNotNull("curriculum_id")
             ->get(["id", "curriculum_id", "degree_date"]);
