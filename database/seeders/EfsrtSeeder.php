@@ -14,10 +14,13 @@ class EfsrtSeeder extends Seeder
      */
     public function run(): void
     {
+        // Limpiar registros previos sin sufijo de plan
+        Efsrt::whereIn("module", ["Módulo I", "Módulo II", "Módulo III"])->delete();
+
         // EFSRT Modulos Formativos Plan 2020
         $efsrt2020_1 = Efsrt::updateOrCreate(
             [
-                "module" => "Módulo I",
+                "module" => "Módulo I (Plan 2020)",
                 "period" => "II",
             ],
             [
@@ -57,7 +60,7 @@ class EfsrtSeeder extends Seeder
 
         $efsrt2020_2 = Efsrt::updateOrCreate(
             [
-                "module" => "Módulo II",
+                "module" => "Módulo II (Plan 2020)",
                 "period" => "IV",
             ],
             [
@@ -95,7 +98,7 @@ class EfsrtSeeder extends Seeder
 
         $efsrt2020_3 = Efsrt::updateOrCreate(
             [
-                "module" => "Módulo III",
+                "module" => "Módulo III (Plan 2020)",
                 "period" => "VI",
             ],
             [

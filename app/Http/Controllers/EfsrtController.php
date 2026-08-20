@@ -16,19 +16,30 @@ class EfsrtController extends Controller
     public function index(Request $request): View
     {
         $search = $request->input("search");
+        $curriculumId = $request->input("curriculum_id");
+
+        $curriculums = Curriculum::orderBy("year", "desc")->get();
 
         $efsrts = Efsrt::query()
+            ->with("curriculums")
+            ->when($curriculumId, function ($query, $curriculumId) {
+                $query->whereHas("curriculums", function ($q) use ($curriculumId) {
+                    $q->where("curriculums.id", $curriculumId);
+                });
+            })
             ->when($search, function ($query, $search) {
-                $query->where("module", "like", "%{$search}%")
-                    ->orWhere("module_name", "like", "%{$search}%")
-                    ->orWhere("period", "like", "%{$search}%")
-                    ->orWhere("competency", "like", "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where("module", "like", "%{$search}%")
+                        ->orWhere("module_name", "like", "%{$search}%")
+                        ->orWhere("period", "like", "%{$search}%")
+                        ->orWhere("competency", "like", "%{$search}%");
+                });
             })
             ->orderBy("module")
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
-        return view("efsrts.index", compact("efsrts", "search"));
+        return view("efsrts.index", compact("efsrts", "search", "curriculums", "curriculumId"));
     }
 
     /**
