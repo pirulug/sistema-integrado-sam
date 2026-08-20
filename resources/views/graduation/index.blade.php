@@ -409,6 +409,79 @@
     <!-- Client-side Interactive Logic -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // 0. Infinite Scroll Logic (3 by 3)
+            let nextPageUrl = "{{ $students->nextPageUrl() }}";
+            let isLoading = false;
+            const sentinel = document.getElementById("scroll-sentinel");
+            const spinner = document.getElementById("loading-spinner");
+            const endMessage = document.getElementById("end-of-results");
+            const container = document.getElementById("students-container");
+
+            function loadMoreStudents() {
+                if (!nextPageUrl || isLoading) return;
+                isLoading = true;
+                if (spinner) spinner.classList.remove("hidden");
+
+                fetch(nextPageUrl, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "Accept": "application/json"
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    isLoading = false;
+                    if (spinner) spinner.classList.add("hidden");
+
+                    if (data.html) {
+                        const tempDiv = document.createElement("div");
+                        tempDiv.innerHTML = data.html;
+                        while (tempDiv.firstChild) {
+                            container.appendChild(tempDiv.firstChild);
+                        }
+                    }
+
+                    nextPageUrl = data.next_page_url;
+
+                    if (!data.has_more) {
+                        if (endMessage) endMessage.classList.remove("hidden");
+                        if (observer && sentinel) {
+                            observer.unobserve(sentinel);
+                        }
+                    }
+                })
+                .catch(err => {
+                    isLoading = false;
+                    if (spinner) spinner.classList.add("hidden");
+                    console.error("Error loading more students:", err);
+                });
+            }
+
+            let observer = null;
+            if ("IntersectionObserver" in window && sentinel) {
+                observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            loadMoreStudents();
+                        }
+                    });
+                }, {
+                    rootMargin: "300px"
+                });
+
+                if (nextPageUrl) {
+                    observer.observe(sentinel);
+                }
+            }
+
+            // Scroll listener fallback
+            window.addEventListener("scroll", function() {
+                if (!nextPageUrl || isLoading) return;
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                    loadMoreStudents();
+                }
+            }, { passive: true });
+
             // 1. Large Courses Modal Toggle
             document.addEventListener("click", function(e) {
                 const openBtn = e.target.closest(".open-courses-modal-btn");
