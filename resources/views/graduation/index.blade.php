@@ -448,6 +448,7 @@
                                                                                            class="course-checkbox h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                                                                            data-student-id="{{ $student->id }}"
                                                                                            data-course-id="{{ $course->id }}"
+                                                                                           data-period="{{ $periodName }}"
                                                                                            {{ $isCompleted ? 'checked' : '' }} />
                                                                                 </div>
                                                                                 <div class="ms-3 text-xs flex-1">
@@ -713,6 +714,16 @@
                     .then(data => {
                         this.disabled = false;
                         if (data.success) {
+                            // Update container li styling
+                            const li = this.closest("li");
+                            if (li) {
+                                if (data.attached) {
+                                    li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
+                                } else {
+                                    li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
+                                }
+                            }
+
                             // Update pending counter text
                             const counterEl = document.getElementById(`pending-count-${studentId}`);
                             if (counterEl) {
@@ -760,12 +771,19 @@
                                     titularBtn.classList.add("hidden");
                                 }
                             }
+
+                            if (window.showToast) {
+                                window.showToast(data.attached ? "Curso marcado como aprobado." : "Curso desmarcado (pendiente).", "info");
+                            }
                         }
                     })
                     .catch(err => {
                         this.disabled = false;
                         console.error("Error toggling course status:", err);
                         this.checked = !this.checked;
+                        if (window.showToast) {
+                            window.showToast("Error al actualizar el estado del curso.", "error");
+                        }
                     });
                 });
             });
@@ -796,12 +814,26 @@
                         bulkButtons.forEach(b => { if (b.dataset.studentId === studentId) b.disabled = false; });
 
                         if (data.success) {
+                            // Update checkboxes from backend approved_ids list
+                            const approvedIds = (data.approved_ids || []).map(id => parseInt(id));
                             const checkboxes = document.querySelectorAll(`.course-checkbox[data-student-id="${studentId}"]`);
+
                             checkboxes.forEach(chk => {
                                 const courseId = parseInt(chk.dataset.courseId);
-                                chk.checked = data.approved_ids.includes(courseId);
+                                const isApproved = approvedIds.includes(courseId);
+                                chk.checked = isApproved;
+
+                                const li = chk.closest("li");
+                                if (li) {
+                                    if (isApproved) {
+                                        li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
+                                    } else {
+                                        li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
+                                    }
+                                }
                             });
 
+                            // Update counter and progress
                             const total = checkboxes.length;
                             const approved = total - data.pending_count;
                             const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
@@ -846,11 +878,18 @@
                                     titularBtn.classList.add("hidden");
                                 }
                             }
+
+                            if (window.showToast) {
+                                window.showToast("Cursos actualizados exitosamente.", "success");
+                            }
                         }
                     })
                     .catch(err => {
                         bulkButtons.forEach(b => { if (b.dataset.studentId === studentId) b.disabled = false; });
                         console.error("Error during bulk course updates:", err);
+                        if (window.showToast) {
+                            window.showToast("Error al procesar la actualización masiva de cursos.", "error");
+                        }
                     });
                 });
             });

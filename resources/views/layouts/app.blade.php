@@ -44,5 +44,51 @@
                 {{ $slot }}
             </main>
         </div>
+        <!-- Session Feedback Toasts -->
+        @if (session("success"))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (window.showToast) {
+                        window.showToast("{{ session('success') }}", "success");
+                    }
+                });
+            </script>
+        @endif
+        @if (session("error"))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (window.showToast) {
+                        window.showToast("{{ session('error') }}", "error");
+                    }
+                });
+            </script>
+        @endif
+        @if (session("warning"))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (window.showToast) {
+                        window.showToast("{{ session('warning') }}", "warning");
+                    }
+                });
+            </script>
+        @endif
+        @if (session("info"))
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (window.showToast) {
+                        window.showToast("{{ session('info') }}", "info");
+                    }
+                });
+            </script>
+        @endif
+        @if ($errors->any())
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (window.showToast) {
+                        window.showToast("{{ $errors->first() }}", "error");
+                    }
+                });
+            </script>
+        @endif
     </body>
 </html>

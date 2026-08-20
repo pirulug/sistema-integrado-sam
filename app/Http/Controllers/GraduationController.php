@@ -152,7 +152,7 @@ class GraduationController extends Controller
 
         $pendingCount = $student->pendingCourses()->count();
         $overallStatus = $student->overall_status;
-        $approvedIds = $student->courses()->pluck('course_id')->toArray();
+        $approvedIds = $student->courses()->pluck('courses.id')->map(fn($id) => (int)$id)->toArray();
 
         return response()->json([
             'success' => true,
