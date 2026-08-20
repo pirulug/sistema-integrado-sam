@@ -231,6 +231,18 @@
                                         <div class="mt-1 text-[11px] truncate {{ $curriculum ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-amber-600 dark:text-amber-400 font-medium' }}">
                                             {{ $curriculum ? "Malla: {$curriculum->name} ({$curriculum->year})" : "Sin Malla asignada" }}
                                         </div>
+                                        @if ($student->degree_date)
+                                            <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800">
+                                                    Titulado: {{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}
+                                                </span>
+                                                @if ($student->degree_modality)
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-medium border border-purple-200 dark:border-purple-800 max-w-[220px] truncate" title="Modalidad: {{ $student->degree_modality }}">
+                                                        {{ $student->degree_modality }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -345,16 +357,36 @@
                                             </button>
                                         @endif
 
+                                        <!-- Button for Apto -->
                                         <button type="button" 
                                                 id="titular-btn-{{ $student->id }}"
                                                 class="titular-btn {{ $st == 'Apto' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-md transition duration-150"
                                                 data-student-id="{{ $student->id }}"
-                                                data-student-name="{{ $student->full_name }}">
+                                                data-student-name="{{ $student->full_name }}"
+                                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
+                                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
+                                                data-is-titulado="false">
                                             <svg class="w-3.5 h-3.5 me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                                             </svg>
                                             Titular
+                                        </button>
+
+                                        <!-- Button for Titulado (Editar Titulación) -->
+                                        <button type="button" 
+                                                id="edit-titular-btn-{{ $student->id }}"
+                                                class="titular-btn {{ $st == 'Titulado' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900 transition duration-150"
+                                                data-student-id="{{ $student->id }}"
+                                                data-student-name="{{ $student->full_name }}"
+                                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
+                                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
+                                                data-is-titulado="true"
+                                                title="Editar fecha o modalidad de titulación">
+                                            <svg class="w-3.5 h-3.5 me-1 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Editar Titulación
                                         </button>
                                     </div>
                                 </div>
@@ -614,6 +646,8 @@
             <div class="inline-block align-middle bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full border border-gray-200 dark:border-gray-700">
                 <form id="titular-modal-form" method="POST" action="">
                     @csrf
+                    <input type="hidden" name="action" id="titular-action-input" value="save" />
+
                     <div class="p-6">
                         <div class="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-700 mb-5">
                             <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 flex items-center" id="titular-modal-title">
@@ -621,7 +655,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                                 </svg>
-                                Registrar Titulación
+                                <span id="titular-modal-title-text">Registrar Titulación</span>
                             </h3>
                             <button type="button" class="close-titular-modal-btn text-gray-400 hover:text-gray-500 focus:outline-none">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -632,23 +666,51 @@
 
                         <!-- Info display -->
                         <div class="mb-4 bg-emerald-50 dark:bg-emerald-950/40 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800 text-xs">
-                            <span class="text-emerald-800 dark:text-emerald-300">Estudiante Apto:</span> <strong id="titular-modal-student-name" class="text-emerald-900 dark:text-emerald-100 font-bold block mt-0.5"></strong>
+                            <span class="text-emerald-800 dark:text-emerald-300 font-semibold">Estudiante:</span> 
+                            <strong id="titular-modal-student-name" class="text-emerald-950 dark:text-emerald-100 font-bold block mt-0.5 text-sm"></strong>
                         </div>
 
-                        <!-- Date selection -->
-                        <div>
-                            <label for="degree_date_input" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Fecha de Titulación</label>
-                            <input type="date" id="degree_date_input" name="degree_date" required class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" value="{{ date('Y-m-d') }}" />
+                        <div class="space-y-4">
+                            <!-- Date selection -->
+                            <div>
+                                <label for="degree_date_input" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Fecha de Titulación *
+                                </label>
+                                <input type="date" id="degree_date_input" name="degree_date" required class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" value="{{ date('Y-m-d') }}" />
+                            </div>
+
+                            <!-- Modality selection -->
+                            <div>
+                                <label for="degree_modality_select" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Modalidad de Titulación
+                                </label>
+                                <select id="degree_modality_select" name="degree_modality" class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm mb-1.5">
+                                    <option value="">-- Seleccionar Modalidad --</option>
+                                    <option value="Proyecto de Aplicación Profesional">Proyecto de Aplicación Profesional</option>
+                                    <option value="Examen de Suficiencia Profesional">Examen de Suficiencia Profesional</option>
+                                    <option value="Experiencia Laboral Extraordinaria">Experiencia Laboral Extraordinaria</option>
+                                    <option value="Trabajo de Investigación e Innovación">Trabajo de Investigación e Innovación</option>
+                                    <option value="custom">-- Otra Modalidad (especificar) --</option>
+                                </select>
+                                <input type="text" id="degree_modality_custom" placeholder="Especifique la modalidad de titulación..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" style="display: none;" />
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-gray-50 dark:bg-gray-900/40 px-6 py-4 flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700">
-                        <button type="button" class="close-titular-modal-btn inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 active:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
-                            Confirmar Titulación
-                        </button>
+                    <div class="bg-gray-50 dark:bg-gray-900/40 px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-700">
+                        <div>
+                            <button type="button" id="btn-revert-titular" class="hidden text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-semibold hover:underline">
+                                Revertir a Apto
+                            </button>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="button" class="close-titular-modal-btn inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="btn-submit-titular" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700 active:bg-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
+                                Guardar Titulación
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1114,20 +1176,102 @@
             const titularModal = document.getElementById("titular-modal");
             const titularModalForm = document.getElementById("titular-modal-form");
             const closeTitularButtons = document.querySelectorAll(".close-titular-modal-btn, #titular-modal-overlay");
-            
+            const modalitySelect = document.getElementById("degree_modality_select");
+            const modalityCustom = document.getElementById("degree_modality_custom");
+            const revertBtn = document.getElementById("btn-revert-titular");
+            const actionInput = document.getElementById("titular-action-input");
+            const modalTitleText = document.getElementById("titular-modal-title-text");
+            const submitBtn = document.getElementById("btn-submit-titular");
+
+            if (modalitySelect) {
+                modalitySelect.onchange = function() {
+                    if (this.value === "custom") {
+                        modalityCustom.style.display = "block";
+                        modalityCustom.focus();
+                    } else {
+                        modalityCustom.style.display = "none";
+                        modalityCustom.value = "";
+                    }
+                };
+            }
+
             document.addEventListener("click", function(e) {
                 const btn = e.target.closest(".titular-btn");
                 if (btn) {
                     const studentId = btn.dataset.studentId;
                     const studentName = btn.dataset.studentName;
+                    const degreeDate = btn.dataset.degreeDate || "";
+                    const degreeModality = btn.dataset.degreeModality || "";
+                    const isTitulado = btn.dataset.isTitulado === "true";
 
                     titularModalForm.action = `/graduation/${studentId}/titular`;
+                    actionInput.value = "save";
                     document.getElementById("titular-modal-student-name").innerText = studentName;
+                    
+                    const dateInput = document.getElementById("degree_date_input");
+                    if (dateInput) {
+                        dateInput.value = degreeDate ? degreeDate.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                    }
+
+                    if (isTitulado) {
+                        modalTitleText.innerText = "Editar Titulación";
+                        submitBtn.innerText = "Actualizar Titulación";
+                        revertBtn.classList.remove("hidden");
+                    } else {
+                        modalTitleText.innerText = "Registrar Titulación";
+                        submitBtn.innerText = "Confirmar Titulación";
+                        revertBtn.classList.add("hidden");
+                    }
+
+                    // Select modality or custom
+                    let foundMod = false;
+                    if (modalitySelect) {
+                        Array.from(modalitySelect.options).forEach(opt => {
+                            if (opt.value && opt.value !== "custom" && opt.value === degreeModality) {
+                                opt.selected = true;
+                                foundMod = true;
+                            }
+                        });
+
+                        if (!foundMod && degreeModality) {
+                            modalitySelect.value = "custom";
+                            modalityCustom.style.display = "block";
+                            modalityCustom.value = degreeModality;
+                        } else if (!degreeModality) {
+                            modalitySelect.value = "";
+                            modalityCustom.style.display = "none";
+                            modalityCustom.value = "";
+                        } else {
+                            modalityCustom.style.display = "none";
+                            modalityCustom.value = "";
+                        }
+                    }
 
                     titularModal.classList.remove("hidden");
                     document.body.classList.add("overflow-hidden");
                 }
             });
+
+            if (titularModalForm) {
+                titularModalForm.addEventListener("submit", function(e) {
+                    if (actionInput.value === "save" && modalitySelect && modalitySelect.value === "custom" && modalityCustom.value) {
+                        const opt = document.createElement("option");
+                        opt.value = modalityCustom.value;
+                        opt.textContent = modalityCustom.value;
+                        opt.selected = true;
+                        modalitySelect.appendChild(opt);
+                    }
+                });
+            }
+
+            if (revertBtn) {
+                revertBtn.onclick = function() {
+                    if (confirm("¿Está seguro de que desea revertir el estado de titulación de este estudiante? Volverá al estado Apto.")) {
+                        actionInput.value = "remove";
+                        titularModalForm.submit();
+                    }
+                };
+            }
 
             closeTitularButtons.forEach(btn => {
                 btn.addEventListener("click", function() {

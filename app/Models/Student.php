@@ -25,6 +25,7 @@ class Student extends Model
         "admission_date",
         "graduation_date",
         "degree_date",
+        "degree_modality",
         "curriculum_id",
         "shift",
     ];

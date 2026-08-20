@@ -199,9 +199,14 @@
                                     </span>
                                 </div>
                                 @if ($student->degree_date)
-                                    <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                        Fecha de Titulación: <strong>{{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}</strong>
-                                    </span>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 font-medium space-y-0.5">
+                                        <div>Fecha: <strong class="text-gray-800 dark:text-gray-200">{{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}</strong></div>
+                                        @if ($student->degree_modality)
+                                            <div class="text-[11px] text-purple-700 dark:text-purple-300 font-semibold truncate" title="Modalidad: {{ $student->degree_modality }}">
+                                                {{ $student->degree_modality }}
+                                            </div>
+                                        @endif
+                                    </div>
                                 @else
                                     <span class="text-xs text-gray-400 dark:text-gray-500">
                                         {{ $st == 'Apto' ? 'Cumple con todos los requisitos' : 'Pendiente de requisitos' }}

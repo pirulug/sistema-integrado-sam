@@ -106,19 +106,34 @@ class GraduationController extends Controller
     }
 
     /**
-     * Register degree date to set student status to Titulado.
+     * Register or update degree date and modality to set or edit student status.
      */
     public function titular(Request $request, Student $student)
     {
         $validated = $request->validate([
-            'degree_date' => 'required|date',
+            "degree_date" => "nullable|date",
+            "degree_modality" => "nullable|string|max:255",
+            "action" => "nullable|string|in:save,remove",
         ]);
+
+        if ($request->input("action") === "remove") {
+            $student->update([
+                "degree_date" => null,
+                "degree_modality" => null,
+            ]);
+            return redirect()->back()->with("success", "Estado de titulación revertido correctamente.");
+        }
+
+        if (empty($validated["degree_date"])) {
+            return redirect()->back()->with("error", "La fecha de titulación es obligatoria para confirmar la titulación.");
+        }
 
         $student->update([
-            'degree_date' => $validated['degree_date'],
+            "degree_date" => $validated["degree_date"],
+            "degree_modality" => $validated["degree_modality"] ?? null,
         ]);
 
-        return redirect()->back()->with('success', 'Estudiante titulado exitosamente.');
+        return redirect()->back()->with("success", "Información de titulación actualizada exitosamente.");
     }
 
     /**

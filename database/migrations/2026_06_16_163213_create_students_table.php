@@ -25,9 +25,10 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('mobile')->nullable();
             $table->date('admission_date');
-            $table->date('graduation_date')->nullable();
-            $table->date('degree_date')->nullable();
-            $table->foreignId('curriculum_id')->nullable()->constrained('curriculums')->nullOnDelete();
+            $table->date("graduation_date")->nullable();
+            $table->date("degree_date")->nullable();
+            $table->string("degree_modality")->nullable();
+            $table->foreignId("curriculum_id")->nullable()->constrained("curriculums")->nullOnDelete();
             $table->string('shift')->nullable();
             $table->timestamps();
         });
