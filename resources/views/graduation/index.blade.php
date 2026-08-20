@@ -534,12 +534,19 @@
                                 <input type="text" id="modal-practice-line-custom" placeholder="O especifique otra línea de práctica..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" style="display: none;" />
                             </div>
 
-                            <!-- Activities Description -->
+                            <!-- Activities Selector / Options -->
                             <div>
-                                <label for="modal-activities" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                    Actividades Realizadas
-                                </label>
-                                <textarea id="modal-activities" name="activities" rows="2" placeholder="Describa las actividades desarrolladas por el estudiante en su práctica..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"></textarea>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                        Actividad Formativa Realizada
+                                    </label>
+                                    <span class="text-[11px] text-gray-500 dark:text-gray-400">Seleccione la actividad del estudiante</span>
+                                </div>
+                                <div id="modal-activities-list" class="space-y-2 mb-2 p-2 rounded-xl bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 min-h-[50px]">
+                                    <!-- Dynamic radio buttons for individual activities inserted here by JS -->
+                                </div>
+                                <input type="text" id="modal-activities-custom" placeholder="O redactar actividad personalizada..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" style="display: none;" />
+                                <input type="hidden" id="modal-activities" name="activities" value="" />
                             </div>
 
                             <!-- Company Name -->
@@ -882,9 +889,12 @@
                     document.getElementById("modal-efsrt-period").innerText = period ? `Periodo: ${period}` : "";
                     document.getElementById("modal-efsrt-req-hours").innerText = reqHours ? `Horas Requeridas: ${reqHours} hrs` : "";
 
-                    // Populate practice lines dropdown
+                    // Populate practice lines dropdown & activities
                     const lineSelect = document.getElementById("modal-practice-line");
                     const customLineInput = document.getElementById("modal-practice-line-custom");
+                    const customActInput = document.getElementById("modal-activities-custom");
+                    const hiddenActInput = document.getElementById("modal-activities");
+                    
                     lineSelect.innerHTML = '<option value="">-- Seleccionar Línea de Práctica --</option>';
 
                     let lineFound = false;
@@ -914,16 +924,112 @@
                         customLineInput.value = "";
                     }
 
+                    function updateActivitiesList(selectedLineText, preselectedAct) {
+                        const listContainer = document.getElementById("modal-activities-list");
+                        listContainer.innerHTML = "";
+
+                        let foundLineObj = lines.find(l => (l.line || l.name || l) === selectedLineText);
+                        let activitiesList = (foundLineObj && Array.isArray(foundLineObj.activities)) ? foundLineObj.activities : [];
+
+                        if (activitiesList.length === 0) {
+                            listContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-1">No hay actividades predefinidas para esta línea. Ingrese la actividad abajo:</p>';
+                            customActInput.style.display = "block";
+                            customActInput.value = preselectedAct || "";
+                            hiddenActInput.value = preselectedAct || "";
+                            return;
+                        }
+
+                        let isCustomSelected = true;
+
+                        activitiesList.forEach((actText, idx) => {
+                            const row = document.createElement("label");
+                            row.className = "flex items-start space-x-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/60 p-1.5 rounded-lg transition border border-transparent hover:border-gray-200 dark:hover:border-gray-700";
+
+                            const radio = document.createElement("input");
+                            radio.type = "radio";
+                            radio.name = "efsrt_activity_radio";
+                            radio.value = actText;
+                            radio.className = "mt-0.5 text-indigo-600 focus:ring-indigo-500";
+
+                            if (preselectedAct && preselectedAct.trim() === actText.trim()) {
+                                radio.checked = true;
+                                isCustomSelected = false;
+                                hiddenActInput.value = actText;
+                            } else if (!preselectedAct && idx === 0) {
+                                radio.checked = true;
+                                isCustomSelected = false;
+                                hiddenActInput.value = actText;
+                            }
+
+                            radio.onchange = function() {
+                                if (this.checked) {
+                                    hiddenActInput.value = this.value;
+                                    customActInput.style.display = "none";
+                                }
+                            };
+
+                            const span = document.createElement("span");
+                            span.className = "leading-tight font-medium";
+                            span.textContent = actText;
+
+                            row.appendChild(radio);
+                            row.appendChild(span);
+                            listContainer.appendChild(row);
+                        });
+
+                        // Custom activity option
+                        const customRow = document.createElement("label");
+                        customRow.className = "flex items-center space-x-2 text-xs text-indigo-600 dark:text-indigo-400 font-semibold cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/60 transition";
+                        
+                        const customRadio = document.createElement("input");
+                        customRadio.type = "radio";
+                        customRadio.name = "efsrt_activity_radio";
+                        customRadio.value = "custom";
+                        customRadio.className = "text-indigo-600 focus:ring-indigo-500";
+
+                        if (preselectedAct && isCustomSelected) {
+                            customRadio.checked = true;
+                            customActInput.style.display = "block";
+                            customActInput.value = preselectedAct;
+                            hiddenActInput.value = preselectedAct;
+                        } else {
+                            customActInput.style.display = "none";
+                        }
+
+                        customRadio.onchange = function() {
+                            if (this.checked) {
+                                customActInput.style.display = "block";
+                                customActInput.focus();
+                                hiddenActInput.value = customActInput.value;
+                            }
+                        };
+
+                        customActInput.oninput = function() {
+                            if (customRadio.checked) {
+                                hiddenActInput.value = this.value;
+                            }
+                        };
+
+                        const customSpan = document.createElement("span");
+                        customSpan.textContent = "Otra actividad específica (redactar)";
+                        customRow.appendChild(customRadio);
+                        customRow.appendChild(customSpan);
+                        listContainer.appendChild(customRow);
+                    }
+
                     lineSelect.onchange = function() {
                         if (this.value === "custom") {
                             customLineInput.style.display = "block";
                             customLineInput.focus();
+                            updateActivitiesList("", "");
                         } else {
                             customLineInput.style.display = "none";
+                            updateActivitiesList(this.value, "");
                         }
                     };
 
-                    document.getElementById("modal-activities").value = currentActivities || "";
+                    updateActivitiesList(lineSelect.value, currentActivities);
+
                     document.getElementById("company_name").value = company || "";
                     document.getElementById("hours").value = hours || reqHours || "";
                     document.getElementById("start_date").value = start || "";
@@ -938,12 +1044,19 @@
             modalForm.addEventListener("submit", function() {
                 const lineSelect = document.getElementById("modal-practice-line");
                 const customLineInput = document.getElementById("modal-practice-line-custom");
+                const customActInput = document.getElementById("modal-activities-custom");
+                const hiddenActInput = document.getElementById("modal-activities");
+
                 if (lineSelect.value === "custom" && customLineInput.value) {
                     const opt = document.createElement("option");
                     opt.value = customLineInput.value;
                     opt.textContent = customLineInput.value;
                     opt.selected = true;
                     lineSelect.appendChild(opt);
+                }
+
+                if (customActInput.style.display !== "none" && customActInput.value) {
+                    hiddenActInput.value = customActInput.value;
                 }
             });
 

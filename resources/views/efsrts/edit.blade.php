@@ -161,21 +161,83 @@
                                     };
                                     card.appendChild(lineInput);
 
-                                    const actLabel = document.createElement("div");
-                                    actLabel.className = "text-[11px] font-semibold text-gray-500 dark:text-gray-400 mt-1";
-                                    actLabel.textContent = "Actividades asociadas (separadas por coma o salto de línea):";
-                                    card.appendChild(actLabel);
+                                    // Activities as discrete individual inputs
+                                    const actSection = document.createElement("div");
+                                    actSection.className = "mt-2 pt-2 border-t border-gray-200 dark:border-gray-800 space-y-1.5";
 
-                                    const actText = document.createElement("textarea");
-                                    actText.rows = 2;
-                                    actText.className = "w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-800 dark:text-gray-200";
-                                    actText.placeholder = "Ej: Diseña páginas web, Realiza la maquetación de las páginas web";
-                                    actText.value = Array.isArray(item.activities) ? item.activities.join("\n") : (item.activities || "");
-                                    actText.oninput = function () {
-                                        item.activities = actText.value.split(/[\n,]+/).map(s => s.trim()).filter(s => s.length > 0);
+                                    const actHeader = document.createElement("div");
+                                    actHeader.className = "flex items-center justify-between";
+
+                                    const actTitle = document.createElement("span");
+                                    actTitle.className = "text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider";
+                                    actTitle.textContent = "Actividades Formativas Específicas:";
+
+                                    const addActBtn = document.createElement("button");
+                                    addActBtn.type = "button";
+                                    addActBtn.className = "text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-semibold";
+                                    addActBtn.textContent = "+ Agregar Actividad";
+
+                                    if (!Array.isArray(item.activities)) {
+                                        item.activities = item.activities ? [item.activities] : [];
+                                    }
+
+                                    addActBtn.onclick = function () {
+                                        item.activities.push("");
                                         updateJson();
+                                        renderLines();
                                     };
-                                    card.appendChild(actText);
+
+                                    actHeader.appendChild(actTitle);
+                                    actHeader.appendChild(addActBtn);
+                                    actSection.appendChild(actHeader);
+
+                                    const actList = document.createElement("div");
+                                    actList.className = "space-y-1.5";
+
+                                    if (item.activities.length === 0) {
+                                        const emptyAct = document.createElement("p");
+                                        emptyAct.className = "text-[11px] text-gray-400 italic";
+                                        emptyAct.textContent = 'Sin actividades registradas. Clic en "+ Agregar Actividad" para añadir una.';
+                                        actList.appendChild(emptyAct);
+                                    }
+
+                                    item.activities.forEach((act, actIdx) => {
+                                        const actRow = document.createElement("div");
+                                        actRow.className = "flex items-center space-x-2";
+
+                                        const numSpan = document.createElement("span");
+                                        numSpan.className = "text-[11px] font-semibold text-gray-400 w-4 text-right";
+                                        numSpan.textContent = (actIdx + 1) + ".";
+
+                                        const actInput = document.createElement("input");
+                                        actInput.type = "text";
+                                        actInput.className = "w-full text-xs rounded border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-gray-800 dark:text-gray-200";
+                                        actInput.placeholder = "Ej. Diseña páginas web";
+                                        actInput.value = act;
+                                        actInput.oninput = function () {
+                                            item.activities[actIdx] = actInput.value;
+                                            updateJson();
+                                        };
+
+                                        const delActBtn = document.createElement("button");
+                                        delActBtn.type = "button";
+                                        delActBtn.className = "text-sm text-red-500 hover:text-red-700 px-1 font-bold";
+                                        delActBtn.textContent = "×";
+                                        delActBtn.title = "Eliminar actividad";
+                                        delActBtn.onclick = function () {
+                                            item.activities.splice(actIdx, 1);
+                                            updateJson();
+                                            renderLines();
+                                        };
+
+                                        actRow.appendChild(numSpan);
+                                        actRow.appendChild(actInput);
+                                        actRow.appendChild(delActBtn);
+                                        actList.appendChild(actRow);
+                                    });
+
+                                    actSection.appendChild(actList);
+                                    card.appendChild(actSection);
 
                                     container.appendChild(card);
                                 });
