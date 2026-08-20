@@ -48,6 +48,9 @@
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Módulo</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nombre del Módulo (Práctica)</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Periodo</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Horas / Créditos</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Líneas de Práctica</th>
                                         <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
@@ -55,7 +58,25 @@
                                     @foreach ($efsrts as $efsrt)
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $efsrt->module }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-955 dark:text-gray-200">{{ $efsrt->module_name ?? 'Sin nombre personalizado' }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{{ $efsrt->module_name ?? 'Sin nombre personalizado' }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                    Periodo {{ $efsrt->period ?? '-' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                <div class="font-bold text-gray-900 dark:text-gray-100">{{ $efsrt->hours ? $efsrt->hours . ' hrs' : '-' }}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $efsrt->credits ? $efsrt->credits . ' créditos' : '-' }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                                                @if (!empty($efsrt->practice_lines) && is_array($efsrt->practice_lines))
+                                                    <span class="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md font-medium">
+                                                        {{ count($efsrt->practice_lines) }} líneas formativas
+                                                    </span>
+                                                @else
+                                                    <span class="text-xs text-gray-400">No registradas</span>
+                                                @endif
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
                                                 <a href="{{ route('efsrts.show', $efsrt) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">Ver</a>
                                                 <a href="{{ route('efsrts.edit', $efsrt) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300">Editar</a>

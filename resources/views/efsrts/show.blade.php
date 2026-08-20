@@ -31,7 +31,7 @@
                     </div>
 
                     <!-- Details Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <!-- Module Info -->
                         <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-800">
                             <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Información del Módulo</h4>
@@ -41,15 +41,34 @@
                                     <span class="text-sm font-semibold">{{ $efsrt->module }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Nombre Personalizado</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Nombre del Módulo</span>
                                     <span class="text-sm font-semibold">{{ $efsrt->module_name ?? 'No especificado' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Periodo Académico</span>
+                                    <span class="text-sm font-semibold">{{ $efsrt->period ? 'Periodo ' . $efsrt->period : 'No especificado' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hours & Credits -->
+                        <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-800">
+                            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Carga Horaria y Créditos</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Total Horas Requeridas</span>
+                                    <span class="text-lg font-black text-indigo-600 dark:text-indigo-400">{{ $efsrt->hours ? $efsrt->hours . ' horas' : 'No especificado' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Créditos Académicos</span>
+                                    <span class="text-lg font-black text-emerald-600 dark:text-emerald-400">{{ $efsrt->credits ? $efsrt->credits . ' créditos' : 'No especificado' }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Associated Curriculums -->
                         <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-100 dark:border-gray-800">
-                            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Mallas Curriculares Asociadas</h4>
+                            <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Mallas Curriculares</h4>
                             @if ($efsrt->curriculums->isEmpty())
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Este módulo EFSRT no está asociado a ninguna malla curricular actualmente.</p>
                             @else
@@ -63,6 +82,44 @@
                                 </ul>
                             @endif
                         </div>
+                    </div>
+
+                    <!-- Competency Section -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-lg border border-gray-100 dark:border-gray-800 mb-6">
+                        <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">Competencias por Módulo Formativo</h4>
+                        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {{ $efsrt->competency ?? 'No se ha registrado una descripción de competencia para este módulo.' }}
+                        </p>
+                    </div>
+
+                    <!-- Practice Lines and Activities Section -->
+                    <div class="bg-gray-50 dark:bg-gray-900/50 p-5 rounded-lg border border-gray-100 dark:border-gray-800">
+                        <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Líneas de Práctica y Actividades</h4>
+                        @if (empty($efsrt->practice_lines) || !is_array($efsrt->practice_lines))
+                            <p class="text-sm text-gray-500 dark:text-gray-400">No se han registrado líneas de práctica específicas para este módulo.</p>
+                        @else
+                            <div class="space-y-4">
+                                @foreach ($efsrt->practice_lines as $index => $item)
+                                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                        <div class="flex items-center space-x-2 mb-2">
+                                            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">
+                                                {{ $index + 1 }}
+                                            </span>
+                                            <h5 class="font-bold text-sm text-gray-900 dark:text-gray-100">
+                                                {{ $item['line'] ?? $item['name'] ?? 'Línea de Práctica' }}
+                                            </h5>
+                                        </div>
+                                        @if (!empty($item['activities']) && is_array($item['activities']))
+                                            <ul class="ms-8 list-disc text-xs text-gray-600 dark:text-gray-300 space-y-1 mt-2">
+                                                @foreach ($item['activities'] as $act)
+                                                    <li>{{ $act }}</li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -391,6 +391,57 @@
                             </div>
                         @endif
 
+                        <!-- EFSRT Practices Detail Section -->
+                        @if ($curriculum && $curriculum->efsrts->isNotEmpty())
+                            <div class="border-t border-gray-200/80 dark:border-gray-700/80 pt-8 mt-8">
+                                <div class="mb-4">
+                                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+                                        Detalle de Prácticas Preprofesionales (EFSRT)
+                                    </h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Registro de módulos formativos en situaciones reales de trabajo.
+                                    </p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    @foreach ($student->efsrtStatusList() as $efs)
+                                        @php
+                                            $isApp = $efs['status'] === 'approved';
+                                            $piv = $efs['pivot'];
+                                        @endphp
+                                        <div class="p-4 rounded-2xl border {{ $isApp ? 'border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30' }} flex flex-col justify-between">
+                                            <div>
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400">{{ $efs['module'] }}</span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold {{ $isApp ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' : ($efs['status'] === 'rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300') }}">
+                                                        {{ $isApp ? 'Aprobado' : ($efs['status'] === 'rejected' ? 'Rechazado' : 'Pendiente') }}
+                                                    </span>
+                                                </div>
+                                                <h4 class="font-bold text-sm text-gray-900 dark:text-gray-100 mb-2">{{ $efs['module_name'] }}</h4>
+                                                @if ($efs['period'] || $efs['hours'])
+                                                    <div class="text-[11px] text-gray-500 dark:text-gray-400 mb-2">
+                                                        <span>Periodo {{ $efs['period'] ?? '-' }}</span> &bull; 
+                                                        <span>{{ $efs['hours'] ?? '-' }} hrs req. ({{ $efs['credits'] ?? '-' }} cr.)</span>
+                                                    </div>
+                                                @endif
+                                                @if ($piv && $piv->practice_line)
+                                                    <div class="text-xs bg-white dark:bg-gray-800 p-2.5 rounded-xl border border-gray-100 dark:border-gray-700 mb-2">
+                                                        <span class="text-[10px] text-gray-400 block font-semibold uppercase">Línea de Práctica:</span>
+                                                        <span class="font-medium text-gray-800 dark:text-gray-200">{{ $piv->practice_line }}</span>
+                                                        @if ($piv->company_name)
+                                                            <div class="text-[11px] text-gray-500 mt-1">Empresa: <strong>{{ $piv->company_name }}</strong></div>
+                                                        @endif
+                                                        @if ($piv->hours)
+                                                            <div class="text-[11px] text-gray-500">Horas acumuladas: <strong>{{ $piv->hours }} h</strong></div>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>

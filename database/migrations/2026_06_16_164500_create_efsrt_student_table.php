@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('efsrt_student', function (Blueprint $table) {
+        Schema::create("efsrt_student", function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
-            $table->foreignId('efsrt_id')->constrained('efsrts')->cascadeOnDelete();
-            $table->string('company_name')->nullable();
-            $table->integer('hours')->nullable();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->string('status')->default('pending'); // pending, approved, rejected
+            $table->foreignId("student_id")->constrained("students")->cascadeOnDelete();
+            $table->foreignId("efsrt_id")->constrained("efsrts")->cascadeOnDelete();
+            $table->string("company_name")->nullable();
+            $table->string("practice_line")->nullable();
+            $table->text("activities")->nullable();
+            $table->integer("hours")->nullable();
+            $table->date("start_date")->nullable();
+            $table->date("end_date")->nullable();
+            $table->string("status")->default("pending"); // pending, approved, rejected
             $table->timestamps();
         });
     }

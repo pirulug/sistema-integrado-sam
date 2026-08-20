@@ -59,8 +59,8 @@ class Student extends Model
     public function efsrts(): BelongsToMany
     {
         return $this->belongsToMany(Efsrt::class)
-                    ->withPivot(['company_name', 'hours', 'start_date', 'end_date', 'status'])
-                    ->withTimestamps();
+            ->withPivot(["company_name", "practice_line", "activities", "hours", "start_date", "end_date", "status"])
+            ->withTimestamps();
     }
 
     /**
@@ -71,7 +71,7 @@ class Student extends Model
         if (!$this->curriculum) {
             return collect();
         }
-        return $this->curriculum->courses()->whereIn('courses.id', $this->courses->pluck('id'))->get();
+        return $this->curriculum->courses()->whereIn("courses.id", $this->courses->pluck("id"))->get();
     }
 
     /**
@@ -82,7 +82,7 @@ class Student extends Model
         if (!$this->curriculum) {
             return collect();
         }
-        return $this->curriculum->courses()->whereNotIn('courses.id', $this->courses->pluck('id'))->get();
+        return $this->curriculum->courses()->whereNotIn("courses.id", $this->courses->pluck("id"))->get();
     }
 
     /**
@@ -93,15 +93,20 @@ class Student extends Model
         if (!$this->curriculum) {
             return collect();
         }
-        $studentEfsrts = $this->efsrts->keyBy('id');
+        $studentEfsrts = $this->efsrts->keyBy("id");
         return $this->curriculum->efsrts->map(function ($efsrt) use ($studentEfsrts) {
             $studentEfs = $studentEfsrts->get($efsrt->id);
             return [
-                'id' => $efsrt->id,
-                'module' => $efsrt->module,
-                'module_name' => $efsrt->module_name,
-                'status' => $studentEfs ? $studentEfs->pivot->status : 'pending',
-                'pivot' => $studentEfs ? $studentEfs->pivot : null,
+                "id" => $efsrt->id,
+                "module" => $efsrt->module,
+                "module_name" => $efsrt->module_name,
+                "competency" => $efsrt->competency,
+                "period" => $efsrt->period,
+                "hours" => $efsrt->hours,
+                "credits" => $efsrt->credits,
+                "practice_lines" => $efsrt->practice_lines,
+                "status" => $studentEfs ? $studentEfs->pivot->status : "pending",
+                "pivot" => $studentEfs ? $studentEfs->pivot : null,
             ];
         });
     }

@@ -276,6 +276,12 @@
                                                         data-student-name="{{ $student->full_name }}"
                                                         data-efsrt-id="{{ $efs['id'] }}"
                                                         data-efsrt-module="{{ $efs['module'] }}"
+                                                        data-efsrt-name="{{ $efs['module_name'] }}"
+                                                        data-required-hours="{{ $efs['hours'] ?? '' }}"
+                                                        data-period="{{ $efs['period'] ?? '' }}"
+                                                        data-lines="{{ json_encode($efs['practice_lines'] ?? []) }}"
+                                                        data-practice-line="{{ $efs['pivot'] ? $efs['pivot']->practice_line : '' }}"
+                                                        data-activities="{{ $efs['pivot'] ? $efs['pivot']->activities : '' }}"
                                                         data-company="{{ $efs['pivot'] ? $efs['pivot']->company_name : '' }}"
                                                         data-hours="{{ $efs['pivot'] ? $efs['pivot']->hours : '' }}"
                                                         data-start="{{ $efs['pivot'] ? $efs['pivot']->start_date : '' }}"
@@ -509,10 +515,33 @@
                         <div class="mb-4 bg-gray-50 dark:bg-gray-900/50 p-3.5 rounded-xl border border-gray-100 dark:border-gray-800 text-xs space-y-1.5">
                             <div><span class="text-gray-500 dark:text-gray-400">Estudiante:</span> <strong id="modal-student-name" class="text-gray-900 dark:text-gray-100"></strong></div>
                             <div><span class="text-gray-500 dark:text-gray-400">Módulo:</span> <strong id="modal-efsrt-module" class="text-gray-900 dark:text-gray-100"></strong></div>
+                            <div class="flex items-center justify-between pt-1 text-indigo-600 dark:text-indigo-400 font-semibold border-t border-gray-200/60 dark:border-gray-700/60">
+                                <span id="modal-efsrt-period"></span>
+                                <span id="modal-efsrt-req-hours"></span>
+                            </div>
                         </div>
 
                         <!-- Form Fields -->
                         <div class="space-y-4">
+                            <!-- Practice Line Selector / Input -->
+                            <div>
+                                <label for="modal-practice-line" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Línea de Práctica Formatíva
+                                </label>
+                                <select id="modal-practice-line" name="practice_line" class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm mb-1.5">
+                                    <option value="">-- Seleccionar Línea de Práctica --</option>
+                                </select>
+                                <input type="text" id="modal-practice-line-custom" placeholder="O especifique otra línea de práctica..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" style="display: none;" />
+                            </div>
+
+                            <!-- Activities Description -->
+                            <div>
+                                <label for="modal-activities" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Actividades Realizadas
+                                </label>
+                                <textarea id="modal-activities" name="activities" rows="2" placeholder="Describa las actividades desarrolladas por el estudiante en su práctica..." class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"></textarea>
+                            </div>
+
                             <!-- Company Name -->
                             <div>
                                 <label for="company_name" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Nombre de la Empresa</label>
@@ -523,7 +552,7 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label for="hours" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Horas Acumuladas</label>
-                                    <input type="number" id="hours" name="hours" min="0" placeholder="Ej. 240" class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" />
+                                    <input type="number" id="hours" name="hours" min="0" placeholder="Ej. 96" class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" />
                                 </div>
                                 <div>
                                     <label for="modal-status-select" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Estado</label>
@@ -827,7 +856,19 @@
                     const studentName = this.dataset.studentName;
                     const efsrtId = this.dataset.efsrtId;
                     const efsrtModule = this.dataset.efsrtModule;
+                    const efsrtName = this.dataset.efsrtName || "";
+                    const reqHours = this.dataset.requiredHours;
+                    const period = this.dataset.period;
+                    const currentLine = this.dataset.practiceLine || "";
+                    const currentActivities = this.dataset.activities || "";
                     
+                    let lines = [];
+                    try {
+                        lines = JSON.parse(this.dataset.lines || "[]");
+                    } catch(e) {
+                        lines = [];
+                    }
+
                     const company = this.dataset.company;
                     const hours = this.dataset.hours;
                     const start = this.dataset.start;
@@ -837,10 +878,54 @@
                     modalForm.action = `/graduation/${studentId}/update-efsrt/${efsrtId}`;
                     
                     document.getElementById("modal-student-name").innerText = studentName;
-                    document.getElementById("modal-efsrt-module").innerText = efsrtModule;
+                    document.getElementById("modal-efsrt-module").innerText = `${efsrtModule}: ${efsrtName}`;
+                    document.getElementById("modal-efsrt-period").innerText = period ? `Periodo: ${period}` : "";
+                    document.getElementById("modal-efsrt-req-hours").innerText = reqHours ? `Horas Requeridas: ${reqHours} hrs` : "";
 
+                    // Populate practice lines dropdown
+                    const lineSelect = document.getElementById("modal-practice-line");
+                    const customLineInput = document.getElementById("modal-practice-line-custom");
+                    lineSelect.innerHTML = '<option value="">-- Seleccionar Línea de Práctica --</option>';
+
+                    let lineFound = false;
+                    lines.forEach(item => {
+                        const lineText = item.line || item.name || item;
+                        const opt = document.createElement("option");
+                        opt.value = lineText;
+                        opt.textContent = lineText;
+                        if (currentLine && currentLine === lineText) {
+                            opt.selected = true;
+                            lineFound = true;
+                        }
+                        lineSelect.appendChild(opt);
+                    });
+
+                    const customOpt = document.createElement("option");
+                    customOpt.value = "custom";
+                    customOpt.textContent = "-- Otra (especificar) --";
+                    lineSelect.appendChild(customOpt);
+
+                    if (currentLine && !lineFound) {
+                        customOpt.selected = true;
+                        customLineInput.style.display = "block";
+                        customLineInput.value = currentLine;
+                    } else {
+                        customLineInput.style.display = "none";
+                        customLineInput.value = "";
+                    }
+
+                    lineSelect.onchange = function() {
+                        if (this.value === "custom") {
+                            customLineInput.style.display = "block";
+                            customLineInput.focus();
+                        } else {
+                            customLineInput.style.display = "none";
+                        }
+                    };
+
+                    document.getElementById("modal-activities").value = currentActivities || "";
                     document.getElementById("company_name").value = company || "";
-                    document.getElementById("hours").value = hours || "";
+                    document.getElementById("hours").value = hours || reqHours || "";
                     document.getElementById("start_date").value = start || "";
                     document.getElementById("end_date").value = end || "";
                     document.getElementById("modal-status-select").value = status || "pending";
@@ -848,6 +933,18 @@
                     modal.classList.remove("hidden");
                     document.body.classList.add("overflow-hidden");
                 });
+            });
+
+            modalForm.addEventListener("submit", function() {
+                const lineSelect = document.getElementById("modal-practice-line");
+                const customLineInput = document.getElementById("modal-practice-line-custom");
+                if (lineSelect.value === "custom" && customLineInput.value) {
+                    const opt = document.createElement("option");
+                    opt.value = customLineInput.value;
+                    opt.textContent = customLineInput.value;
+                    opt.selected = true;
+                    lineSelect.appendChild(opt);
+                }
             });
 
             closeButtons.forEach(btn => {

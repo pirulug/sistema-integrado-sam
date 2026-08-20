@@ -11,8 +11,19 @@ class Efsrt extends Model
     use HasFactory;
 
     protected $fillable = [
-        'module',
-        'module_name',
+        "module",
+        "module_name",
+        "competency",
+        "period",
+        "hours",
+        "credits",
+        "practice_lines",
+    ];
+
+    protected $casts = [
+        "practice_lines" => "array",
+        "hours" => "integer",
+        "credits" => "integer",
     ];
 
     /**
@@ -20,7 +31,7 @@ class Efsrt extends Model
      */
     public function curriculums(): BelongsToMany
     {
-        return $this->belongsToMany(Curriculum::class, 'curriculum_efsrt')->withTimestamps();
+        return $this->belongsToMany(Curriculum::class, "curriculum_efsrt")->withTimestamps();
     }
 
     /**
@@ -29,7 +40,7 @@ class Efsrt extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class)
-                    ->withPivot(['company_name', 'hours', 'start_date', 'end_date', 'status'])
-                    ->withTimestamps();
+            ->withPivot(["company_name", "practice_line", "activities", "hours", "start_date", "end_date", "status"])
+            ->withTimestamps();
     }
 }

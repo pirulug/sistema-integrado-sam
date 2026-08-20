@@ -87,20 +87,22 @@ class GraduationController extends Controller
     public function updateEfsrt(Request $request, Student $student, Efsrt $efsrt)
     {
         $validated = $request->validate([
-            'company_name' => 'nullable|string|max:255',
-            'hours' => 'nullable|integer|min:0',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:pending,approved,rejected',
+            "company_name" => "nullable|string|max:255",
+            "practice_line" => "nullable|string|max:255",
+            "activities" => "nullable|string",
+            "hours" => "nullable|integer|min:0",
+            "start_date" => "nullable|date",
+            "end_date" => "nullable|date|after_or_equal:start_date",
+            "status" => "required|in:pending,approved,rejected",
         ]);
 
-        if ($student->efsrts()->where('efsrt_id', $efsrt->id)->exists()) {
+        if ($student->efsrts()->where("efsrt_id", $efsrt->id)->exists()) {
             $student->efsrts()->updateExistingPivot($efsrt->id, $validated);
         } else {
             $student->efsrts()->attach($efsrt->id, $validated);
         }
 
-        return redirect()->back()->with('success', 'Práctica EFSRT del estudiante actualizada correctamente.');
+        return redirect()->back()->with("success", "Práctica EFSRT del estudiante actualizada correctamente.");
     }
 
     /**

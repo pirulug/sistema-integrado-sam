@@ -15,18 +15,20 @@ class EfsrtController extends Controller
      */
     public function index(Request $request): View
     {
-        $search = $request->input('search');
+        $search = $request->input("search");
 
         $efsrts = Efsrt::query()
             ->when($search, function ($query, $search) {
-                $query->where('module', 'like', "%{$search}%")
-                    ->orWhere('module_name', 'like', "%{$search}%");
+                $query->where("module", "like", "%{$search}%")
+                    ->orWhere("module_name", "like", "%{$search}%")
+                    ->orWhere("period", "like", "%{$search}%")
+                    ->orWhere("competency", "like", "%{$search}%");
             })
-            ->orderBy('module')
+            ->orderBy("module")
             ->paginate(10)
             ->withQueryString();
 
-        return view('efsrts.index', compact('efsrts', 'search'));
+        return view("efsrts.index", compact("efsrts", "search"));
     }
 
     /**
@@ -35,7 +37,7 @@ class EfsrtController extends Controller
     public function create(): View
     {
         $curriculums = Curriculum::all();
-        return view('efsrts.create', compact('curriculums'));
+        return view("efsrts.create", compact("curriculums"));
     }
 
     /**
@@ -44,20 +46,30 @@ class EfsrtController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'module' => 'required|string|max:50',
-            'module_name' => 'nullable|string|max:255',
-            'curriculums' => 'nullable|array',
-            'curriculums.*' => 'exists:curriculums,id',
+            "module" => "required|string|max:50",
+            "module_name" => "nullable|string|max:255",
+            "competency" => "nullable|string",
+            "period" => "nullable|string|max:10",
+            "hours" => "nullable|integer|min:0",
+            "credits" => "nullable|integer|min:0",
+            "practice_lines" => "nullable",
+            "curriculums" => "nullable|array",
+            "curriculums.*" => "exists:curriculums,id",
         ]);
+
+        if (isset($validated["practice_lines"]) && is_string($validated["practice_lines"])) {
+            $decoded = json_decode($validated["practice_lines"], true);
+            $validated["practice_lines"] = $decoded !== null ? $decoded : $validated["practice_lines"];
+        }
 
         $efsrt = Efsrt::create($validated);
 
-        if ($request->has('curriculums')) {
-            $efsrt->curriculums()->sync($request->input('curriculums'));
+        if ($request->has("curriculums")) {
+            $efsrt->curriculums()->sync($request->input("curriculums"));
         }
 
-        return redirect()->route('efsrts.index')
-            ->with('success', 'Módulo EFSRT creado exitosamente.');
+        return redirect()->route("efsrts.index")
+            ->with("success", "Módulo EFSRT creado exitosamente.");
     }
 
     /**
@@ -65,8 +77,8 @@ class EfsrtController extends Controller
      */
     public function show(Efsrt $efsrt): View
     {
-        $efsrt->load('curriculums');
-        return view('efsrts.show', compact('efsrt'));
+        $efsrt->load("curriculums");
+        return view("efsrts.show", compact("efsrt"));
     }
 
     /**
@@ -75,8 +87,8 @@ class EfsrtController extends Controller
     public function edit(Efsrt $efsrt): View
     {
         $curriculums = Curriculum::all();
-        $efsrt->load('curriculums');
-        return view('efsrts.edit', compact('efsrt', 'curriculums'));
+        $efsrt->load("curriculums");
+        return view("efsrts.edit", compact("efsrt", "curriculums"));
     }
 
     /**
@@ -85,18 +97,28 @@ class EfsrtController extends Controller
     public function update(Request $request, Efsrt $efsrt): RedirectResponse
     {
         $validated = $request->validate([
-            'module' => 'required|string|max:50',
-            'module_name' => 'nullable|string|max:255',
-            'curriculums' => 'nullable|array',
-            'curriculums.*' => 'exists:curriculums,id',
+            "module" => "required|string|max:50",
+            "module_name" => "nullable|string|max:255",
+            "competency" => "nullable|string",
+            "period" => "nullable|string|max:10",
+            "hours" => "nullable|integer|min:0",
+            "credits" => "nullable|integer|min:0",
+            "practice_lines" => "nullable",
+            "curriculums" => "nullable|array",
+            "curriculums.*" => "exists:curriculums,id",
         ]);
+
+        if (isset($validated["practice_lines"]) && is_string($validated["practice_lines"])) {
+            $decoded = json_decode($validated["practice_lines"], true);
+            $validated["practice_lines"] = $decoded !== null ? $decoded : $validated["practice_lines"];
+        }
 
         $efsrt->update($validated);
 
-        $efsrt->curriculums()->sync($request->input('curriculums', []));
+        $efsrt->curriculums()->sync($request->input("curriculums", []));
 
-        return redirect()->route('efsrts.index')
-            ->with('success', 'Módulo EFSRT actualizado exitosamente.');
+        return redirect()->route("efsrts.index")
+            ->with("success", "Módulo EFSRT actualizado exitosamente.");
     }
 
     /**

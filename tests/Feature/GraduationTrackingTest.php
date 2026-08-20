@@ -102,4 +102,49 @@ class GraduationTrackingTest extends TestCase
 
         $this->assertCount(2, $this->student->fresh()->courses);
     }
+
+    public function test_teacher_can_update_student_efsrt_practice_line_and_activities(): void
+    {
+        $efsrt = \App\Models\Efsrt::create([
+            "module" => "Módulo I",
+            "module_name" => "Diseño y elaboración de páginas web",
+            "period" => "II",
+            "hours" => 96,
+            "credits" => 3,
+            "competency" => "Competencia de diseño web",
+            "practice_lines" => [
+                [
+                    "line" => "Diseño y creación de páginas web.",
+                    "activities" => ["Diseña páginas web", "Realiza la maquetación"]
+                ]
+            ]
+        ]);
+
+        $this->curriculum->efsrts()->attach($efsrt->id);
+
+        $response = $this->actingAs($this->teacherUser)->post(
+            "/graduation/{$this->student->id}/update-efsrt/{$efsrt->id}",
+            [
+                "company_name" => "Agencia Web SAC",
+                "practice_line" => "Diseño y creación de páginas web.",
+                "activities" => "Diseña páginas web y realiza maquetación",
+                "hours" => 96,
+                "start_date" => "2026-04-01",
+                "end_date" => "2026-06-01",
+                "status" => "approved",
+            ]
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas("success");
+
+        $this->assertDatabaseHas("efsrt_student", [
+            "student_id" => $this->student->id,
+            "efsrt_id" => $efsrt->id,
+            "company_name" => "Agencia Web SAC",
+            "practice_line" => "Diseño y creación de páginas web.",
+            "hours" => 96,
+            "status" => "approved",
+        ]);
+    }
 }
