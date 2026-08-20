@@ -254,7 +254,11 @@
                                     @if ($curriculum)
                                         @foreach ($student->efsrtStatusList() as $efs)
                                             @php
-                                                $shortModule = preg_replace('/[^IVX0-9]/i', '', $efs['module']) ?: $efs['module'];
+                                                if (preg_match('/\b(III|II|IV|VI|V|I)\b/i', $efs['module'], $matches)) {
+                                                    $shortModule = strtoupper($matches[1]);
+                                                } else {
+                                                    $shortModule = 'M' . $loop->iteration;
+                                                }
                                             @endphp
                                             <div class="flex flex-col items-center">
                                                 <div class="relative flex items-center justify-center w-10 h-10 rounded-full border transition {{ $efs['status'] == 'approved' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : ($efs['status'] == 'rejected' ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800') }}"

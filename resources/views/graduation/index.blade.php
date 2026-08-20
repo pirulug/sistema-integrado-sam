@@ -268,7 +268,11 @@
                                         @if ($curriculum)
                                             @foreach ($student->efsrtStatusList() as $efs)
                                                 @php
-                                                    $shortModule = preg_replace('/[^IVX0-9]/i', '', $efs['module']) ?: $efs['module'];
+                                                    if (preg_match('/\b(III|II|IV|VI|V|I)\b/i', $efs['module'], $matches)) {
+                                                        $shortModule = strtoupper($matches[1]);
+                                                    } else {
+                                                        $shortModule = 'M' . $loop->iteration;
+                                                    }
                                                 @endphp
                                                 <button type="button" 
                                                         class="efsrt-indicator-btn group relative flex items-center justify-center w-8 h-8 rounded-full border transition duration-150 hover:scale-110 focus:outline-none"
