@@ -56,6 +56,10 @@
                                     <span class="text-xs text-gray-500 dark:text-gray-400 block">Apellido Materno</span>
                                     <span class="text-sm font-semibold">{{ $student->maternal_last_name }}</span>
                                 </div>
+                                <div>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Género</span>
+                                    <span class="text-sm font-semibold">{{ $student->gender ?? '-' }}</span>
+                                </div>
                             </div>
                         </div>
 

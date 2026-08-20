@@ -149,6 +149,18 @@
                                         <input type="text" name="rows[{{ $tempId }}][maternal_last_name]" value="{{ old('rows.'.$tempId.'.maternal_last_name', $data['maternal_last_name'] ?? '') }}" required class="w-full text-xs rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" />
                                     </div>
 
+                                    <!-- Género -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                            Género
+                                        </label>
+                                        <select name="rows[{{ $tempId }}][gender]" class="w-full text-xs rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option value="Masculino" {{ old('rows.'.$tempId.'.gender', $data['gender'] ?? '') == 'Masculino' ? 'selected' : '' }}>Masculino</option>
+                                            <option value="Femenino" {{ old('rows.'.$tempId.'.gender', $data['gender'] ?? '') == 'Femenino' ? 'selected' : '' }}>Femenino</option>
+                                        </select>
+                                    </div>
+
                                     <!-- Email Institucional -->
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">

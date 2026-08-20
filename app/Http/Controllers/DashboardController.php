@@ -72,6 +72,21 @@ class DashboardController extends Controller
             }
         }
 
+        // 3.1. Students by Gender (Género)
+        $genderStats = [
+            "Masculino" => 0,
+            "Femenino" => 0,
+            "Sin Especificar" => 0,
+        ];
+        foreach ($students as $student) {
+            $g = $student->gender ?: "Sin Especificar";
+            if (isset($genderStats[$g])) {
+                $genderStats[$g]++;
+            } else {
+                $genderStats[$g] = 1;
+            }
+        }
+
         // 4. Students by Admission Year (Cohorts)
         $cohorts = [];
         foreach ($students as $student) {
@@ -148,6 +163,7 @@ class DashboardController extends Controller
             "totalCredits",
             "totalHours",
             "shiftsRaw",
+            "genderStats",
             "cohorts",
             "curriculumsStats",
             "periodsOrder",

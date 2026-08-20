@@ -110,21 +110,22 @@ class DatabaseSeeder extends Seeder
 
         // Create student: Marcelina Towne (completed all courses & EFSRTs)
         $student1 = Student::create([
-            'dni' => '91578591',
-            'student_code' => 'EST2019001',
-            'study_program' => 'Diseño y programación web',
-            'paternal_last_name' => 'Towne',
-            'maternal_last_name' => 'Smith',
-            'first_name' => 'Marcelina',
-            'personal_email' => 'marcelina.towne@gmail.com',
-            'institutional_email' => 'mtowne@instituto.edu.pe',
-            'phone' => '014567890',
-            'mobile' => '959705580',
-            'admission_date' => '2019-03-15',
-            'graduation_date' => '2022-12-20',
-            'degree_date' => '2023-05-10',
-            'curriculum_id' => $curriculum->id,
-            'shift' => 'Diurno (Mañana)',
+            "dni" => "91578591",
+            "student_code" => "EST2019001",
+            "study_program" => "Diseño y programación web",
+            "paternal_last_name" => "Towne",
+            "maternal_last_name" => "Smith",
+            "first_name" => "Marcelina",
+            "gender" => "Femenino",
+            "personal_email" => "marcelina.towne@gmail.com",
+            "institutional_email" => "mtowne@instituto.edu.pe",
+            "phone" => "014567890",
+            "mobile" => "959705580",
+            "admission_date" => "2019-03-15",
+            "graduation_date" => "2022-12-20",
+            "degree_date" => "2023-05-10",
+            "curriculum_id" => $curriculum->id,
+            "shift" => "Diurno (Mañana)",
         ]);
 
         // Attach all courses of this curriculum to Marcelina Towne
@@ -139,19 +140,20 @@ class DatabaseSeeder extends Seeder
 
         // Create student: Juan Carlos Gomez Perez (completed some courses & EFSRTs)
         $student2 = Student::create([
-            'dni' => '12345678',
-            'student_code' => 'EST2026001',
-            'study_program' => 'Diseño y programación web',
-            'paternal_last_name' => 'Gomez',
-            'maternal_last_name' => 'Perez',
-            'first_name' => 'Juan Carlos',
-            'personal_email' => 'juan.gomez@gmail.com',
-            'institutional_email' => 'jgomez@instituto.edu.pe',
-            'phone' => '014567890',
-            'mobile' => '987654321',
-            'admission_date' => '2026-03-01',
-            'curriculum_id' => $curriculum->id,
-            'shift' => 'Nocturno (Noche)',
+            "dni" => "12345678",
+            "student_code" => "EST2026001",
+            "study_program" => "Diseño y programación web",
+            "paternal_last_name" => "Gomez",
+            "maternal_last_name" => "Perez",
+            "first_name" => "Juan Carlos",
+            "gender" => "Masculino",
+            "personal_email" => "juan.gomez@gmail.com",
+            "institutional_email" => "jgomez@instituto.edu.pe",
+            "phone" => "014567890",
+            "mobile" => "987654321",
+            "admission_date" => "2026-03-01",
+            "curriculum_id" => $curriculum->id,
+            "shift" => "Nocturno (Noche)",
         ]);
 
         // Attach some courses of this curriculum

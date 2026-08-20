@@ -49,6 +49,17 @@
                                 <x-input-error class="mt-2" :messages="$errors->get('maternal_last_name')" />
                             </div>
 
+                            <!-- Gender -->
+                            <div>
+                                <x-input-label for="gender" :value="__('Género')" />
+                                <select id="gender" name="gender" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm">
+                                    <option value="">-- Seleccionar Género --</option>
+                                    <option value="Masculino" {{ old('gender', $student->gender) == 'Masculino' ? 'selected' : '' }}>Masculino</option>
+                                    <option value="Femenino" {{ old('gender', $student->gender) == 'Femenino' ? 'selected' : '' }}>Femenino</option>
+                                </select>
+                                <x-input-error class="mt-2" :messages="$errors->get('gender')" />
+                            </div>
+
                             <!-- Study Program -->
                             <div>
                                 <x-input-label for="study_program" :value="__('Programa de Estudio')" />

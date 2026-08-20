@@ -249,9 +249,26 @@
                         </div>
                     </div>
 
-                    <div class="pt-4 mt-6 border-t border-gray-100 dark:border-gray-700/60 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <span>Programa: Diseño y Programación Web</span>
-                        <span class="font-semibold text-gray-700 dark:text-gray-300">Total: {{ $totalStudents }}</span>
+                    <div class="pt-4 mt-6 border-t border-gray-100 dark:border-gray-700/60">
+                        <div class="flex items-center justify-between text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                            <span>Distribución por Género</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            @php
+                                $mascCount = $genderStats['Masculino'] ?? 0;
+                                $femCount = $genderStats['Femenino'] ?? 0;
+                                $mascPct = $totalStudents > 0 ? round(($mascCount / $totalStudents) * 100, 1) : 0;
+                                $femPct = $totalStudents > 0 ? round(($femCount / $totalStudents) * 100, 1) : 0;
+                            @endphp
+                            <div class="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 flex items-center justify-between">
+                                <span class="font-semibold text-blue-700 dark:text-blue-300">Masculino:</span>
+                                <span class="font-black text-blue-800 dark:text-blue-200">{{ $mascCount }} <span class="text-[10px] font-bold text-blue-600">({{ $mascPct }}%)</span></span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-pink-50/70 dark:bg-pink-950/20 border border-pink-200 dark:border-pink-900/40 flex items-center justify-between">
+                                <span class="font-semibold text-pink-700 dark:text-pink-300">Femenino:</span>
+                                <span class="font-black text-pink-800 dark:text-pink-200">{{ $femCount }} <span class="text-[10px] font-bold text-pink-600">({{ $femPct }}%)</span></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

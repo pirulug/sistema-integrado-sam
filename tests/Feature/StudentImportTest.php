@@ -33,6 +33,7 @@ class StudentImportTest extends TestCase
         $response->assertHeader("content-type", "text/csv; charset=UTF-8");
         $content = $response->streamedContent();
         $this->assertStringContainsString("dni,codigo,apellido_paterno", $content);
+        $this->assertStringContainsString("genero", $content);
     }
 
     public function test_teacher_can_download_semicolon_template(): void
@@ -44,6 +45,7 @@ class StudentImportTest extends TestCase
         $response->assertHeader("content-type", "text/csv; charset=UTF-8");
         $content = $response->streamedContent();
         $this->assertStringContainsString("dni;codigo;apellido_paterno", $content);
+        $this->assertStringContainsString("genero", $content);
     }
 
     public function test_import_students_with_comma_delimiter_without_conflicts(): void
@@ -53,9 +55,9 @@ class StudentImportTest extends TestCase
             "year" => "2026",
         ]);
 
-        $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,programa_estudio,email_institucional,email_personal,telefono,celular,fecha_ingreso,fecha_egreso,turno\n" .
-            "11223344,EST2026001,Flores,Morales,Ana,Diseño y programación web,aflores@instituto.edu.pe,ana@gmail.com,012345678,987654321,2026-03-01,,Diurno (Mañana)\n" .
-            "22334455,EST2026002,Quispe,Ramos,Luis,Diseño y programación web,lquispe@instituto.edu.pe,luis@gmail.com,012345679,987654322,2026-03-01,,Nocturno (Noche)";
+        $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,genero,programa_estudio,email_institucional,email_personal,telefono,celular,fecha_ingreso,fecha_egreso,turno\n" .
+            "11223344,EST2026001,Flores,Morales,Ana,Femenino,Diseño y programación web,aflores@instituto.edu.pe,ana@gmail.com,012345678,987654321,2026-03-01,,Diurno (Mañana)\n" .
+            "22334455,EST2026002,Quispe,Ramos,Luis,Masculino,Diseño y programación web,lquispe@instituto.edu.pe,luis@gmail.com,012345679,987654322,2026-03-01,,Nocturno (Noche)";
 
         $file = UploadedFile::fake()->createWithContent("estudiantes.csv", $csvContent);
 
@@ -73,6 +75,7 @@ class StudentImportTest extends TestCase
             "student_code" => "EST2026001",
             "paternal_last_name" => "Flores",
             "first_name" => "Ana",
+            "gender" => "Femenino",
             "curriculum_id" => $curriculum->id,
         ]);
 
@@ -81,14 +84,15 @@ class StudentImportTest extends TestCase
             "student_code" => "EST2026002",
             "paternal_last_name" => "Quispe",
             "first_name" => "Luis",
+            "gender" => "Masculino",
             "shift" => "Nocturno (Noche)",
         ]);
     }
 
     public function test_import_students_with_semicolon_delimiter(): void
     {
-        $csvContent = "dni;codigo;apellido_paterno;apellido_materno;nombres;programa_estudio;email_institucional;email_personal;telefono;celular;fecha_ingreso;fecha_egreso;turno\n" .
-            "33445566;EST2026003;Torres;Castro;Elena;Diseño y programación web;etorres@instituto.edu.pe;elena@gmail.com;012345680;987654323;2026-03-01;;Diurno (Tarde)";
+        $csvContent = "dni;codigo;apellido_paterno;apellido_materno;nombres;genero;programa_estudio;email_institucional;email_personal;telefono;celular;fecha_ingreso;fecha_egreso;turno\n" .
+            "33445566;EST2026003;Torres;Castro;Elena;F;Diseño y programación web;etorres@instituto.edu.pe;elena@gmail.com;012345680;987654323;2026-03-01;;Diurno (Tarde)";
 
         $file = UploadedFile::fake()->createWithContent("estudiantes_semicolon.csv", $csvContent);
 
@@ -105,7 +109,37 @@ class StudentImportTest extends TestCase
             "student_code" => "EST2026003",
             "paternal_last_name" => "Torres",
             "first_name" => "Elena",
+            "gender" => "Femenino",
             "shift" => "Diurno (Tarde)",
+        ]);
+    }
+
+    public function test_import_students_normalizes_gender_variants(): void
+    {
+        $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,sexo\n" .
+            "66778899,EST2026008,Alvarez,Silva,Pedro,m\n" .
+            "77889900,EST2026009,Mendoza,Rios,Carla,mujer";
+
+        $file = UploadedFile::fake()->createWithContent("estudiantes_generos.csv", $csvContent);
+
+        $response = $this->actingAs($this->teacherUser)->post(route("students.import"), [
+            "file" => $file,
+            "delimiter" => ",",
+        ]);
+
+        $response->assertRedirect(route("students.index"));
+        $response->assertSessionHas("success");
+
+        $this->assertDatabaseHas("students", [
+            "dni" => "66778899",
+            "student_code" => "EST2026008",
+            "gender" => "Masculino",
+        ]);
+
+        $this->assertDatabaseHas("students", [
+            "dni" => "77889900",
+            "student_code" => "EST2026009",
+            "gender" => "Femenino",
         ]);
     }
 
@@ -224,6 +258,7 @@ class StudentImportTest extends TestCase
             "paternal_last_name" => "Antiguo",
             "maternal_last_name" => "Paterno",
             "first_name" => "Mario",
+            "gender" => "Masculino",
             "institutional_email" => "mario.old@instituto.edu.pe",
             "admission_date" => "2026-01-01",
         ]);
@@ -238,6 +273,7 @@ class StudentImportTest extends TestCase
                     "paternal_last_name" => "Actualizado",
                     "maternal_last_name" => "Paterno",
                     "first_name" => "Mario",
+                    "gender" => "Masculino",
                     "institutional_email" => "mario.actualizado@instituto.edu.pe",
                     "study_program" => "Diseño y programación web",
                     "admission_date" => "2026-01-01",
@@ -251,6 +287,7 @@ class StudentImportTest extends TestCase
         $this->assertDatabaseHas("students", [
             "dni" => "55667788",
             "paternal_last_name" => "Actualizado",
+            "gender" => "Masculino",
             "institutional_email" => "mario.actualizado@instituto.edu.pe",
         ]);
     }
@@ -278,6 +315,7 @@ class StudentImportTest extends TestCase
                     "paternal_last_name" => "NuevoHermano",
                     "maternal_last_name" => "Paterno",
                     "first_name" => "Luigi",
+                    "gender" => "Masculino",
                     "institutional_email" => "luigi@instituto.edu.pe",
                     "study_program" => "Diseño y programación web",
                     "admission_date" => "2026-01-01",
@@ -291,6 +329,7 @@ class StudentImportTest extends TestCase
             "dni" => "55667799",
             "student_code" => "EST2026006",
             "first_name" => "Luigi",
+            "gender" => "Masculino",
         ]);
     }
 

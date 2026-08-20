@@ -11,21 +11,22 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
-        'dni',
-        'student_code',
-        'study_program',
-        'paternal_last_name',
-        'maternal_last_name',
-        'first_name',
-        'personal_email',
-        'institutional_email',
-        'phone',
-        'mobile',
-        'admission_date',
-        'graduation_date',
-        'degree_date',
-        'curriculum_id',
-        'shift',
+        "dni",
+        "student_code",
+        "study_program",
+        "paternal_last_name",
+        "maternal_last_name",
+        "first_name",
+        "gender",
+        "personal_email",
+        "institutional_email",
+        "phone",
+        "mobile",
+        "admission_date",
+        "graduation_date",
+        "degree_date",
+        "curriculum_id",
+        "shift",
     ];
 
     /**

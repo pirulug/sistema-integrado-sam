@@ -18,8 +18,9 @@ return new class extends Migration
             $table->string('study_program');
             $table->string('paternal_last_name');
             $table->string('maternal_last_name');
-            $table->string('first_name');
-            $table->string('personal_email')->nullable();
+            $table->string("first_name");
+            $table->string("gender")->nullable();
+            $table->string("personal_email")->nullable();
             $table->string('institutional_email')->unique();
             $table->string('phone')->nullable();
             $table->string('mobile')->nullable();

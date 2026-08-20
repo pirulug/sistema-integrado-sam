@@ -61,6 +61,7 @@ class StudentController extends Controller
             "paternal_last_name" => "required|string|max:100",
             "maternal_last_name" => "required|string|max:100",
             "first_name" => "required|string|max:100",
+            "gender" => "nullable|string|in:Masculino,Femenino",
             "personal_email" => "nullable|email|max:255",
             "institutional_email" => "required|email|unique:students,institutional_email|max:255",
             "phone" => "nullable|string|max:20",
@@ -106,6 +107,7 @@ class StudentController extends Controller
             "paternal_last_name" => "required|string|max:100",
             "maternal_last_name" => "required|string|max:100",
             "first_name" => "required|string|max:100",
+            "gender" => "nullable|string|in:Masculino,Femenino",
             "personal_email" => "nullable|email|max:255",
             "institutional_email" => "required|email|max:255|unique:students,institutional_email," . $student->id,
             "phone" => "nullable|string|max:20",
@@ -151,6 +153,7 @@ class StudentController extends Controller
             "apellido_paterno",
             "apellido_materno",
             "nombres",
+            "genero",
             "programa_estudio",
             "email_institucional",
             "email_personal",
@@ -167,6 +170,7 @@ class StudentController extends Controller
             "Gomez",
             "Perez",
             "Carlos",
+            "Masculino",
             "Diseño y programación web",
             "cgomez@instituto.edu.pe",
             "carlos.gomez@gmail.com",
@@ -296,6 +300,7 @@ class StudentController extends Controller
                 $paternalLastName = $getValue("paternal_last_name");
                 $maternalLastName = $getValue("maternal_last_name");
                 $firstName = $getValue("first_name");
+                $genderRaw = $getValue("gender");
                 $studyProgram = $getValue("study_program");
                 $institutionalEmail = $getValue("institutional_email");
                 $personalEmail = $getValue("personal_email");
@@ -311,6 +316,16 @@ class StudentController extends Controller
                 if (empty($dni) || empty($studentCode) || empty($paternalLastName) || empty($maternalLastName) || empty($firstName)) {
                     $errors[] = "Fila {$rowNumber}: Faltan datos obligatorios (DNI, código, nombres o apellidos).";
                     continue;
+                }
+
+                $gender = null;
+                if (!empty($genderRaw)) {
+                    $genderClean = mb_strtolower($genderRaw, "UTF-8");
+                    if (in_array($genderClean, ["masculino", "m", "hombre", "varon", "varón"])) {
+                        $gender = "Masculino";
+                    } elseif (in_array($genderClean, ["femenino", "f", "mujer"])) {
+                        $gender = "Femenino";
+                    }
                 }
 
                 if (empty($studyProgram)) {
@@ -336,6 +351,7 @@ class StudentController extends Controller
                     "paternal_last_name" => $paternalLastName,
                     "maternal_last_name" => $maternalLastName,
                     "first_name" => $firstName,
+                    "gender" => $gender,
                     "personal_email" => !empty($personalEmail) ? $personalEmail : null,
                     "institutional_email" => $institutionalEmail,
                     "phone" => !empty($phone) ? $phone : null,
@@ -472,6 +488,7 @@ class StudentController extends Controller
                 $dni = trim($rowData["dni"] ?? "");
                 $studentCode = trim($rowData["student_code"] ?? "");
                 $firstName = trim($rowData["first_name"] ?? "");
+                $genderRaw = trim($rowData["gender"] ?? "");
                 $paternalLastName = trim($rowData["paternal_last_name"] ?? "");
                 $maternalLastName = trim($rowData["maternal_last_name"] ?? "");
                 $studyProgram = trim($rowData["study_program"] ?? "Diseño y programación web");
@@ -489,6 +506,16 @@ class StudentController extends Controller
                     continue;
                 }
 
+                $gender = null;
+                if (!empty($genderRaw)) {
+                    $genderClean = mb_strtolower($genderRaw, "UTF-8");
+                    if (in_array($genderClean, ["masculino", "m", "hombre", "varon", "varón"])) {
+                        $gender = "Masculino";
+                    } elseif (in_array($genderClean, ["femenino", "f", "mujer"])) {
+                        $gender = "Femenino";
+                    }
+                }
+
                 if (empty($institutionalEmail)) {
                     $institutionalEmail = strtolower($studentCode) . "@instituto.edu.pe";
                 }
@@ -500,6 +527,7 @@ class StudentController extends Controller
                     "paternal_last_name" => $paternalLastName,
                     "maternal_last_name" => $maternalLastName,
                     "first_name" => $firstName,
+                    "gender" => $gender,
                     "personal_email" => !empty($personalEmail) ? $personalEmail : null,
                     "institutional_email" => $institutionalEmail,
                     "phone" => !empty($phone) ? $phone : null,
@@ -612,6 +640,9 @@ class StudentController extends Controller
             "firstname" => "first_name",
             "nombres" => "first_name",
             "nombre" => "first_name",
+            "gender" => "gender",
+            "genero" => "gender",
+            "sexo" => "gender",
             "studyprogram" => "study_program",
             "programaestudio" => "study_program",
             "programadeestudio" => "study_program",
