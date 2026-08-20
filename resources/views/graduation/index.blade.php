@@ -31,13 +31,6 @@
             @endif
 
             <!-- Quick Metrics Dashboard Banner -->
-            @php
-                $totalCount = $students->count();
-                $tituladosCount = $students->where("overall_status", "Titulado")->count();
-                $aptosCount = $students->where("overall_status", "Apto")->count();
-                $enProcesoCount = $students->where("overall_status", "En Proceso")->count();
-                $sinMallaCount = $students->where("overall_status", "Sin Malla")->count();
-            @endphp
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                 <!-- Card 1: Total -->
                 <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700/80 flex items-center justify-between">
@@ -182,9 +175,9 @@
             </div>
 
             <!-- Students Tracking List -->
-            <div class="space-y-4">
+            <div id="students-container" class="space-y-4">
                 @if ($students->isEmpty())
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-2xl p-12 text-center border border-gray-200 dark:border-gray-700/80">
+                    <div id="empty-state" class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-2xl p-12 text-center border border-gray-200 dark:border-gray-700/80">
                         <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700/70 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -196,328 +189,24 @@
                         </p>
                     </div>
                 @else
-                    @foreach ($students as $student)
-                        @php
-                            $st = $student->overall_status;
-                            $curriculum = $student->curriculum;
-                            $totalCourses = $curriculum ? $curriculum->courses->count() : 0;
-                            $pendingCount = $student->pendingCourses()->count();
-                            $approvedCount = $totalCourses - $pendingCount;
-                            $percentage = $totalCourses > 0 ? round(($approvedCount / $totalCourses) * 100) : 0;
-
-                            $initials = mb_substr($student->first_name, 0, 1) . mb_substr($student->paternal_last_name, 0, 1);
-                        @endphp
-
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700/80 hover:border-indigo-300 dark:hover:border-indigo-700/60 transition duration-150 p-5">
-                            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-5 items-center">
-                                
-                                <!-- 1. Student Identity (xl: 4 cols) -->
-                                <div class="xl:col-span-4 flex items-start space-x-3.5 min-w-0">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
-                                        {{ strtoupper($initials) }}
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-sm font-bold text-gray-900 dark:text-white truncate" title="{{ $student->full_name }}">
-                                            {{ $student->paternal_last_name }} {{ $student->maternal_last_name }}, {{ $student->first_name }}
-                                        </h3>
-                                        <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700/70 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
-                                                DNI: {{ $student->dni }}
-                                            </span>
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700/70 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
-                                                {{ $student->student_code }}
-                                            </span>
-                                        </div>
-                                        <div class="mt-1 text-[11px] truncate {{ $curriculum ? 'text-indigo-600 dark:text-indigo-400 font-semibold' : 'text-amber-600 dark:text-amber-400 font-medium' }}">
-                                            {{ $curriculum ? "Malla: {$curriculum->name} ({$curriculum->year})" : "Sin Malla asignada" }}
-                                        </div>
-                                        @if ($student->degree_date)
-                                            <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800">
-                                                    Titulado: {{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}
-                                                </span>
-                                                @if ($student->degree_modality)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-medium border border-purple-200 dark:border-purple-800 max-w-[220px] truncate" title="Modalidad: {{ $student->degree_modality }}">
-                                                        {{ $student->degree_modality }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- 2. Course Progress Bar (xl: 3 cols) -->
-                                <div class="xl:col-span-3 flex flex-col justify-center space-y-1.5">
-                                    @if ($curriculum)
-                                        <div class="flex items-center justify-between text-xs font-semibold">
-                                            <span class="text-gray-600 dark:text-gray-300">Cursos / Unidades</span>
-                                            <span id="pending-count-{{ $student->id }}" class="font-bold {{ $pendingCount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
-                                                {{ $approvedCount }}/{{ $totalCourses }} ({{ $percentage }}%)
-                                            </span>
-                                        </div>
-                                        <div class="w-full bg-gray-100 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden">
-                                            <div id="progress-bar-{{ $student->id }}" class="h-full rounded-full transition-all duration-300 {{ $percentage == 100 ? 'bg-emerald-500' : 'bg-indigo-600' }}" style="width: {{ $percentage }}%"></div>
-                                        </div>
-                                        <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
-                                            <span>{{ $pendingCount }} pendientes</span>
-                                            <span class="truncate max-w-[130px]" title="Turno: {{ $student->shift ?? 'No asignado' }}">
-                                                {{ $student->shift ? "Turno: {$student->shift}" : "" }}
-                                            </span>
-                                        </div>
-                                    @else
-                                        <div class="text-xs text-gray-400 dark:text-gray-500 italic py-2">
-                                            Requiere asignación de Malla
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- 3. EFSRT Modules (xl: 3 cols) -->
-                                <div class="xl:col-span-3 flex flex-col items-start xl:items-center justify-center">
-                                    <span class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1.5">
-                                        Módulos Prácticas EFSRT
-                                    </span>
-                                    <div class="flex items-center gap-2">
-                                        @if ($curriculum)
-                                            @foreach ($student->efsrtStatusList() as $efs)
-                                                @php
-                                                    if (preg_match('/\b(III|II|IV|VI|V|I)\b/i', $efs['module'], $matches)) {
-                                                        $shortModule = strtoupper($matches[1]);
-                                                    } else {
-                                                        $shortModule = 'M' . $loop->iteration;
-                                                    }
-                                                @endphp
-                                                <button type="button" 
-                                                        class="efsrt-indicator-btn group relative flex items-center justify-center w-8 h-8 rounded-full border transition duration-150 hover:scale-110 focus:outline-none"
-                                                        data-student-id="{{ $student->id }}"
-                                                        data-student-name="{{ $student->full_name }}"
-                                                        data-efsrt-id="{{ $efs['id'] }}"
-                                                        data-efsrt-module="{{ $efs['module'] }}"
-                                                        data-efsrt-name="{{ $efs['module_name'] }}"
-                                                        data-required-hours="{{ $efs['hours'] ?? '' }}"
-                                                        data-period="{{ $efs['period'] ?? '' }}"
-                                                        data-lines="{{ json_encode($efs['practice_lines'] ?? []) }}"
-                                                        data-practice-line="{{ $efs['pivot'] ? $efs['pivot']->practice_line : '' }}"
-                                                        data-activities="{{ $efs['pivot'] ? $efs['pivot']->activities : '' }}"
-                                                        data-company="{{ $efs['pivot'] ? $efs['pivot']->company_name : '' }}"
-                                                        data-hours="{{ $efs['pivot'] ? $efs['pivot']->hours : '' }}"
-                                                        data-start="{{ $efs['pivot'] ? $efs['pivot']->start_date : '' }}"
-                                                        data-end="{{ $efs['pivot'] ? $efs['pivot']->end_date : '' }}"
-                                                        data-status="{{ $efs['status'] }}"
-                                                        title="{{ $efs['module'] }}: {{ $efs['module_name'] }} (Clic para gestionar)">
-                                                    
-                                                    @if ($efs['status'] == 'approved')
-                                                        <span class="absolute inset-0 bg-emerald-100 dark:bg-emerald-950/60 border-2 border-emerald-500 rounded-full"></span>
-                                                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                                        </svg>
-                                                    @elseif ($efs['status'] == 'rejected')
-                                                        <span class="absolute inset-0 bg-red-100 dark:bg-red-950/60 border-2 border-red-500 rounded-full"></span>
-                                                        <svg class="w-4 h-4 text-red-600 dark:text-red-400 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    @else
-                                                        <span class="absolute inset-0 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full group-hover:border-indigo-400"></span>
-                                                        <span class="text-[11px] font-bold font-mono text-gray-500 dark:text-gray-400 z-10">{{ $shortModule }}</span>
-                                                    @endif
-                                                </button>
-                                            @endforeach
-                                        @else
-                                            <span class="text-xs text-gray-400">Sin prácticas</span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- 4. Status & Action Buttons (xl: 2 cols) -->
-                                <div class="xl:col-span-2 flex flex-row xl:flex-col items-center xl:items-end justify-between xl:justify-center gap-2">
-                                    <div>
-                                        @php
-                                            $badgeClass = 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-                                            if ($st == 'Titulado') {
-                                                $badgeClass = 'bg-emerald-600 text-white shadow-emerald-500/20';
-                                            } elseif ($st == 'Apto') {
-                                                $badgeClass = 'bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/40 ring-offset-2 dark:ring-offset-gray-800 animate-pulse';
-                                            } elseif ($st == 'En Proceso') {
-                                                $badgeClass = 'bg-amber-500 text-white shadow-amber-500/20';
-                                            }
-                                        @endphp
-                                        <span id="status-badge-{{ $student->id }}" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm {{ $badgeClass }}">
-                                            {{ $st }}
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-center space-x-2">
-                                        @if ($curriculum)
-                                            <button type="button" 
-                                                    class="open-courses-modal-btn inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition shadow-sm focus:outline-none"
-                                                    data-student-id="{{ $student->id }}">
-                                                <svg class="w-3.5 h-3.5 me-1 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                                </svg>
-                                                <span>Ver Cursos</span>
-                                            </button>
-                                        @endif
-
-                                        <!-- Button for Apto -->
-                                        <button type="button" 
-                                                id="titular-btn-{{ $student->id }}"
-                                                class="titular-btn {{ $st == 'Apto' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-md transition duration-150"
-                                                data-student-id="{{ $student->id }}"
-                                                data-student-name="{{ $student->full_name }}"
-                                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
-                                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
-                                                data-is-titulado="false">
-                                            <svg class="w-3.5 h-3.5 me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                                            </svg>
-                                            Titular
-                                        </button>
-
-                                        <!-- Button for Titulado (Editar Titulación) -->
-                                        <button type="button" 
-                                                id="edit-titular-btn-{{ $student->id }}"
-                                                class="titular-btn {{ $st == 'Titulado' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900 transition duration-150"
-                                                data-student-id="{{ $student->id }}"
-                                                data-student-name="{{ $student->full_name }}"
-                                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
-                                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
-                                                data-is-titulado="true"
-                                                title="Editar fecha o modalidad de titulación">
-                                            <svg class="w-3.5 h-3.5 me-1 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                            Editar Titulación
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- Large Courses Modal for Student -->
-                        @if ($curriculum)
-                            <div id="courses-modal-{{ $student->id }}" class="courses-modal fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="courses-modal-title-{{ $student->id }}" role="dialog" aria-modal="true" x-data="{ activePeriod: 'all' }">
-                                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-                                    <!-- Background overlay -->
-                                    <div class="courses-modal-overlay fixed inset-0 transition-opacity bg-gray-900/75 backdrop-blur-sm" data-student-id="{{ $student->id }}"></div>
-                                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                                    <!-- Modal Box -->
-                                    <div class="inline-block align-middle bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-4xl lg:max-w-5xl w-full border border-gray-200 dark:border-gray-700">
-                                        <!-- Modal Header -->
-                                        <div class="px-6 py-5 bg-gray-50 dark:bg-gray-900/60 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                            <div class="flex items-center space-x-3.5">
-                                                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
-                                                    {{ strtoupper($initials) }}
-                                                </div>
-                                                <div>
-                                                    <h3 class="text-base font-bold text-gray-900 dark:text-gray-100" id="courses-modal-title-{{ $student->id }}">
-                                                        Unidades Didácticas: {{ $student->full_name }}
-                                                    </h3>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                                        Malla: <strong>{{ $curriculum->name }} ({{ $curriculum->year }})</strong> &bull; DNI: <span class="font-mono">{{ $student->dni }}</span> &bull; Código: <span class="font-mono">{{ $student->student_code }}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-center space-x-3">
-                                                <div class="flex items-center space-x-2 text-xs font-semibold me-2">
-                                                    <button type="button" class="bulk-courses-btn text-indigo-600 dark:text-indigo-400 hover:underline" data-student-id="{{ $student->id }}" data-action="approve_all">Marcar todo</button>
-                                                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                                                    <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-action="clear_all">Desmarcar todo</button>
-                                                </div>
-                                                <button type="button" class="close-courses-modal-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none" data-student-id="{{ $student->id }}">
-                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Period Quick Navigation Tabs -->
-                                        @php
-                                            $groupedCourses = $curriculum->courses->groupBy("period");
-                                            $periodsOrder = ["I", "II", "III", "IV", "V", "VI"];
-                                        @endphp
-                                        <div class="px-6 py-2.5 bg-gray-100/70 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-700/80 flex flex-wrap items-center gap-1.5">
-                                            <span class="text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider me-2">Periodo:</span>
-                                            <button type="button" @click="activePeriod = 'all'" :class="activePeriod === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50'" class="px-2.5 py-1 rounded-md text-xs font-semibold transition">
-                                                Todos (VI)
-                                            </button>
-                                            @foreach ($periodsOrder as $p)
-                                                @if (isset($groupedCourses[$p]))
-                                                    <button type="button" @click="activePeriod = '{{ $p }}'" :class="activePeriod === '{{ $p }}' ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50'" class="px-2.5 py-1 rounded-md text-xs font-semibold transition">
-                                                        Periodo {{ $p }}
-                                                    </button>
-                                                @endif
-                                            @endforeach
-                                        </div>
-
-                                        <!-- Modal Body: Periods Grid -->
-                                        <div class="p-6 max-h-[65vh] overflow-y-auto">
-                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                                                @foreach ($periodsOrder as $periodName)
-                                                    @if (isset($groupedCourses[$periodName]))
-                                                        <div x-show="activePeriod === 'all' || activePeriod === '{{ $periodName }}'" class="bg-gray-50 dark:bg-gray-900/40 p-4 rounded-xl border border-gray-200 dark:border-gray-700/80 flex flex-col justify-between shadow-sm">
-                                                            <div>
-                                                                <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-3 flex items-center justify-between">
-                                                                    <span class="font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Periodo {{ $periodName }}</span>
-                                                                    <span class="flex items-center space-x-1 font-semibold text-[11px]">
-                                                                        <button type="button" class="bulk-courses-btn text-blue-600 dark:text-blue-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="approve_period">Todo</button>
-                                                                        <span class="text-gray-300 dark:text-gray-600">|</span>
-                                                                        <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="clear_period">Nada</button>
-                                                                    </span>
-                                                                </div>
-                                                                <ul class="space-y-3">
-                                                                    @foreach ($groupedCourses[$periodName]->sortBy("code") as $course)
-                                                                        @php
-                                                                            $isCompleted = $student->courses->contains($course->id);
-                                                                        @endphp
-                                                                        <li class="p-2.5 rounded-lg border transition {{ $isCompleted ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300' }}">
-                                                                            <div class="flex items-start">
-                                                                                <div class="flex items-center h-5 mt-0.5">
-                                                                                    <input type="checkbox" 
-                                                                                           id="chk-{{ $student->id }}-{{ $course->id }}" 
-                                                                                           class="course-checkbox h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                                                                           data-student-id="{{ $student->id }}"
-                                                                                           data-course-id="{{ $course->id }}"
-                                                                                           data-period="{{ $periodName }}"
-                                                                                           {{ $isCompleted ? 'checked' : '' }} />
-                                                                                </div>
-                                                                                <div class="ms-3 text-xs flex-1">
-                                                                                    <label for="chk-{{ $student->id }}-{{ $course->id }}" class="font-semibold text-gray-800 dark:text-gray-200 cursor-pointer select-none block leading-tight">
-                                                                                        {{ $course->name }}
-                                                                                    </label>
-                                                                                    <div class="mt-1 flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 font-mono">
-                                                                                        <span>{{ $course->code }}</span>
-                                                                                        <span class="font-sans px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-[10px] font-semibold text-gray-600 dark:text-gray-300">{{ $course->credits }} Cr &bull; {{ $course->hours }}h</span>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </li>
-                                                                    @endforeach
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        </div>
-
-                                        <!-- Modal Footer -->
-                                        <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                Las asignaturas marcadas se guardan de forma instantánea en la base de datos.
-                                            </div>
-                                            <button type="button" class="close-courses-modal-btn inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150" data-student-id="{{ $student->id }}">
-                                                Cerrar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
+                    @include("graduation.partials.student_cards", ["students" => $students])
                 @endif
+            </div>
+
+            <!-- Infinite Scroll Sentinel & Loader -->
+            <div id="scroll-sentinel" class="py-6 flex flex-col items-center justify-center text-center">
+                <div id="loading-spinner" class="hidden flex items-center space-x-2 text-indigo-600 dark:text-indigo-400 font-semibold text-xs py-3">
+                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Cargando más estudiantes...</span>
+                </div>
+                <div id="end-of-results" class="{{ $students->hasMorePages() ? 'hidden' : '' }} text-xs text-gray-400 dark:text-gray-500 py-3">
+                    @if ($students->total() > 0)
+                        Se han cargado todos los estudiantes (<span id="total-loaded-count">{{ $students->total() }}</span>).
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -756,158 +445,49 @@
                 }
             });
 
-            // 2. AJAX Course Toggling
-            const courseCheckboxes = document.querySelectorAll(".course-checkbox");
-            courseCheckboxes.forEach(chk => {
-                chk.addEventListener("change", function() {
-                    const studentId = this.dataset.studentId;
-                    const courseId = this.dataset.courseId;
-                    
-                    this.disabled = true;
+            // 2. AJAX Course Toggling (Delegation)
+            document.addEventListener("change", function(e) {
+                const chk = e.target.closest(".course-checkbox");
+                if (!chk) return;
 
-                    fetch(`/graduation/${studentId}/toggle-course/${courseId}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        this.disabled = false;
-                        if (data.success) {
-                            // Update container li styling
-                            const li = this.closest("li");
-                            if (li) {
-                                if (data.attached) {
-                                    li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
-                                } else {
-                                    li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
-                                }
-                            }
+                const studentId = chk.dataset.studentId;
+                const courseId = chk.dataset.courseId;
+                
+                chk.disabled = true;
 
-                            // Update pending counter text
-                            const counterEl = document.getElementById(`pending-count-${studentId}`);
-                            if (counterEl) {
-                                const total = document.querySelectorAll(`.course-checkbox[data-student-id="${studentId}"]`).length;
-                                const approved = total - data.pending_count;
-                                const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
-
-                                counterEl.innerText = `${approved}/${total} (${pct}%)`;
-                                if (data.pending_count > 0) {
-                                    counterEl.className = "font-bold text-amber-600 dark:text-amber-400";
-                                } else {
-                                    counterEl.className = "font-bold text-emerald-600 dark:text-emerald-400";
-                                }
-
-                                const pBar = document.getElementById(`progress-bar-${studentId}`);
-                                if (pBar) {
-                                    pBar.style.width = `${pct}%`;
-                                    pBar.className = `h-full rounded-full transition-all duration-300 ${pct === 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`;
-                                }
-                            }
-
-                            // Update status badge
-                            const badgeEl = document.getElementById(`status-badge-${studentId}`);
-                            if (badgeEl) {
-                                badgeEl.innerText = data.overall_status;
-                                let badgeClass = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ";
-                                if (data.overall_status === "Titulado") {
-                                    badgeClass += "bg-emerald-600 text-white shadow-emerald-500/20";
-                                } else if (data.overall_status === "Apto") {
-                                    badgeClass += "bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/40 ring-offset-2 dark:ring-offset-gray-800 animate-pulse";
-                                } else if (data.overall_status === "En Proceso") {
-                                    badgeClass += "bg-amber-500 text-white shadow-amber-500/20";
-                                } else {
-                                    badgeClass += "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-                                }
-                                badgeEl.className = badgeClass;
-                            }
-
-                            // Show/hide titular button
-                            const titularBtn = document.getElementById(`titular-btn-${studentId}`);
-                            if (titularBtn) {
-                                if (data.overall_status === "Apto") {
-                                    titularBtn.classList.remove("hidden");
-                                } else {
-                                    titularBtn.classList.add("hidden");
-                                }
-                            }
-
-                            if (window.showToast) {
-                                window.showToast(data.attached ? "Curso marcado como aprobado." : "Curso desmarcado (pendiente).", "info");
+                fetch(`/graduation/${studentId}/toggle-course/${courseId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    chk.disabled = false;
+                    if (data.success) {
+                        // Update container li styling
+                        const li = chk.closest("li");
+                        if (li) {
+                            if (data.attached) {
+                                li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
+                            } else {
+                                li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
                             }
                         }
-                    })
-                    .catch(err => {
-                        this.disabled = false;
-                        console.error("Error toggling course status:", err);
-                        this.checked = !this.checked;
-                        if (window.showToast) {
-                            window.showToast("Error al actualizar el estado del curso.", "error");
-                        }
-                    });
-                });
-            });
 
-            // 2.1 Bulk Course Operations (Select All / Clear All / Period)
-            const bulkButtons = document.querySelectorAll(".bulk-courses-btn");
-            bulkButtons.forEach(btn => {
-                btn.addEventListener("click", function() {
-                    const studentId = this.dataset.studentId;
-                    const action = this.dataset.action;
-                    const period = this.dataset.period || null;
-
-                    bulkButtons.forEach(b => { if (b.dataset.studentId === studentId) b.disabled = true; });
-
-                    fetch(`/graduation/${studentId}/bulk-courses`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        },
-                        body: JSON.stringify({
-                            action: action,
-                            period: period
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        bulkButtons.forEach(b => { if (b.dataset.studentId === studentId) b.disabled = false; });
-
-                        if (data.success) {
-                            // Update checkboxes from backend approved_ids list
-                            const approvedIds = (data.approved_ids || []).map(id => parseInt(id));
-                            const checkboxes = document.querySelectorAll(`.course-checkbox[data-student-id="${studentId}"]`);
-
-                            checkboxes.forEach(chk => {
-                                const courseId = parseInt(chk.dataset.courseId);
-                                const isApproved = approvedIds.includes(courseId);
-                                chk.checked = isApproved;
-
-                                const li = chk.closest("li");
-                                if (li) {
-                                    if (isApproved) {
-                                        li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
-                                    } else {
-                                        li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
-                                    }
-                                }
-                            });
-
-                            // Update counter and progress
-                            const total = checkboxes.length;
+                        // Update pending counter text
+                        const counterEl = document.getElementById(`pending-count-${studentId}`);
+                        if (counterEl) {
+                            const total = document.querySelectorAll(`.course-checkbox[data-student-id="${studentId}"]`).length;
                             const approved = total - data.pending_count;
                             const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
 
-                            const counterEl = document.getElementById(`pending-count-${studentId}`);
-                            if (counterEl) {
-                                counterEl.innerText = `${approved}/${total} (${pct}%)`;
-                                if (data.pending_count > 0) {
-                                    counterEl.className = "font-bold text-amber-600 dark:text-amber-400";
-                                } else {
-                                    counterEl.className = "font-bold text-emerald-600 dark:text-emerald-400";
-                                }
+                            counterEl.innerText = `${approved}/${total} (${pct}%)`;
+                            if (data.pending_count > 0) {
+                                counterEl.className = "font-bold text-amber-600 dark:text-amber-400";
+                            } else {
+                                counterEl.className = "font-bold text-emerald-600 dark:text-emerald-400";
                             }
 
                             const pBar = document.getElementById(`progress-bar-${studentId}`);
@@ -915,267 +495,377 @@
                                 pBar.style.width = `${pct}%`;
                                 pBar.className = `h-full rounded-full transition-all duration-300 ${pct === 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`;
                             }
+                        }
 
-                            const badgeEl = document.getElementById(`status-badge-${studentId}`);
-                            if (badgeEl) {
-                                badgeEl.innerText = data.overall_status;
-                                let badgeClass = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ";
-                                if (data.overall_status === "Titulado") {
-                                    badgeClass += "bg-emerald-600 text-white shadow-emerald-500/20";
-                                } else if (data.overall_status === "Apto") {
-                                    badgeClass += "bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/40 ring-offset-2 dark:ring-offset-gray-800 animate-pulse";
-                                } else if (data.overall_status === "En Proceso") {
-                                    badgeClass += "bg-amber-500 text-white shadow-amber-500/20";
-                                } else {
-                                    badgeClass += "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-                                }
-                                badgeEl.className = badgeClass;
+                        // Update status badge
+                        const badgeEl = document.getElementById(`status-badge-${studentId}`);
+                        if (badgeEl) {
+                            badgeEl.innerText = data.overall_status;
+                            let badgeClass = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ";
+                            if (data.overall_status === "Titulado") {
+                                badgeClass += "bg-emerald-600 text-white shadow-emerald-500/20";
+                            } else if (data.overall_status === "Apto") {
+                                badgeClass += "bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/40 ring-offset-2 dark:ring-offset-gray-800 animate-pulse";
+                            } else if (data.overall_status === "En Proceso") {
+                                badgeClass += "bg-amber-500 text-white shadow-amber-500/20";
+                            } else {
+                                badgeClass += "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
                             }
+                            badgeEl.className = badgeClass;
+                        }
 
-                            const titularBtn = document.getElementById(`titular-btn-${studentId}`);
-                            if (titularBtn) {
-                                if (data.overall_status === "Apto") {
-                                    titularBtn.classList.remove("hidden");
-                                } else {
-                                    titularBtn.classList.add("hidden");
-                                }
-                            }
-
-                            if (window.showToast) {
-                                window.showToast("Cursos actualizados exitosamente.", "success");
+                        // Show/hide titular button
+                        const titularBtn = document.getElementById(`titular-btn-${studentId}`);
+                        if (titularBtn) {
+                            if (data.overall_status === "Apto") {
+                                titularBtn.classList.remove("hidden");
+                            } else {
+                                titularBtn.classList.add("hidden");
                             }
                         }
-                    })
-                    .catch(err => {
-                        bulkButtons.forEach(b => { if (b.dataset.studentId === studentId) b.disabled = false; });
-                        console.error("Error during bulk course updates:", err);
+
                         if (window.showToast) {
-                            window.showToast("Error al procesar la actualización masiva de cursos.", "error");
+                            window.showToast(data.attached ? "Curso marcado como aprobado." : "Curso desmarcado (pendiente).", "info");
                         }
-                    });
+                    }
+                })
+                .catch(err => {
+                    chk.disabled = false;
+                    console.error("Error toggling course status:", err);
+                    chk.checked = !chk.checked;
+                    if (window.showToast) {
+                        window.showToast("Error al actualizar el estado del curso.", "error");
+                    }
                 });
             });
 
-            // 3. EFSRT Modal Logic
-            const modal = document.getElementById("efsrt-modal");
-            const modalForm = document.getElementById("efsrt-modal-form");
-            const closeButtons = document.querySelectorAll(".close-modal-btn, #efsrt-modal-overlay");
-            
-            const indicatorButtons = document.querySelectorAll(".efsrt-indicator-btn");
-            indicatorButtons.forEach(btn => {
-                btn.addEventListener("click", function() {
-                    const studentId = this.dataset.studentId;
-                    const studentName = this.dataset.studentName;
-                    const efsrtId = this.dataset.efsrtId;
-                    const efsrtModule = this.dataset.efsrtModule;
-                    const efsrtName = this.dataset.efsrtName || "";
-                    const reqHours = this.dataset.requiredHours;
-                    const period = this.dataset.period;
-                    const currentLine = this.dataset.practiceLine || "";
-                    const currentActivities = this.dataset.activities || "";
-                    
-                    let lines = [];
-                    try {
-                        lines = JSON.parse(this.dataset.lines || "[]");
-                    } catch(e) {
-                        lines = [];
-                    }
+            // 2.1 Bulk Course Operations (Delegation)
+            document.addEventListener("click", function(e) {
+                const btn = e.target.closest(".bulk-courses-btn");
+                if (!btn) return;
 
-                    const company = this.dataset.company;
-                    const hours = this.dataset.hours;
-                    const start = this.dataset.start;
-                    const end = this.dataset.end;
-                    const status = this.dataset.status;
+                const studentId = btn.dataset.studentId;
+                const action = btn.dataset.action;
+                const period = btn.dataset.period || null;
 
-                    modalForm.action = `/graduation/${studentId}/update-efsrt/${efsrtId}`;
-                    
-                    document.getElementById("modal-student-name").innerText = studentName;
-                    document.getElementById("modal-efsrt-module").innerText = `${efsrtModule}: ${efsrtName}`;
-                    document.getElementById("modal-efsrt-period").innerText = period ? `Periodo: ${period}` : "";
-                    document.getElementById("modal-efsrt-req-hours").innerText = reqHours ? `Horas Requeridas: ${reqHours} hrs` : "";
+                const bulkButtons = document.querySelectorAll(`.bulk-courses-btn[data-student-id="${studentId}"]`);
+                bulkButtons.forEach(b => { b.disabled = true; });
 
-                    // Populate practice lines dropdown & activities
-                    const lineSelect = document.getElementById("modal-practice-line");
-                    const customLineInput = document.getElementById("modal-practice-line-custom");
-                    const customActInput = document.getElementById("modal-activities-custom");
-                    const hiddenActInput = document.getElementById("modal-activities");
-                    
-                    lineSelect.innerHTML = '<option value="">-- Seleccionar Línea de Práctica --</option>';
+                fetch(`/graduation/${studentId}/bulk-courses`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({
+                        action: action,
+                        period: period
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    bulkButtons.forEach(b => { b.disabled = false; });
 
-                    let lineFound = false;
-                    lines.forEach(item => {
-                        const lineText = item.line || item.name || item;
-                        const opt = document.createElement("option");
-                        opt.value = lineText;
-                        opt.textContent = lineText;
-                        if (currentLine && currentLine === lineText) {
-                            opt.selected = true;
-                            lineFound = true;
-                        }
-                        lineSelect.appendChild(opt);
-                    });
+                    if (data.success) {
+                        // Update checkboxes from backend approved_ids list
+                        const approvedIds = (data.approved_ids || []).map(id => parseInt(id));
+                        const checkboxes = document.querySelectorAll(`.course-checkbox[data-student-id="${studentId}"]`);
 
-                    const customOpt = document.createElement("option");
-                    customOpt.value = "custom";
-                    customOpt.textContent = "-- Otra (especificar) --";
-                    lineSelect.appendChild(customOpt);
+                        checkboxes.forEach(chk => {
+                            const courseId = parseInt(chk.dataset.courseId);
+                            const isApproved = approvedIds.includes(courseId);
+                            chk.checked = isApproved;
 
-                    if (currentLine && !lineFound) {
-                        customOpt.selected = true;
-                        customLineInput.style.display = "block";
-                        customLineInput.value = currentLine;
-                    } else {
-                        customLineInput.style.display = "none";
-                        customLineInput.value = "";
-                    }
-
-                    function updateActivitiesList(selectedLineText, preselectedAct) {
-                        const listContainer = document.getElementById("modal-activities-list");
-                        listContainer.innerHTML = "";
-
-                        let foundLineObj = lines.find(l => (l.line || l.name || l) === selectedLineText);
-                        let activitiesList = (foundLineObj && Array.isArray(foundLineObj.activities)) ? foundLineObj.activities : [];
-
-                        if (activitiesList.length === 0) {
-                            listContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-1">No hay actividades predefinidas para esta línea. Ingrese la actividad abajo:</p>';
-                            customActInput.style.display = "block";
-                            customActInput.value = preselectedAct || "";
-                            hiddenActInput.value = preselectedAct || "";
-                            return;
-                        }
-
-                        let isCustomSelected = true;
-
-                        activitiesList.forEach((actText, idx) => {
-                            const row = document.createElement("label");
-                            row.className = "flex items-start space-x-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/60 p-1.5 rounded-lg transition border border-transparent hover:border-gray-200 dark:hover:border-gray-700";
-
-                            const radio = document.createElement("input");
-                            radio.type = "radio";
-                            radio.name = "efsrt_activity_radio";
-                            radio.value = actText;
-                            radio.className = "mt-0.5 text-indigo-600 focus:ring-indigo-500";
-
-                            if (preselectedAct && preselectedAct.trim() === actText.trim()) {
-                                radio.checked = true;
-                                isCustomSelected = false;
-                                hiddenActInput.value = actText;
-                            } else if (!preselectedAct && idx === 0) {
-                                radio.checked = true;
-                                isCustomSelected = false;
-                                hiddenActInput.value = actText;
-                            }
-
-                            radio.onchange = function() {
-                                if (this.checked) {
-                                    hiddenActInput.value = this.value;
-                                    customActInput.style.display = "none";
+                            const li = chk.closest("li");
+                            if (li) {
+                                if (isApproved) {
+                                    li.className = "p-2.5 rounded-lg border transition bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40";
+                                } else {
+                                    li.className = "p-2.5 rounded-lg border transition bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-indigo-300";
                                 }
-                            };
-
-                            const span = document.createElement("span");
-                            span.className = "leading-tight font-medium";
-                            span.textContent = actText;
-
-                            row.appendChild(radio);
-                            row.appendChild(span);
-                            listContainer.appendChild(row);
+                            }
                         });
 
-                        // Custom activity option
-                        const customRow = document.createElement("label");
-                        customRow.className = "flex items-center space-x-2 text-xs text-indigo-600 dark:text-indigo-400 font-semibold cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/60 transition";
-                        
-                        const customRadio = document.createElement("input");
-                        customRadio.type = "radio";
-                        customRadio.name = "efsrt_activity_radio";
-                        customRadio.value = "custom";
-                        customRadio.className = "text-indigo-600 focus:ring-indigo-500";
+                        // Update counter and progress
+                        const total = checkboxes.length;
+                        const approved = total - data.pending_count;
+                        const pct = total > 0 ? Math.round((approved / total) * 100) : 0;
 
-                        if (preselectedAct && isCustomSelected) {
-                            customRadio.checked = true;
-                            customActInput.style.display = "block";
-                            customActInput.value = preselectedAct;
-                            hiddenActInput.value = preselectedAct;
-                        } else {
-                            customActInput.style.display = "none";
+                        const counterEl = document.getElementById(`pending-count-${studentId}`);
+                        if (counterEl) {
+                            counterEl.innerText = `${approved}/${total} (${pct}%)`;
+                            if (data.pending_count > 0) {
+                                counterEl.className = "font-bold text-amber-600 dark:text-amber-400";
+                            } else {
+                                counterEl.className = "font-bold text-emerald-600 dark:text-emerald-400";
+                            }
                         }
 
-                        customRadio.onchange = function() {
-                            if (this.checked) {
-                                customActInput.style.display = "block";
-                                customActInput.focus();
-                                hiddenActInput.value = customActInput.value;
-                            }
-                        };
+                        const pBar = document.getElementById(`progress-bar-${studentId}`);
+                        if (pBar) {
+                            pBar.style.width = `${pct}%`;
+                            pBar.className = `h-full rounded-full transition-all duration-300 ${pct === 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`;
+                        }
 
-                        customActInput.oninput = function() {
-                            if (customRadio.checked) {
-                                hiddenActInput.value = this.value;
+                        const badgeEl = document.getElementById(`status-badge-${studentId}`);
+                        if (badgeEl) {
+                            badgeEl.innerText = data.overall_status;
+                            let badgeClass = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ";
+                            if (data.overall_status === "Titulado") {
+                                badgeClass += "bg-emerald-600 text-white shadow-emerald-500/20";
+                            } else if (data.overall_status === "Apto") {
+                                badgeClass += "bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/40 ring-offset-2 dark:ring-offset-gray-800 animate-pulse";
+                            } else if (data.overall_status === "En Proceso") {
+                                badgeClass += "bg-amber-500 text-white shadow-amber-500/20";
+                            } else {
+                                badgeClass += "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
                             }
-                        };
+                            badgeEl.className = badgeClass;
+                        }
 
-                        const customSpan = document.createElement("span");
-                        customSpan.textContent = "Otra actividad específica (redactar)";
-                        customRow.appendChild(customRadio);
-                        customRow.appendChild(customSpan);
-                        listContainer.appendChild(customRow);
+                        const titularBtn = document.getElementById(`titular-btn-${studentId}`);
+                        if (titularBtn) {
+                            if (data.overall_status === "Apto") {
+                                titularBtn.classList.remove("hidden");
+                            } else {
+                                titularBtn.classList.add("hidden");
+                            }
+                        }
+
+                        if (window.showToast) {
+                            window.showToast("Cursos actualizados exitosamente.", "success");
+                        }
                     }
-
-                    lineSelect.onchange = function() {
-                        if (this.value === "custom") {
-                            customLineInput.style.display = "block";
-                            customLineInput.focus();
-                            updateActivitiesList("", "");
-                        } else {
-                            customLineInput.style.display = "none";
-                            updateActivitiesList(this.value, "");
-                        }
-                    };
-
-                    updateActivitiesList(lineSelect.value, currentActivities);
-
-                    document.getElementById("company_name").value = company || "";
-                    document.getElementById("hours").value = hours || reqHours || "";
-                    document.getElementById("start_date").value = start || "";
-                    document.getElementById("end_date").value = end || "";
-                    document.getElementById("modal-status-select").value = status || "pending";
-
-                    modal.classList.remove("hidden");
-                    document.body.classList.add("overflow-hidden");
+                })
+                .catch(err => {
+                    bulkButtons.forEach(b => { b.disabled = false; });
+                    console.error("Error during bulk course updates:", err);
+                    if (window.showToast) {
+                        window.showToast("Error al procesar la actualización masiva de cursos.", "error");
+                    }
                 });
             });
 
-            modalForm.addEventListener("submit", function() {
+            // 3. EFSRT Modal Logic (Delegation)
+            const modal = document.getElementById("efsrt-modal");
+            const modalForm = document.getElementById("efsrt-modal-form");
+            
+            document.addEventListener("click", function(e) {
+                const btn = e.target.closest(".open-efsrt-modal-btn, .efsrt-indicator-btn");
+                if (!btn) return;
+
+                const studentId = btn.dataset.studentId;
+                const studentName = btn.dataset.studentName;
+                const efsrtId = btn.dataset.efsrtId;
+                const efsrtModule = btn.dataset.efsrtModule;
+                const efsrtName = btn.dataset.efsrtName || "";
+                const reqHours = btn.dataset.requiredHours;
+                const period = btn.dataset.period;
+                const currentLine = btn.dataset.practiceLine || "";
+                const currentActivities = btn.dataset.activities || "";
+                
+                let lines = [];
+                try {
+                    lines = JSON.parse(btn.dataset.lines || btn.dataset.practiceLines || "[]");
+                } catch(err) {
+                    lines = [];
+                }
+
+                const company = btn.dataset.company;
+                const hours = btn.dataset.hours;
+                const start = btn.dataset.startDate || btn.dataset.start;
+                const end = btn.dataset.endDate || btn.dataset.end;
+                const status = btn.dataset.status;
+
+                modalForm.action = `/graduation/${studentId}/update-efsrt/${efsrtId}`;
+                
+                document.getElementById("modal-student-name").innerText = studentName;
+                document.getElementById("modal-efsrt-module").innerText = `${efsrtModule}: ${efsrtName}`;
+                document.getElementById("modal-efsrt-period").innerText = period ? (period.toString().startsWith("Periodo") ? period : `Periodo: ${period}`) : "";
+                document.getElementById("modal-efsrt-req-hours").innerText = reqHours ? `Horas Requeridas: ${reqHours} hrs` : "";
+
+                // Populate practice lines dropdown & activities
                 const lineSelect = document.getElementById("modal-practice-line");
                 const customLineInput = document.getElementById("modal-practice-line-custom");
                 const customActInput = document.getElementById("modal-activities-custom");
                 const hiddenActInput = document.getElementById("modal-activities");
+                
+                lineSelect.innerHTML = '<option value="">-- Seleccionar Línea de Práctica --</option>';
 
-                if (lineSelect.value === "custom" && customLineInput.value) {
+                let lineFound = false;
+                lines.forEach(item => {
+                    const lineText = item.line || item.name || item;
                     const opt = document.createElement("option");
-                    opt.value = customLineInput.value;
-                    opt.textContent = customLineInput.value;
-                    opt.selected = true;
+                    opt.value = lineText;
+                    opt.textContent = lineText;
+                    if (currentLine && currentLine === lineText) {
+                        opt.selected = true;
+                        lineFound = true;
+                    }
                     lineSelect.appendChild(opt);
+                });
+
+                const customOpt = document.createElement("option");
+                customOpt.value = "custom";
+                customOpt.textContent = "-- Otra (especificar) --";
+                lineSelect.appendChild(customOpt);
+
+                if (currentLine && !lineFound) {
+                    customOpt.selected = true;
+                    customLineInput.style.display = "block";
+                    customLineInput.value = currentLine;
+                } else {
+                    customLineInput.style.display = "none";
+                    customLineInput.value = "";
                 }
 
-                if (customActInput.style.display !== "none" && customActInput.value) {
-                    hiddenActInput.value = customActInput.value;
+                function updateActivitiesList(selectedLineText, preselectedAct) {
+                    const listContainer = document.getElementById("modal-activities-list");
+                    listContainer.innerHTML = "";
+
+                    let foundLineObj = lines.find(l => (l.line || l.name || l) === selectedLineText);
+                    let activitiesList = (foundLineObj && Array.isArray(foundLineObj.activities)) ? foundLineObj.activities : [];
+
+                    if (activitiesList.length === 0) {
+                        listContainer.innerHTML = '<p class="text-xs text-gray-400 italic p-1">No hay actividades predefinidas para esta línea. Ingrese la actividad abajo:</p>';
+                        customActInput.style.display = "block";
+                        customActInput.value = preselectedAct || "";
+                        hiddenActInput.value = preselectedAct || "";
+                        return;
+                    }
+
+                    let isCustomSelected = true;
+
+                    activitiesList.forEach((actText, idx) => {
+                        const row = document.createElement("label");
+                        row.className = "flex items-start space-x-2 text-xs text-gray-700 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/60 p-1.5 rounded-lg transition border border-transparent hover:border-gray-200 dark:hover:border-gray-700";
+
+                        const radio = document.createElement("input");
+                        radio.type = "radio";
+                        radio.name = "efsrt_activity_radio";
+                        radio.value = actText;
+                        radio.className = "mt-0.5 text-indigo-600 focus:ring-indigo-500";
+
+                        if (preselectedAct && preselectedAct.trim() === actText.trim()) {
+                            radio.checked = true;
+                            isCustomSelected = false;
+                            hiddenActInput.value = actText;
+                        } else if (!preselectedAct && idx === 0) {
+                            radio.checked = true;
+                            isCustomSelected = false;
+                            hiddenActInput.value = actText;
+                        }
+
+                        radio.onchange = function() {
+                            if (this.checked) {
+                                hiddenActInput.value = this.value;
+                                customActInput.style.display = "none";
+                            }
+                        };
+
+                        const span = document.createElement("span");
+                        span.className = "leading-tight font-medium";
+                        span.textContent = actText;
+
+                        row.appendChild(radio);
+                        row.appendChild(span);
+                        listContainer.appendChild(row);
+                    });
+
+                    // Custom activity option
+                    const customRow = document.createElement("label");
+                    customRow.className = "flex items-center space-x-2 text-xs text-indigo-600 dark:text-indigo-400 font-semibold cursor-pointer p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800/60 transition";
+                    
+                    const customRadio = document.createElement("input");
+                    customRadio.type = "radio";
+                    customRadio.name = "efsrt_activity_radio";
+                    customRadio.value = "custom";
+                    customRadio.className = "text-indigo-600 focus:ring-indigo-500";
+
+                    if (preselectedAct && isCustomSelected) {
+                        customRadio.checked = true;
+                        customActInput.style.display = "block";
+                        customActInput.value = preselectedAct;
+                        hiddenActInput.value = preselectedAct;
+                    } else {
+                        customActInput.style.display = "none";
+                    }
+
+                    customRadio.onchange = function() {
+                        if (this.checked) {
+                            customActInput.style.display = "block";
+                            customActInput.focus();
+                            hiddenActInput.value = customActInput.value;
+                        }
+                    };
+
+                    customActInput.oninput = function() {
+                        if (customRadio.checked) {
+                            hiddenActInput.value = this.value;
+                        }
+                    };
+
+                    const customSpan = document.createElement("span");
+                    customSpan.textContent = "Otra actividad específica (redactar)";
+                    customRow.appendChild(customRadio);
+                    customRow.appendChild(customSpan);
+                    listContainer.appendChild(customRow);
                 }
+
+                lineSelect.onchange = function() {
+                    if (this.value === "custom") {
+                        customLineInput.style.display = "block";
+                        customLineInput.focus();
+                        updateActivitiesList("", "");
+                    } else {
+                        customLineInput.style.display = "none";
+                        updateActivitiesList(this.value, "");
+                    }
+                };
+
+                updateActivitiesList(lineSelect.value, currentActivities);
+
+                document.getElementById("company_name").value = company || "";
+                document.getElementById("hours").value = hours || reqHours || "";
+                document.getElementById("start_date").value = start || "";
+                document.getElementById("end_date").value = end || "";
+                document.getElementById("modal-status-select").value = status || "pending";
+
+                modal.classList.remove("hidden");
+                document.body.classList.add("overflow-hidden");
             });
 
-            closeButtons.forEach(btn => {
-                btn.addEventListener("click", function() {
+            if (modalForm) {
+                modalForm.addEventListener("submit", function() {
+                    const lineSelect = document.getElementById("modal-practice-line");
+                    const customLineInput = document.getElementById("modal-practice-line-custom");
+                    const customActInput = document.getElementById("modal-activities-custom");
+                    const hiddenActInput = document.getElementById("modal-activities");
+
+                    if (lineSelect.value === "custom" && customLineInput.value) {
+                        const opt = document.createElement("option");
+                        opt.value = customLineInput.value;
+                        opt.textContent = customLineInput.value;
+                        opt.selected = true;
+                        lineSelect.appendChild(opt);
+                    }
+
+                    if (customActInput.style.display !== "none" && customActInput.value) {
+                        hiddenActInput.value = customActInput.value;
+                    }
+                });
+            }
+
+            document.addEventListener("click", function(e) {
+                if (e.target.closest(".close-modal-btn") || e.target.id === "efsrt-modal-overlay") {
                     modal.classList.add("hidden");
                     document.body.classList.remove("overflow-hidden");
-                });
+                }
             });
 
-            // 4. Titulación Modal Logic
+            // 4. Titulación Modal Logic (Delegation)
             const titularModal = document.getElementById("titular-modal");
             const titularModalForm = document.getElementById("titular-modal-form");
-            const closeTitularButtons = document.querySelectorAll(".close-titular-modal-btn, #titular-modal-overlay");
             const modalitySelect = document.getElementById("degree_modality_select");
             const modalityCustom = document.getElementById("degree_modality_custom");
             const revertBtn = document.getElementById("btn-revert-titular");
@@ -1273,11 +963,11 @@
                 };
             }
 
-            closeTitularButtons.forEach(btn => {
-                btn.addEventListener("click", function() {
+            document.addEventListener("click", function(e) {
+                if (e.target.closest(".close-titular-modal-btn") || e.target.id === "titular-modal-overlay") {
                     titularModal.classList.add("hidden");
                     document.body.classList.remove("overflow-hidden");
-                });
+                }
             });
 
             // 5. Global ESC Key Handler

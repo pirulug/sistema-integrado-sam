@@ -12,53 +12,96 @@ use Illuminate\Http\JsonResponse;
 class GraduationController extends Controller
 {
     /**
-     * Display the graduation tracking panel.
+     * Display the graduation tracking panel with infinite scroll pagination (3 items per batch).
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $curriculumId = $request->input('curriculum_id');
-        $shift = $request->input('shift');
-        $status = $request->input('status');
+        $search = $request->input("search");
+        $curriculumId = $request->input("curriculum_id");
+        $shift = $request->input("shift");
+        $status = $request->input("status");
 
-        $studentsQuery = Student::with(['curriculum', 'courses', 'efsrts']);
+        // Fast metrics calculation
+        $totalCount = Student::count();
+        $tituladosCount = Student::whereNotNull("degree_date")->count();
+        $sinMallaCount = Student::whereNull("curriculum_id")->count();
+
+        // Query active students for Aptos and En Proceso metrics
+        $activeStudents = Student::with(["curriculum.courses:id,curriculum_id", "curriculum.efsrts:id,curriculum_id", "courses:id", "efsrts:id"])
+            ->whereNull("degree_date")
+            ->whereNotNull("curriculum_id")
+            ->get(["id", "curriculum_id", "degree_date"]);
+
+        $aptosStudentIds = $activeStudents->filter(fn($s) => $s->overall_status === "Apto")->pluck("id")->toArray();
+        $enProcesoStudentIds = $activeStudents->filter(fn($s) => $s->overall_status === "En Proceso")->pluck("id")->toArray();
+
+        $aptosCount = count($aptosStudentIds);
+        $enProcesoCount = count($enProcesoStudentIds);
+
+        // Build the paginated students query
+        $studentsQuery = Student::with([
+            "curriculum.courses",
+            "curriculum.efsrts",
+            "courses",
+            "efsrts"
+        ]);
 
         if ($search) {
-             $studentsQuery->where(function($q) use ($search) {
-                 $q->where('dni', 'like', "%{$search}%")
-                   ->orWhere('student_code', 'like', "%{$search}%")
-                   ->orWhere('paternal_last_name', 'like', "%{$search}%")
-                   ->orWhere('maternal_last_name', 'like', "%{$search}%")
-                   ->orWhere('first_name', 'like', "%{$search}%");
-             });
+            $studentsQuery->where(function($q) use ($search) {
+                $q->where("dni", "like", "%{$search}%")
+                  ->orWhere("student_code", "like", "%{$search}%")
+                  ->orWhere("paternal_last_name", "like", "%{$search}%")
+                  ->orWhere("maternal_last_name", "like", "%{$search}%")
+                  ->orWhere("first_name", "like", "%{$search}%");
+            });
         }
 
         if ($curriculumId) {
-            $studentsQuery->where('curriculum_id', $curriculumId);
+            $studentsQuery->where("curriculum_id", $curriculumId);
         }
 
         if ($shift) {
-            $studentsQuery->where('shift', $shift);
+            $studentsQuery->where("shift", $shift);
         }
 
-        $students = $studentsQuery->get();
+        if ($status === "Titulado") {
+            $studentsQuery->whereNotNull("degree_date");
+        } elseif ($status === "Sin Malla") {
+            $studentsQuery->whereNull("curriculum_id");
+        } elseif ($status === "Apto") {
+            $studentsQuery->whereIn("id", $aptosStudentIds);
+        } elseif ($status === "En Proceso") {
+            $studentsQuery->whereIn("id", $enProcesoStudentIds);
+        }
 
-        // Filter by general graduation status in memory
-        if ($status) {
-            $students = $students->filter(function($student) use ($status) {
-                return $student->overall_status === $status;
-            });
+        // Paginate 3 by 3 to prevent memory exhaustion
+        $students = $studentsQuery->paginate(3)->withQueryString();
+
+        // AJAX / Infinite Scroll request response
+        if ($request->ajax() || $request->header("X-Requested-With") === "XMLHttpRequest" || $request->wantsJson()) {
+            return response()->json([
+                "html" => view("graduation.partials.student_cards", compact("students"))->render(),
+                "next_page_url" => $students->nextPageUrl(),
+                "has_more" => $students->hasMorePages(),
+                "current_page" => $students->currentPage(),
+                "total" => $students->total(),
+            ]);
         }
 
         $curriculums = Curriculum::all();
 
-        return view('graduation.index', compact(
-            'students', 
-            'curriculums', 
-            'search', 
-            'curriculumId', 
-            'shift', 
-            'status'
+        return view("graduation.index", compact(
+            "students", 
+            "curriculums", 
+            "search", 
+            "curriculumId", 
+            "shift", 
+            "status",
+            "totalCount",
+            "tituladosCount",
+            "aptosCount",
+            "enProcesoCount",
+            "sinMallaCount"
         ));
     }
 
