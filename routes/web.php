@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\DashboardController;
@@ -11,49 +12,88 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    $curriculum = \App\Models\Curriculum::with('courses')->first();
-    $coursesByPeriod = $curriculum ? $curriculum->courses->groupBy('period') : collect();
-    return view('landing', compact('coursesByPeriod'));
-})->name('home');
+Route::get("/", function () {
+    $curriculum = \App\Models\Curriculum::with("courses")->first();
+    $coursesByPeriod = $curriculum ? $curriculum->courses->groupBy("period") : collect();
+    return view("landing", compact("coursesByPeriod"));
+})->name("home");
 
-Route::get('/consulta', [GraduationController::class, 'publicLookup'])->name('graduation.public-lookup');
+Route::get("/consulta", [GraduationController::class, "publicLookup"])->name("graduation.public-lookup");
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get("/dashboard", [DashboardController::class, "index"])
+    ->middleware(["auth", "verified"])
+    ->name("dashboard");
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware("auth")->group(function () {
+    Route::get("/profile", [ProfileController::class, "edit"])->name("profile.edit");
+    Route::patch("/profile", [ProfileController::class, "update"])->name("profile.update");
+    Route::delete("/profile", [ProfileController::class, "destroy"])->name("profile.destroy");
 
-    // Rutas compartidas para Docente y Administrador (role:teacher permite acceso a teacher y admin)
+    // 1. Rutas de solo lectura compartidas (Docente, Auditor y Administrador)
+    Route::middleware("role:teacher,auditor")->group(function () {
+        Route::get("students", [StudentController::class, "index"])->name("students.index");
+        Route::get("students/{student}", [StudentController::class, "show"])->name("students.show");
+        Route::get("graduation", [GraduationController::class, "index"])->name("graduation.index");
+    });
+
+    // 2. Rutas de solo lectura para módulos administrativos (Auditor y Administrador)
+    Route::middleware("role:auditor")->group(function () {
+        // Auditoría / Logs de Actividad
+        Route::get("activity-logs", [ActivityLogController::class, "index"])->name("activity-logs.index");
+        Route::get("activity-logs/{activityLog}", [ActivityLogController::class, "show"])->name("activity-logs.show");
+
+        // Usuarios (solo lectura para auditor)
+        Route::get("users", [UserController::class, "index"])->name("users.index");
+        Route::get("users/{user}", [UserController::class, "show"])->name("users.show");
+
+        // Profesores (solo lectura para auditor)
+        Route::get("teachers", [TeacherController::class, "index"])->name("teachers.index");
+        Route::get("teachers/{teacher}", [TeacherController::class, "show"])->name("teachers.show");
+
+        // Mallas Curriculares (solo lectura para auditor)
+        Route::get("curriculums", [CurriculumController::class, "index"])->name("curriculums.index");
+        Route::get("curriculums/{curriculum}", [CurriculumController::class, "show"])->name("curriculums.show");
+
+        // Cursos (solo lectura para auditor)
+        Route::get("courses", [CourseController::class, "index"])->name("courses.index");
+        Route::get("courses/{course}", [CourseController::class, "show"])->name("courses.show");
+
+        // EFSRT (solo lectura para auditor)
+        Route::get("efsrts", [EfsrtController::class, "index"])->name("efsrts.index");
+        Route::get("efsrts/{efsrt}", [EfsrtController::class, "show"])->name("efsrts.show");
+    });
+
+    // 3. Mutaciones y gestión operativa (Docente y Administrador - NO Auditor)
     Route::middleware("role:teacher")->group(function () {
-        // Estudiantes: Ver, Crear, Subir CSV y Editar (sin eliminación para docente)
         Route::get("students/template", [StudentController::class, "downloadTemplate"])->name("students.template");
         Route::post("students/import", [StudentController::class, "import"])->name("students.import");
         Route::get("students/import-conflicts", [StudentController::class, "showConflicts"])->name("students.import-conflicts");
         Route::post("students/import-conflicts/resolve", [StudentController::class, "resolveConflicts"])->name("students.import-conflicts.resolve");
         Route::post("students/import-conflicts/cancel", [StudentController::class, "cancelConflicts"])->name("students.import-conflicts.cancel");
-        Route::resource("students", StudentController::class)->except(["destroy"]);
+        Route::get("students/create", [StudentController::class, "create"])->name("students.create");
+        Route::post("students", [StudentController::class, "store"])->name("students.store");
+        Route::get("students/{student}/edit", [StudentController::class, "edit"])->name("students.edit");
+        Route::match(["put", "patch"], "students/{student}", [StudentController::class, "update"])->name("students.update");
 
         // Seguimiento de Titulación y Progreso Académico
-        Route::get('/graduation', [GraduationController::class, 'index'])->name('graduation.index');
-        Route::post('/graduation/{student}/toggle-course/{course}', [GraduationController::class, 'toggleCourse'])->name('graduation.toggle-course');
-        Route::post('/graduation/{student}/update-efsrt/{efsrt}', [GraduationController::class, 'updateEfsrt'])->name('graduation.update-efsrt');
-        Route::post('/graduation/{student}/titular', [GraduationController::class, 'titular'])->name('graduation.titular');
-        Route::post('/graduation/{student}/bulk-courses', [GraduationController::class, 'bulkCourses'])->name('graduation.bulk-courses');
+        Route::post("graduation/{student}/toggle-course/{course}", [GraduationController::class, "toggleCourse"])->name("graduation.toggle-course");
+        Route::post("graduation/{student}/update-efsrt/{efsrt}", [GraduationController::class, "updateEfsrt"])->name("graduation.update-efsrt");
+        Route::post("graduation/{student}/titular", [GraduationController::class, "titular"])->name("graduation.titular");
+        Route::post("graduation/{student}/bulk-courses", [GraduationController::class, "bulkCourses"])->name("graduation.bulk-courses");
     });
 
-    // Rutas exclusivas del Administrador (role:admin)
+    // 4. Mutaciones administrativas exclusivas (Solo Administrador)
     Route::middleware("role:admin")->group(function () {
         // Gestión de Usuarios y Restablecimiento de Contraseñas
-        Route::resource("users", UserController::class);
+        Route::get("users/create", [UserController::class, "create"])->name("users.create");
+        Route::post("users", [UserController::class, "store"])->name("users.store");
+        Route::get("users/{user}/edit", [UserController::class, "edit"])->name("users.edit");
+        Route::match(["put", "patch"], "users/{user}", [UserController::class, "update"])->name("users.update");
+        Route::delete("users/{user}", [UserController::class, "destroy"])->name("users.destroy");
         Route::post("users/{user}/reset-password", [UserController::class, "resetPassword"])->name("users.reset-password");
         Route::post("teachers/{teacher}/create-user", [UserController::class, "quickCreateTeacherUser"])->name("teachers.create-user");
 
-        // Eliminar Estudiantes (solo admin)
+        // Eliminar Estudiantes
         Route::delete("students/{student}", [StudentController::class, "destroy"])->name("students.destroy");
 
         // Profesores
@@ -62,7 +102,11 @@ Route::middleware('auth')->group(function () {
         Route::get("teachers/import-conflicts", [TeacherController::class, "showConflicts"])->name("teachers.import-conflicts");
         Route::post("teachers/import-conflicts/resolve", [TeacherController::class, "resolveConflicts"])->name("teachers.import-conflicts.resolve");
         Route::post("teachers/import-conflicts/cancel", [TeacherController::class, "cancelConflicts"])->name("teachers.import-conflicts.cancel");
-        Route::resource("teachers", TeacherController::class);
+        Route::get("teachers/create", [TeacherController::class, "create"])->name("teachers.create");
+        Route::post("teachers", [TeacherController::class, "store"])->name("teachers.store");
+        Route::get("teachers/{teacher}/edit", [TeacherController::class, "edit"])->name("teachers.edit");
+        Route::match(["put", "patch"], "teachers/{teacher}", [TeacherController::class, "update"])->name("teachers.update");
+        Route::delete("teachers/{teacher}", [TeacherController::class, "destroy"])->name("teachers.destroy");
 
         // Mallas Curriculares
         Route::get("curriculums/template", [CurriculumController::class, "downloadTemplate"])->name("curriculums.template");
@@ -70,7 +114,11 @@ Route::middleware('auth')->group(function () {
         Route::get("curriculums/import-conflicts", [CurriculumController::class, "showConflicts"])->name("curriculums.import-conflicts");
         Route::post("curriculums/import-conflicts/resolve", [CurriculumController::class, "resolveConflicts"])->name("curriculums.import-conflicts.resolve");
         Route::post("curriculums/import-conflicts/cancel", [CurriculumController::class, "cancelConflicts"])->name("curriculums.import-conflicts.cancel");
-        Route::resource("curriculums", CurriculumController::class);
+        Route::get("curriculums/create", [CurriculumController::class, "create"])->name("curriculums.create");
+        Route::post("curriculums", [CurriculumController::class, "store"])->name("curriculums.store");
+        Route::get("curriculums/{curriculum}/edit", [CurriculumController::class, "edit"])->name("curriculums.edit");
+        Route::match(["put", "patch"], "curriculums/{curriculum}", [CurriculumController::class, "update"])->name("curriculums.update");
+        Route::delete("curriculums/{curriculum}", [CurriculumController::class, "destroy"])->name("curriculums.destroy");
 
         // Cursos
         Route::get("courses/template", [CourseController::class, "downloadTemplate"])->name("courses.template");
@@ -78,11 +126,19 @@ Route::middleware('auth')->group(function () {
         Route::get("courses/import-conflicts", [CourseController::class, "showConflicts"])->name("courses.import-conflicts");
         Route::post("courses/import-conflicts/resolve", [CourseController::class, "resolveConflicts"])->name("courses.import-conflicts.resolve");
         Route::post("courses/import-conflicts/cancel", [CourseController::class, "cancelConflicts"])->name("courses.import-conflicts.cancel");
-        Route::resource("courses", CourseController::class);
+        Route::get("courses/create", [CourseController::class, "create"])->name("courses.create");
+        Route::post("courses", [CourseController::class, "store"])->name("courses.store");
+        Route::get("courses/{course}/edit", [CourseController::class, "edit"])->name("courses.edit");
+        Route::match(["put", "patch"], "courses/{course}", [CourseController::class, "update"])->name("courses.update");
+        Route::delete("courses/{course}", [CourseController::class, "destroy"])->name("courses.destroy");
 
         // EFSRT
-        Route::resource('efsrts', EfsrtController::class);
+        Route::get("efsrts/create", [EfsrtController::class, "create"])->name("efsrts.create");
+        Route::post("efsrts", [EfsrtController::class, "store"])->name("efsrts.store");
+        Route::get("efsrts/{efsrt}/edit", [EfsrtController::class, "edit"])->name("efsrts.edit");
+        Route::match(["put", "patch"], "efsrts/{efsrt}", [EfsrtController::class, "update"])->name("efsrts.update");
+        Route::delete("efsrts/{efsrt}", [EfsrtController::class, "destroy"])->name("efsrts.destroy");
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__."/auth.php";

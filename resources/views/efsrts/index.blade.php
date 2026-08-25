@@ -44,9 +44,11 @@
                         </form>
 
                         <!-- Add Button -->
-                        <a href="{{ route('efsrts.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none transition shadow-md whitespace-nowrap">
-                            Registrar Módulo EFSRT
-                        </a>
+                        @if (Auth::user()->isAdmin())
+                            <a href="{{ route('efsrts.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none transition shadow-md whitespace-nowrap">
+                                Registrar Módulo EFSRT
+                            </a>
+                        @endif
                     </div>
 
                     <!-- EFSRTs Grouped Table -->
@@ -128,12 +130,14 @@
                                                         </td>
                                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-3">
                                                             <a href="{{ route('efsrts.show', $efsrt) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 font-semibold">Ver</a>
-                                                            <a href="{{ route('efsrts.edit', $efsrt) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 font-semibold">Editar</a>
-                                                            <form action="{{ route('efsrts.destroy', $efsrt) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este módulo EFSRT?');">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 font-semibold">Eliminar</button>
-                                                            </form>
+                                                            @if (Auth::user()->isAdmin())
+                                                                <a href="{{ route('efsrts.edit', $efsrt) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 font-semibold">Editar</a>
+                                                                <form action="{{ route('efsrts.destroy', $efsrt) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este módulo EFSRT?');">
+                                                                    @csrf
+                                                                    @method('DELETE')
+                                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 font-semibold">Eliminar</button>
+                                                                </form>
+                                                            @endif
                                                         </td>
                                                     </tr>
                                                 @endforeach

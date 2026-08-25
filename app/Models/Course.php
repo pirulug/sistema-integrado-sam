@@ -2,20 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Course extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'code',
-        'name',
-        'period',
-        'credits',
-        'hours',
+        "code",
+        "name",
+        "period",
+        "credits",
+        "hours",
     ];
 
     /**
@@ -23,7 +24,7 @@ class Course extends Model
      */
     public function curriculums(): BelongsToMany
     {
-        return $this->belongsToMany(Curriculum::class, 'course_curriculum')->withTimestamps();
+        return $this->belongsToMany(Curriculum::class, "course_curriculum")->withTimestamps();
     }
 
     /**

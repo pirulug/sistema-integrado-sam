@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -9,13 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Curriculum extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
-    protected $table = 'curriculums';
+    protected $table = "curriculums";
 
     protected $fillable = [
-        'name',
-        'year',
+        "name",
+        "year",
     ];
 
     /**
@@ -31,7 +32,7 @@ class Curriculum extends Model
      */
     public function courses(): BelongsToMany
     {
-        return $this->belongsToMany(Course::class, 'course_curriculum')->withTimestamps();
+        return $this->belongsToMany(Course::class, "course_curriculum")->withTimestamps();
     }
 
     /**
@@ -39,6 +40,6 @@ class Curriculum extends Model
      */
     public function efsrts(): BelongsToMany
     {
-        return $this->belongsToMany(Efsrt::class, 'curriculum_efsrt')->withTimestamps();
+        return $this->belongsToMany(Efsrt::class, "curriculum_efsrt")->withTimestamps();
     }
 }

@@ -9,17 +9,19 @@
                     <span>Gestión de Usuarios del Sistema</span>
                 </h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Administración de cuentas de acceso, asignación a docentes y restablecimiento de contraseñas.
+                    Administración de cuentas de acceso, roles (Administrador, Auditor, Profesor) y credenciales.
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2.5">
-                <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                    <span>Nuevo Usuario</span>
-                </a>
-            </div>
+            @if (Auth::user()->isAdmin())
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        <span>Nuevo Usuario</span>
+                    </a>
+                </div>
+            @endif
         </div>
     </x-slot>
 
@@ -56,8 +58,17 @@
                 </div>
             @endif
 
+            @if (session('info'))
+                <div class="p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl text-blue-800 dark:text-blue-300 text-sm font-medium flex items-center shadow-sm">
+                    <svg class="w-5 h-5 mr-2 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ session('info') }}</span>
+                </div>
+            @endif
+
             <!-- KPI Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Total Usuarios -->
                 <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700/80">
                     <div class="flex items-center justify-between">
@@ -70,7 +81,7 @@
                     </div>
                     <div class="mt-3">
                         <div class="text-3xl font-black text-gray-900 dark:text-white">{{ $totalUsers }}</div>
-                        <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Cuentas activas en la base de datos</span>
+                        <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Cuentas activas en la BD</span>
                     </div>
                 </div>
 
@@ -90,6 +101,23 @@
                     </div>
                 </div>
 
+                <!-- Auditores / Observadores -->
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-teal-200 dark:border-teal-900/60">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Auditores</span>
+                        <div class="p-2.5 bg-teal-50 dark:bg-teal-950/50 rounded-xl text-teal-600 dark:text-teal-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="text-3xl font-black text-teal-700 dark:text-teal-300">{{ $totalAuditors }}</div>
+                        <span class="text-[11px] text-teal-600 dark:text-teal-400 font-medium">Solo lectura y logs</span>
+                    </div>
+                </div>
+
                 <!-- Docentes con Usuario -->
                 <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-emerald-200 dark:border-emerald-900/60">
                     <div class="flex items-center justify-between">
@@ -102,7 +130,7 @@
                     </div>
                     <div class="mt-3">
                         <div class="text-3xl font-black text-emerald-700 dark:text-emerald-300">{{ $totalTeachersWithUser }}</div>
-                        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Email institucional @sam.edu.pe</span>
+                        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">@sam.edu.pe</span>
                     </div>
                 </div>
 
@@ -118,13 +146,13 @@
                     </div>
                     <div class="mt-3">
                         <div class="text-3xl font-black text-amber-700 dark:text-amber-300">{{ $totalTeachersWithoutUser }}</div>
-                        @if ($totalTeachersWithoutUser > 0)
+                        @if ($totalTeachersWithoutUser > 0 && Auth::user()->isAdmin())
                             <a href="{{ route('users.create', ['role' => 'teacher']) }}" class="text-[11px] text-amber-600 hover:underline font-semibold flex items-center mt-0.5">
-                                <span>Asignar cuentas pendientes</span>
+                                <span>Asignar pendientes</span>
                                 <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </a>
                         @else
-                            <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Todos los docentes tienen cuenta</span>
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Docentes al día</span>
                         @endif
                     </div>
                 </div>
@@ -143,6 +171,7 @@
                         <select name="role" class="w-full py-2 text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100">
                             <option value="">Todos los roles</option>
                             <option value="admin" {{ $roleFilter === 'admin' ? 'selected' : '' }}>Administrador</option>
+                            <option value="auditor" {{ $roleFilter === 'auditor' ? 'selected' : '' }}>Auditor / Observador</option>
                             <option value="teacher" {{ $roleFilter === 'teacher' ? 'selected' : '' }}>Profesor / Docente</option>
                             <option value="student" {{ $roleFilter === 'student' ? 'selected' : '' }}>Estudiante</option>
                         </select>
@@ -221,6 +250,10 @@
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                                                 Administrador
                                             </span>
+                                        @elseif ($u->role === 'auditor')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                                                Auditor
+                                            </span>
                                         @elseif ($u->role === 'teacher')
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                                                 Profesor
@@ -241,6 +274,8 @@
                                             </span>
                                         @elseif ($u->role === 'admin')
                                             <span class="text-gray-400 italic">Administrador del Sistema</span>
+                                        @elseif ($u->role === 'auditor')
+                                            <span class="text-teal-600 dark:text-teal-400 italic font-medium">Auditor / Observador</span>
                                         @else
                                             <span class="text-amber-600 dark:text-amber-400 font-medium">Sin perfil asignado</span>
                                         @endif
@@ -248,26 +283,30 @@
 
                                     <!-- Acciones -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
-                                        <!-- Botón Restablecer Contraseña -->
-                                        <button type="button" @click="openResetModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->email }}')" class="inline-flex items-center px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-lg text-xs font-bold transition border border-amber-200 dark:border-amber-800" title="Restablecer contraseña">
-                                            <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                            </svg>
-                                            <span>Clave</span>
-                                        </button>
+                                        @if (Auth::user()->isAdmin())
+                                            <!-- Botón Restablecer Contraseña -->
+                                            <button type="button" @click="openResetModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->email }}')" class="inline-flex items-center px-2.5 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 rounded-lg text-xs font-bold transition border border-amber-200 dark:border-amber-800" title="Restablecer contraseña">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                                </svg>
+                                                <span>Clave</span>
+                                            </button>
 
-                                        <a href="{{ route('users.edit', $u) }}" class="inline-flex items-center px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 rounded-lg text-xs font-bold transition border border-indigo-200 dark:border-indigo-800">
-                                            Editar
-                                        </a>
+                                            <a href="{{ route('users.edit', $u) }}" class="inline-flex items-center px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 rounded-lg text-xs font-bold transition border border-indigo-200 dark:border-indigo-800">
+                                                Editar
+                                            </a>
 
-                                        @if ($u->id !== auth()->id())
-                                            <form action="{{ route('users.destroy', $u) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar al usuario {{ addslashes($u->name) }}? Esta acción no se puede deshacer.');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center px-2.5 py-1 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 rounded-lg text-xs font-bold transition border border-red-200 dark:border-red-800">
-                                                    Eliminar
-                                                </button>
-                                            </form>
+                                            @if ($u->id !== auth()->id())
+                                                <form action="{{ route('users.destroy', $u) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar al usuario {{ addslashes($u->name) }}? Esta acción no se puede deshacer.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="inline-flex items-center px-2.5 py-1 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-100 rounded-lg text-xs font-bold transition border border-red-200 dark:border-red-800">
+                                                        Eliminar
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @else
+                                            <span class="text-xs text-gray-400 italic">Solo lectura</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -292,59 +331,57 @@
         </div>
 
         <!-- Modal Restablecer Contraseña -->
-        <div x-show="resetModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-cloak>
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity bg-gray-500/75 dark:bg-gray-900/80" @click="resetModalOpen = false"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        @if (Auth::user()->isAdmin())
+            <div x-show="resetModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-cloak>
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 transition-opacity bg-gray-500/75 dark:bg-gray-900/80" @click="resetModalOpen = false"></div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
 
-                <div class="inline-block overflow-hidden text-left align-bottom bg-white dark:bg-gray-800 rounded-2xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-gray-200 dark:border-gray-700 p-6">
-                    <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center space-x-2">
-                            <div class="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-600 dark:text-amber-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="inline-block overflow-hidden text-left align-bottom bg-white dark:bg-gray-800 rounded-2xl shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-gray-200 dark:border-gray-700 p-6">
+                        <div class="flex items-center justify-between pb-3 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                                 </svg>
+                                <span>Restablecer Contraseña</span>
+                            </h3>
+                            <button type="button" @click="resetModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                ✕
+                            </button>
+                        </div>
+
+                        <form :action="'{{ url('users') }}/' + resetUserId + '/reset-password'" method="POST" class="mt-4 space-y-4">
+                            @csrf
+                            <div class="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300">
+                                Establecerá una nueva clave de acceso para el usuario <strong x-text="resetUserName"></strong> (<span class="font-mono" x-text="resetUserEmail"></span>).
                             </div>
-                            <h3 class="text-base font-bold text-gray-900 dark:text-white">Restablecer Contraseña</h3>
-                        </div>
-                        <button type="button" @click="resetModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+
+                            <div>
+                                <label for="reset_password" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Nueva Contraseña <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="reset_password" name="password" minlength="6" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-amber-500 focus:border-amber-500 text-gray-900 dark:text-gray-100" placeholder="Mínimo 6 caracteres" required>
+                            </div>
+
+                            <div>
+                                <label for="reset_password_confirmation" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Confirmar Contraseña <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="reset_password_confirmation" name="password_confirmation" minlength="6" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-amber-500 focus:border-amber-500 text-gray-900 dark:text-gray-100" placeholder="Repita la nueva contraseña" required>
+                            </div>
+
+                            <div class="flex items-center justify-end space-x-3 pt-3">
+                                <button type="button" @click="resetModalOpen = false" class="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition">
+                                    Cancelar
+                                </button>
+                                <button type="submit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md transition">
+                                    Guardar Nueva Clave
+                                </button>
+                            </div>
+                        </form>
                     </div>
-
-                    <form :action="'{{ url('users') }}/' + resetUserId + '/reset-password'" method="POST" class="mt-4 space-y-4">
-                        @csrf
-
-                        <div class="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 text-xs">
-                            <div class="font-bold text-gray-800 dark:text-gray-200" x-text="resetUserName"></div>
-                            <div class="text-gray-500 font-mono mt-0.5" x-text="resetUserEmail"></div>
-                        </div>
-
-                        <div>
-                            <label for="modal_password" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                Nueva Contraseña <span class="text-red-500">*</span>
-                            </label>
-                            <input type="password" name="password" id="modal_password" placeholder="Mínimo 6 caracteres" minlength="6" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100">
-                        </div>
-
-                        <div>
-                            <label for="modal_password_confirmation" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                                Confirmar Nueva Contraseña <span class="text-red-500">*</span>
-                            </label>
-                            <input type="password" name="password_confirmation" id="modal_password_confirmation" placeholder="Repita la contraseña" minlength="6" required class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100">
-                        </div>
-
-                        <div class="pt-3 flex justify-end space-x-2 border-t border-gray-200 dark:border-gray-700">
-                            <button type="button" @click="resetModalOpen = false" class="px-4 py-2 text-xs font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition">
-                                Cancelar
-                            </button>
-                            <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition">
-                                Guardar Contraseña
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
-        </div>
+        @endif
     </div>
 </x-app-layout>

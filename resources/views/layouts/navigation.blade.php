@@ -21,7 +21,7 @@
                     <x-nav-link :href="route('graduation.index')" :active="request()->routeIs('graduation.*')">
                         {{ __('Seguimiento') }}
                     </x-nav-link>
-                    @if (Auth::user()->isAdmin())
+                    @if (Auth::user()->canViewAdminModules())
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                             {{ __('Usuarios') }}
                         </x-nav-link>
@@ -36,6 +36,9 @@
                         </x-nav-link>
                         <x-nav-link :href="route('efsrts.index')" :active="request()->routeIs('efsrts.*')">
                             {{ __('EFSRT') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">
+                            {{ __('Auditoría') }}
                         </x-nav-link>
                     @endif
                 </div>
@@ -131,7 +134,7 @@
             <x-responsive-nav-link :href="route('graduation.index')" :active="request()->routeIs('graduation.*')">
                 {{ __('Seguimiento') }}
             </x-responsive-nav-link>
-            @if (Auth::user()->isAdmin())
+            @if (Auth::user()->canViewAdminModules())
                 <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
                     {{ __('Usuarios') }}
                 </x-responsive-nav-link>
@@ -146,6 +149,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('efsrts.index')" :active="request()->routeIs('efsrts.*')">
                     {{ __('EFSRT') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">
+                    {{ __('Auditoría') }}
                 </x-responsive-nav-link>
             @endif
         </div>

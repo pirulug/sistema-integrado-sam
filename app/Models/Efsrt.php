@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Efsrt extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         "module",
@@ -20,11 +21,14 @@ class Efsrt extends Model
         "practice_lines",
     ];
 
-    protected $casts = [
-        "practice_lines" => "array",
-        "hours" => "integer",
-        "credits" => "integer",
-    ];
+    protected function casts(): array
+    {
+        return [
+            "practice_lines" => "array",
+            "hours" => "integer",
+            "credits" => "integer",
+        ];
+    }
 
     /**
      * The curriculums that belong to the EFSRT module.

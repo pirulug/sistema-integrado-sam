@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +33,7 @@ class UserController extends Controller
             });
         }
 
-        if (!empty($roleFilter) && in_array($roleFilter, ["admin", "teacher", "student"])) {
+        if (!empty($roleFilter) && in_array($roleFilter, ["admin", "teacher", "auditor", "student"])) {
             $query->where("role", $roleFilter);
         }
 
@@ -41,6 +42,7 @@ class UserController extends Controller
         // Statistics
         $totalUsers = User::count();
         $totalAdmins = User::where("role", "admin")->count();
+        $totalAuditors = User::where("role", "auditor")->count();
         $totalTeachersWithUser = User::where("role", "teacher")->count();
         $totalTeachersWithoutUser = Teacher::whereNull("user_id")->count();
 
@@ -50,6 +52,7 @@ class UserController extends Controller
             "roleFilter",
             "totalUsers",
             "totalAdmins",
+            "totalAuditors",
             "totalTeachersWithUser",
             "totalTeachersWithoutUser"
         ));
@@ -126,11 +129,11 @@ class UserController extends Controller
                 ->with("success", "Usuario creado y asignado exitosamente al profesor {$teacher->full_name}. Correo de acceso: {$teacher->institutional_email}");
         }
 
-        // Generic user creation (Admin or standalone Teacher)
+        // Generic user creation (Admin, Auditor or standalone Teacher)
         $rules = [
             "name" => "required|string|max:255",
             "dni" => "nullable|string|max:20|unique:users,dni",
-            "role" => "required|in:admin,teacher",
+            "role" => "required|in:admin,teacher,auditor",
             "password" => ["required", "confirmed", Password::min(6)],
             "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
         ];
@@ -208,11 +211,11 @@ class UserController extends Controller
                 ->with("info", "No se realizaron cambios en el usuario {$user->name}. Para editar sus datos personales, use el módulo de Profesores.");
         }
 
-        // For admin users: allow editing name, dni, email, password
+        // For admin and auditor users: allow editing name, dni, email, role, password
         $rules = [
             "name" => "required|string|max:255",
             "dni" => "nullable|string|max:20|unique:users,dni," . $user->id,
-            "role" => "required|in:admin,student",
+            "role" => "required|in:admin,auditor,student",
             "email" => "required|email|max:255|unique:users,email," . $user->id,
             "password" => ["nullable", "confirmed", Password::min(6)],
             "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
@@ -290,6 +293,14 @@ class UserController extends Controller
             "password" => Hash::make($request->input("password")),
         ]);
 
+        ActivityLog::record(
+            action: "password_reset",
+            module: "Usuarios",
+            description: "Restableció la contraseña del usuario: {$user->name} ({$user->email})",
+            subjectLabel: "{$user->name} ({$user->email})",
+            subject: $user
+        );
+
         return back()->with("success", "La contraseña del usuario {$user->name} ({$user->email}) fue restablecida exitosamente.");
     }
 
@@ -323,6 +334,14 @@ class UserController extends Controller
         $teacher->update([
             "user_id" => $user->id,
         ]);
+
+        ActivityLog::record(
+            action: "created",
+            module: "Usuarios",
+            description: "Creación rápida de cuenta de usuario para docente: {$teacher->full_name} ({$user->email})",
+            subjectLabel: "{$teacher->full_name} ({$user->email})",
+            subject: $user
+        );
 
         return back()->with("success", "Cuenta de usuario creada exitosamente para {$teacher->full_name}. Email: {$teacher->institutional_email} | Contraseña temporal: {$password}");
     }

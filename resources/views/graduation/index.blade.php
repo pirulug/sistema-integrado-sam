@@ -313,11 +313,13 @@
 
                     <div class="bg-gray-50 dark:bg-gray-900/40 px-6 py-4 flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700">
                         <button type="button" class="close-modal-btn inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            Cancelar
+                            {{ Auth::user()->canManage() ? 'Cancelar' : 'Cerrar' }}
                         </button>
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
-                            Guardar Práctica
-                        </button>
+                        @if (Auth::user()->canManage())
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-xl font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
+                                Guardar Práctica
+                            </button>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -366,6 +368,15 @@
                                     Fecha de Titulación *
                                 </label>
                                 <input type="date" id="degree_date_input" name="degree_date" required class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" value="{{ date('Y-m-d') }}" />
+                            </div>
+
+                            <!-- Final Grade selection -->
+                            <div>
+                                <label for="degree_grade_input" class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                    Nota Final de Titulación *
+                                </label>
+                                <input type="number" step="0.01" min="0" max="20" id="degree_grade_input" name="degree_grade" required placeholder="Ej: 16.50 (Escala 0 a 20)" class="w-full text-xs rounded-xl border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" />
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Requisito indispensable para registrar la titulación (escala de 0 a 20).</p>
                             </div>
 
                             <!-- Modality selection -->
@@ -965,6 +976,7 @@
                     const studentName = btn.dataset.studentName;
                     const degreeDate = btn.dataset.degreeDate || "";
                     const degreeModality = btn.dataset.degreeModality || "";
+                    const degreeGrade = btn.dataset.degreeGrade || "";
                     const isTitulado = btn.dataset.isTitulado === "true";
 
                     titularModalForm.action = `/graduation/${studentId}/titular`;
@@ -974,6 +986,11 @@
                     const dateInput = document.getElementById("degree_date_input");
                     if (dateInput) {
                         dateInput.value = degreeDate ? degreeDate.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                    }
+
+                    const gradeInput = document.getElementById("degree_grade_input");
+                    if (gradeInput) {
+                        gradeInput.value = degreeGrade;
                     }
 
                     if (isTitulado) {

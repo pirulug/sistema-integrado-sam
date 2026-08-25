@@ -41,6 +41,9 @@
                         <div class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800">
                                 Titulado: {{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}
+                                @if ($student->degree_grade !== null)
+                                    <span class="ms-1.5 ps-1.5 border-s border-emerald-300 dark:border-emerald-700 font-bold">Nota: {{ number_format($student->degree_grade, 2) }}</span>
+                                @endif
                             </span>
                             @if ($student->degree_modality)
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-medium border border-purple-200 dark:border-purple-800 max-w-[220px] truncate" title="Modalidad: {{ $student->degree_modality }}">
@@ -164,37 +167,41 @@
                         </button>
                     @endif
 
-                    <!-- Button for Apto -->
-                    <button type="button" 
-                            id="titular-btn-{{ $student->id }}"
-                            class="titular-btn {{ $st == 'Apto' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-md transition duration-150"
-                            data-student-id="{{ $student->id }}"
-                            data-student-name="{{ $student->full_name }}"
-                            data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
-                            data-degree-modality="{{ $student->degree_modality ?? '' }}"
-                            data-is-titulado="false">
-                        <svg class="w-3.5 h-3.5 me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        </svg>
-                        Titular
-                    </button>
+                    @if (Auth::user()->canManage())
+                        <!-- Button for Apto -->
+                        <button type="button" 
+                                id="titular-btn-{{ $student->id }}"
+                                class="titular-btn {{ $st == 'Apto' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-md transition duration-150"
+                                data-student-id="{{ $student->id }}"
+                                data-student-name="{{ $student->full_name }}"
+                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
+                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
+                                data-degree-grade="{{ $student->degree_grade ?? '' }}"
+                                data-is-titulado="false">
+                            <svg class="w-3.5 h-3.5 me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                            </svg>
+                            Titular
+                        </button>
 
-                    <!-- Button for Titulado (Editar Titulación) -->
-                    <button type="button" 
-                            id="edit-titular-btn-{{ $student->id }}"
-                            class="titular-btn {{ $st == 'Titulado' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900 transition duration-150"
-                            data-student-id="{{ $student->id }}"
-                            data-student-name="{{ $student->full_name }}"
-                            data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
-                            data-degree-modality="{{ $student->degree_modality ?? '' }}"
-                            data-is-titulado="true"
-                            title="Editar fecha o modalidad de titulación">
-                        <svg class="w-3.5 h-3.5 me-1 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Editar Titulación
-                    </button>
+                        <!-- Button for Titulado (Editar Titulación) -->
+                        <button type="button" 
+                                id="edit-titular-btn-{{ $student->id }}"
+                                class="titular-btn {{ $st == 'Titulado' ? '' : 'hidden' }} inline-flex items-center px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-100 dark:hover:bg-emerald-900 transition duration-150"
+                                data-student-id="{{ $student->id }}"
+                                data-student-name="{{ $student->full_name }}"
+                                data-degree-date="{{ $student->degree_date ? $student->degree_date : date('Y-m-d') }}"
+                                data-degree-modality="{{ $student->degree_modality ?? '' }}"
+                                data-degree-grade="{{ $student->degree_grade ?? '' }}"
+                                data-is-titulado="true"
+                                title="Editar fecha o modalidad de titulación">
+                            <svg class="w-3.5 h-3.5 me-1 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Editar Titulación
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -227,11 +234,13 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <div class="flex items-center space-x-2 text-xs font-semibold me-2">
-                                <button type="button" class="bulk-courses-btn text-indigo-600 dark:text-indigo-400 hover:underline" data-student-id="{{ $student->id }}" data-action="approve_all">Marcar todo</button>
-                                <span class="text-gray-300 dark:text-gray-600">|</span>
-                                <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-action="clear_all">Desmarcar todo</button>
-                            </div>
+                            @if (Auth::user()->canManage())
+                                <div class="flex items-center space-x-2 text-xs font-semibold me-2">
+                                    <button type="button" class="bulk-courses-btn text-indigo-600 dark:text-indigo-400 hover:underline" data-student-id="{{ $student->id }}" data-action="approve_all">Marcar todo</button>
+                                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                                    <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-action="clear_all">Desmarcar todo</button>
+                                </div>
+                            @endif
                             <button type="button" class="close-courses-modal-btn text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none" data-student-id="{{ $student->id }}">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -268,11 +277,13 @@
                                         <div>
                                             <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-3 flex items-center justify-between">
                                                 <span class="font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Periodo {{ $periodName }}</span>
-                                                <span class="flex items-center space-x-1 font-semibold text-[11px]">
-                                                    <button type="button" class="bulk-courses-btn text-blue-600 dark:text-blue-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="approve_period">Todo</button>
-                                                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                                                    <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="clear_period">Nada</button>
-                                                </span>
+                                                @if (Auth::user()->canManage())
+                                                    <span class="flex items-center space-x-1 font-semibold text-[11px]">
+                                                        <button type="button" class="bulk-courses-btn text-blue-600 dark:text-blue-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="approve_period">Todo</button>
+                                                        <span class="text-gray-300 dark:text-gray-600">|</span>
+                                                        <button type="button" class="bulk-courses-btn text-gray-500 dark:text-gray-400 hover:underline" data-student-id="{{ $student->id }}" data-period="{{ $periodName }}" data-action="clear_period">Nada</button>
+                                                    </span>
+                                                @endif
                                             </div>
                                             <ul class="space-y-3">
                                                 @foreach ($groupedCourses[$periodName]->sortBy("code") as $course)
@@ -284,11 +295,12 @@
                                                             <div class="flex items-center h-5 mt-0.5">
                                                                 <input type="checkbox" 
                                                                        id="chk-{{ $student->id }}-{{ $course->id }}" 
-                                                                       class="course-checkbox h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                                       class="course-checkbox h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500 {{ Auth::user()->canManage() ? 'cursor-pointer' : 'cursor-not-allowed opacity-75' }}"
                                                                        data-student-id="{{ $student->id }}"
                                                                        data-course-id="{{ $course->id }}"
                                                                        data-period="{{ $periodName }}"
-                                                                       {{ $isCompleted ? 'checked' : '' }} />
+                                                                       {{ $isCompleted ? 'checked' : '' }}
+                                                                       {{ Auth::user()->canManage() ? '' : 'disabled' }} />
                                                             </div>
                                                             <div class="ms-3 text-xs flex-1">
                                                                 <label for="chk-{{ $student->id }}-{{ $course->id }}" class="font-semibold text-gray-800 dark:text-gray-200 cursor-pointer select-none block leading-tight">
@@ -313,7 +325,11 @@
                     <!-- Modal Footer -->
                     <div class="px-6 py-4 bg-gray-50 dark:bg-gray-900/60 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                         <div class="text-xs text-gray-500 dark:text-gray-400">
-                            Las asignaturas marcadas se guardan de forma instantánea en la base de datos.
+                            @if (Auth::user()->canManage())
+                                Las asignaturas marcadas se guardan de forma instantánea en la base de datos.
+                            @else
+                                <span class="text-teal-600 dark:text-teal-400 font-semibold">Modo Observador:</span> Visualización de unidades didácticas en solo lectura.
+                            @endif
                         </div>
                         <button type="button" class="close-courses-modal-btn inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition ease-in-out duration-150" data-student-id="{{ $student->id }}">
                             Cerrar

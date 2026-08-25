@@ -32,9 +32,11 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <a href="{{ route('teachers.edit', $teacher) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
-                                Editar
-                            </a>
+                            @if (Auth::user()->isAdmin())
+                                <a href="{{ route('teachers.edit', $teacher) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
+                                    Editar
+                                </a>
+                            @endif
                             <a href="{{ route('teachers.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                 Volver
                             </a>
@@ -123,17 +125,19 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    @if ($teacher->user)
-                                        <a href="{{ route('users.edit', $teacher->user) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
-                                            Restablecer Contraseña
-                                        </a>
-                                    @else
-                                        <a href="{{ route('users.create', ['teacher_id' => $teacher->id, 'role' => 'teacher']) }}" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
-                                            Crear Cuenta de Usuario
-                                        </a>
-                                    @endif
-                                </div>
+                                @if (Auth::user()->isAdmin())
+                                    <div class="flex items-center space-x-2">
+                                        @if ($teacher->user)
+                                            <a href="{{ route('users.edit', $teacher->user) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                                                Restablecer Contraseña
+                                            </a>
+                                        @else
+                                            <a href="{{ route('users.create', ['teacher_id' => $teacher->id, 'role' => 'teacher']) }}" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                                                Crear Cuenta de Usuario
+                                            </a>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

@@ -25,9 +25,11 @@
                             </div>
                         </div>
                         <div class="flex space-x-2">
-                            <a href="{{ route('students.edit', $student) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
-                                Editar
-                            </a>
+                            @if (Auth::user()->canManage())
+                                <a href="{{ route('students.edit', $student) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-sm">
+                                    Editar
+                                </a>
+                            @endif
                             <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                 Volver
                             </a>
@@ -94,7 +96,7 @@
                                         <span class="text-sm font-semibold">{{ $student->mobile ?? '-' }}</span>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-3 gap-2">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                     <div>
                                         <span class="text-xs text-gray-500 dark:text-gray-400 block">Ingreso</span>
                                         <span class="text-sm font-semibold">{{ $student->admission_date ? \Carbon\Carbon::parse($student->admission_date)->format('d/m/Y') : '-' }}</span>
@@ -106,6 +108,10 @@
                                     <div>
                                         <span class="text-xs text-gray-500 dark:text-gray-400 block">Titulación</span>
                                         <span class="text-sm font-semibold">{{ $student->degree_date ? \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') : '-' }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400 block">Nota Final</span>
+                                        <span class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ $student->degree_grade !== null ? number_format($student->degree_grade, 2) : '-' }}</span>
                                     </div>
                                 </div>
                             </div>

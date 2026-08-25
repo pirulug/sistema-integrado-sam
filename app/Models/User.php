@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\LogsActivity;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, LogsActivity;
 
     /**
      * Get the teacher profile associated with the user.
@@ -40,6 +41,30 @@ class User extends Authenticatable
     public function isTeacher(): bool
     {
         return $this->role === "teacher";
+    }
+
+    /**
+     * Check if user is an Auditor / Observer.
+     */
+    public function isAuditor(): bool
+    {
+        return $this->role === "auditor";
+    }
+
+    /**
+     * Check if user can view administrative modules (Admin or Auditor).
+     */
+    public function canViewAdminModules(): bool
+    {
+        return in_array($this->role, ["admin", "auditor"]);
+    }
+
+    /**
+     * Check if user has permission to create, edit, or modify data.
+     */
+    public function canManage(): bool
+    {
+        return in_array($this->role, ["admin", "teacher"]);
     }
 
     /**

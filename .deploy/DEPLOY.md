@@ -15,6 +15,7 @@ php artisan migrate:fresh --force
 php artisan db:seed --class="AdminUserSeeder" --force
 php artisan db:seed --class="CurseSeeder" --force
 php artisan db:seed --class="EfsrtSeeder" --force
+php artisan db:seed --class="TeacherUserSeeder" --force
 
 # 4. Enlace simbolico y optimizacion de Laravel
 php artisan storage:link

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         "document_type",
@@ -28,9 +29,20 @@ class Student extends Model
         "graduation_date",
         "degree_date",
         "degree_modality",
+        "degree_grade",
         "curriculum_id",
         "shift",
     ];
+
+    protected function casts(): array
+    {
+        return [
+            "degree_grade" => "decimal:2",
+            "admission_date" => "date",
+            "graduation_date" => "date",
+            "degree_date" => "date",
+        ];
+    }
 
     /**
      * Get full name.
@@ -52,7 +64,7 @@ class Student extends Model
     }
 
     /**
-     * Get document label (e.g. 'DNI: 12345678' or 'CE: 123456789').
+     * Get document label (e.g. "DNI: 12345678" or "CE: 123456789").
      */
     public function getDocumentFormattedAttribute(): string
     {
@@ -142,24 +154,24 @@ class Student extends Model
     public function getOverallStatusAttribute(): string
     {
         if ($this->degree_date) {
-            return 'Titulado';
+            return "Titulado";
         }
         
         if (!$this->curriculum) {
-            return 'Sin Malla';
+            return "Sin Malla";
         }
         
         $pendingCount = $this->pendingCourses()->count();
         
         $efsrts = $this->efsrtStatusList();
         $allEfsrtsApproved = $efsrts->isNotEmpty() && $efsrts->every(function ($efsrt) {
-            return $efsrt['status'] === 'approved';
+            return $efsrt["status"] === "approved";
         });
         
         if ($pendingCount === 0 && $allEfsrtsApproved) {
-            return 'Apto';
+            return "Apto";
         }
         
-        return 'En Proceso';
+        return "En Proceso";
     }
 }

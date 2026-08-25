@@ -30,6 +30,7 @@ return new class extends Migration
             $table->date("graduation_date")->nullable();
             $table->date("degree_date")->nullable();
             $table->string("degree_modality")->nullable();
+            $table->decimal("degree_grade", 4, 2)->nullable();
             $table->foreignId("curriculum_id")->nullable()->constrained("curriculums")->nullOnDelete();
             $table->string("shift")->nullable();
             $table->timestamps();

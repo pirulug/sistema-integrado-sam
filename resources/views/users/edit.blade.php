@@ -212,6 +212,7 @@
                                 </label>
                                 <select id="role" name="role" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100">
                                     <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Administrador</option>
+                                    <option value="auditor" {{ old('role', $user->role) === 'auditor' ? 'selected' : '' }}>Auditor / Observador</option>
                                     <option value="student" {{ old('role', $user->role) === 'student' ? 'selected' : '' }}>Estudiante</option>
                                 </select>
                                 <x-input-error class="mt-2" :messages="$errors->get('role')" />

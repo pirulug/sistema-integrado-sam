@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Teacher extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         "user_id",
@@ -24,6 +25,13 @@ class Teacher extends Model
         "photo_path",
         "hire_date",
     ];
+
+    protected function casts(): array
+    {
+        return [
+            "hire_date" => "date",
+        ];
+    }
 
     /**
      * Get the user account associated with the teacher.

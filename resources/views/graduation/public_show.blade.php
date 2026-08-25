@@ -205,6 +205,9 @@
                                 @if ($student->degree_date)
                                     <div class="text-xs text-gray-500 dark:text-gray-400 font-medium space-y-0.5">
                                         <div>Fecha: <strong class="text-gray-800 dark:text-gray-200">{{ \Carbon\Carbon::parse($student->degree_date)->format('d/m/Y') }}</strong></div>
+                                        @if ($student->degree_grade !== null)
+                                            <div>Nota Final: <strong class="text-emerald-700 dark:text-emerald-300 font-bold">{{ number_format($student->degree_grade, 2) }}</strong></div>
+                                        @endif
                                         @if ($student->degree_modality)
                                             <div class="text-[11px] text-purple-700 dark:text-purple-300 font-semibold truncate" title="Modalidad: {{ $student->degree_modality }}">
                                                 {{ $student->degree_modality }}

@@ -114,5 +114,73 @@ class RolePermissionsTest extends TestCase
         $this->actingAs($this->adminUser)->get(route("courses.index"))->assertOk();
         $this->actingAs($this->adminUser)->get(route("efsrts.index"))->assertOk();
         $this->actingAs($this->adminUser)->get(route("graduation.index"))->assertOk();
+        $this->actingAs($this->adminUser)->get(route("activity-logs.index"))->assertOk();
+        $this->actingAs($this->adminUser)->get(route("users.index"))->assertOk();
+    }
+
+    public function test_auditor_can_observe_all_modules_and_logs(): void
+    {
+        $auditorUser = User::factory()->create([
+            "role" => "auditor",
+        ]);
+
+        $student = Student::create([
+            "dni" => "22334455",
+            "student_code" => "EST2026777",
+            "study_program" => "Diseño y programación web",
+            "paternal_last_name" => "Torres",
+            "maternal_last_name" => "Salas",
+            "first_name" => "Valeria",
+            "institutional_email" => "vtorres@sam.edu.pe",
+            "admission_date" => "2026-03-01",
+        ]);
+
+        // Can view all index & show pages as observer
+        $this->actingAs($auditorUser)->get(route("students.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("students.show", $student))->assertOk();
+        $this->actingAs($auditorUser)->get(route("graduation.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("users.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("teachers.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("curriculums.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("courses.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("efsrts.index"))->assertOk();
+        $this->actingAs($auditorUser)->get(route("activity-logs.index"))->assertOk();
+    }
+
+    public function test_auditor_cannot_perform_mutations_or_access_forms(): void
+    {
+        $auditorUser = User::factory()->create([
+            "role" => "auditor",
+        ]);
+
+        $student = Student::create([
+            "dni" => "33445566",
+            "student_code" => "EST2026666",
+            "study_program" => "Diseño y programación web",
+            "paternal_last_name" => "Castro",
+            "maternal_last_name" => "Vargas",
+            "first_name" => "Esteban",
+            "institutional_email" => "ecastro@sam.edu.pe",
+            "admission_date" => "2026-03-01",
+        ]);
+
+        // Cannot access create or edit forms
+        $this->actingAs($auditorUser)->get(route("students.create"))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("students.edit", $student))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("users.create"))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("users.edit", $this->adminUser))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("teachers.create"))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("curriculums.create"))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("courses.create"))->assertForbidden();
+        $this->actingAs($auditorUser)->get(route("efsrts.create"))->assertForbidden();
+
+        // Cannot mutate data
+        $this->actingAs($auditorUser)->delete(route("students.destroy", $student))->assertForbidden();
+        $this->actingAs($auditorUser)->post(route("graduation.titular", $student), [
+            "action" => "save",
+            "degree_date" => "2026-08-25",
+            "degree_modality" => "Tesis",
+            "degree_grade" => 18.0,
+        ])->assertForbidden();
     }
 }

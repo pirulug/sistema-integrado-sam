@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Student;
+use App\Models\ActivityLog;
 use App\Models\Curriculum;
+use App\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -381,6 +382,9 @@ class StudentController extends Controller
                 $admissionDate = $this->parseDate($admissionDateRaw, Carbon::today()->format("Y-m-d"));
                 $graduationDate = $this->parseDate($graduationDateRaw);
                 $degreeDate = $this->parseDate($degreeDateRaw);
+                $degreeModality = $getValue("degree_modality");
+                $degreeGradeRaw = $getValue("degree_grade");
+                $degreeGrade = (!empty($degreeGradeRaw) && is_numeric($degreeGradeRaw)) ? (float)$degreeGradeRaw : null;
 
                 $curriculumId = !empty($curriculumVal) && is_numeric($curriculumVal)
                     ? (int)$curriculumVal
@@ -402,6 +406,8 @@ class StudentController extends Controller
                     "admission_date" => $admissionDate,
                     "graduation_date" => $graduationDate,
                     "degree_date" => $degreeDate,
+                    "degree_modality" => !empty($degreeModality) ? $degreeModality : null,
+                    "degree_grade" => $degreeGrade,
                     "curriculum_id" => $curriculumId,
                     "shift" => !empty($shift) ? $shift : null,
                 ];
@@ -468,9 +474,25 @@ class StudentController extends Controller
                 "import_saved_count" => $createdCount,
             ]);
 
+            ActivityLog::record(
+                action: "imported",
+                module: "Estudiantes",
+                description: "Importó masivamente {$createdCount} estudiantes desde archivo CSV (" . count($conflicts) . " conflictos detectados)",
+                subjectLabel: "Lote de {$createdCount} estudiantes",
+                newValues: ["created_count" => $createdCount, "conflicts_count" => count($conflicts), "errors_count" => count($errors)]
+            );
+
             return redirect()->route("students.import-conflicts")
                 ->with("info", "Se registraron {$createdCount} estudiantes sin conflicto. Se encontraron " . count($conflicts) . " registros con duplicados o similitudes para revisión.");
         }
+
+        ActivityLog::record(
+            action: "imported",
+            module: "Estudiantes",
+            description: "Importó masivamente {$createdCount} estudiantes desde archivo CSV sin conflictos",
+            subjectLabel: "Lote de {$createdCount} estudiantes",
+            newValues: ["created_count" => $createdCount, "conflicts_count" => 0, "errors_count" => count($errors)]
+        );
 
         $message = "Importación completada exitosamente. {$createdCount} estudiantes registrados.";
         $response = redirect()->route("students.index")->with("success", $message);
@@ -642,6 +664,14 @@ class StudentController extends Controller
 
         session()->forget(["import_pending_conflicts", "import_saved_count"]);
 
+        ActivityLog::record(
+            action: "conflict_resolution",
+            module: "Estudiantes",
+            description: "Resolución de conflictos de importación de estudiantes ({$createdCount} creados, {$updatedCount} actualizados, {$ignoredCount} omitidos)",
+            subjectLabel: "Resolución de conflictos ({$createdCount} nuevos, {$updatedCount} act.)",
+            newValues: ["created" => $createdCount, "updated" => $updatedCount, "ignored" => $ignoredCount]
+        );
+
         $message = "Resolución de importación finalizada: {$createdCount} creados, {$updatedCount} actualizados, {$ignoredCount} omitidos.";
         $response = redirect()->route("students.index")->with("success", $message);
 
@@ -724,6 +754,14 @@ class StudentController extends Controller
             "fechatitulacion" => "degree_date",
             "fechadetitulacion" => "degree_date",
             "titulacion" => "degree_date",
+            "degreemodality" => "degree_modality",
+            "modalidadtitulacion" => "degree_modality",
+            "modalidad" => "degree_modality",
+            "degreegrade" => "degree_grade",
+            "notafinal" => "degree_grade",
+            "notatitulacion" => "degree_grade",
+            "notagrado" => "degree_grade",
+            "nota" => "degree_grade",
             "curriculumid" => "curriculum_id",
             "mallacurricular" => "curriculum_id",
             "malla" => "curriculum_id",
