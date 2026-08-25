@@ -12,9 +12,13 @@
                     <!-- Header Actions -->
                     <div class="flex items-center justify-between pb-6 border-b border-gray-200 dark:border-gray-700 mb-6">
                         <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-lg">
-                                {{ strtoupper(substr($student->first_name, 0, 1) . substr($student->paternal_last_name, 0, 1)) }}
-                            </div>
+                            @if ($student->photo_url)
+                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-500 shadow-md">
+                            @else
+                                <div class="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md">
+                                    {{ strtoupper(substr($student->first_name, 0, 1) . substr($student->paternal_last_name, 0, 1)) }}
+                                </div>
+                            @endif
                             <div>
                                 <h3 class="text-xl font-bold">{{ $student->full_name }}</h3>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ $student->study_program }}</p>
@@ -37,8 +41,13 @@
                             <h4 class="font-bold text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-4">Información Personal</h4>
                             <div class="space-y-3">
                                 <div>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">DNI</span>
-                                    <span class="text-sm font-semibold">{{ $student->dni }}</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400 block">Tipo y Número de Documento</span>
+                                    <span class="text-sm font-semibold">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-300 mr-1.5">
+                                            {{ $student->document_type ?? 'DNI' }}
+                                        </span>
+                                        {{ $student->dni }}
+                                    </span>
                                 </div>
                                 <div>
                                     <span class="text-xs text-gray-500 dark:text-gray-400 block">Código de Estudiante</span>

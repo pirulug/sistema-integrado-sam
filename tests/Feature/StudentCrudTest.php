@@ -45,7 +45,7 @@ class StudentCrudTest extends TestCase
             "first_name" => "Carmen",
             "gender" => "Femenino",
             "personal_email" => "carmen.rosas@gmail.com",
-            "institutional_email" => "crosas@instituto.edu.pe",
+            "institutional_email" => "crosas@sam.edu.pe",
             "admission_date" => "2026-03-01",
         ];
 
@@ -73,7 +73,7 @@ class StudentCrudTest extends TestCase
             "maternal_last_name" => "Navarro",
             "first_name" => "Jorge",
             "gender" => "Masculino",
-            "institutional_email" => "jcastro@instituto.edu.pe",
+            "institutional_email" => "jcastro@sam.edu.pe",
             "admission_date" => "2026-03-01",
         ]);
 
@@ -96,7 +96,7 @@ class StudentCrudTest extends TestCase
             "maternal_last_name" => "Luna",
             "first_name" => "Alex",
             "gender" => "Masculino",
-            "institutional_email" => "avega@instituto.edu.pe",
+            "institutional_email" => "avega@sam.edu.pe",
             "admission_date" => "2026-03-01",
         ]);
 
@@ -115,7 +115,7 @@ class StudentCrudTest extends TestCase
             "maternal_last_name" => "Luna",
             "first_name" => "Alexandra",
             "gender" => "Femenino",
-            "institutional_email" => "avega@instituto.edu.pe",
+            "institutional_email" => "avega@sam.edu.pe",
             "admission_date" => "2026-03-01",
         ];
 

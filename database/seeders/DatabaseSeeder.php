@@ -20,33 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            "name" => "Admin User",
-            "email" => "admin@gmail.com",
-            "password" => Hash::make("admin123"),
-            "role" => "admin",
-        ]);
-
-        User::factory()->create([
-            "name" => "Teacher User",
-            "email" => "teacher@gmail.com",
-            "password" => Hash::make("teacher123"),
-            "role" => "teacher",
-        ]);
-
-        Teacher::create([
-            "dni" => "87654321",
-            "teacher_code" => "DOC2026001",
-            "paternal_last_name" => "Ramirez",
-            "maternal_last_name" => "Soto",
-            "first_name" => "Maria Elena",
-            "personal_email" => "maria.ramirez@gmail.com",
-            "institutional_email" => "mramirez@instituto.edu.pe",
-            "phone" => "013456789",
-            "mobile" => "912345678",
-            "hire_date" => "2020-03-01",
+        // Seeders de usuarios
+        $this->call([
+            AdminUserSeeder::class,
+            TeacherUserSeeder::class,
         ]);
 
         $curriculum = Curriculum::create([
@@ -72,7 +49,7 @@ class DatabaseSeeder extends Seeder
             "first_name" => "Marcelina",
             "gender" => "Femenino",
             "personal_email" => "marcelina.towne@gmail.com",
-            "institutional_email" => "mtowne@instituto.edu.pe",
+            "institutional_email" => "mtowne@sam.edu.pe",
             "phone" => "014567890",
             "mobile" => "959705580",
             "admission_date" => "2019-03-15",
@@ -95,7 +72,7 @@ class DatabaseSeeder extends Seeder
             "first_name" => "Juan Carlos",
             "gender" => "Masculino",
             "personal_email" => "juan.gomez@gmail.com",
-            "institutional_email" => "jgomez@instituto.edu.pe",
+            "institutional_email" => "jgomez@sam.edu.pe",
             "phone" => "014567890",
             "mobile" => "987654321",
             "admission_date" => "2026-03-01",

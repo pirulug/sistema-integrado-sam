@@ -15,16 +15,20 @@
             
             <!-- 1. Student Identity (xl: 4 cols) -->
             <div class="xl:col-span-4 flex items-start space-x-3.5 min-w-0">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
-                    {{ strtoupper($initials) }}
-                </div>
+                @if ($student->photo_url)
+                    <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-11 h-11 rounded-xl object-cover border border-indigo-200 dark:border-indigo-800 flex-shrink-0 shadow-sm">
+                @else
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+                        {{ strtoupper($initials) }}
+                    </div>
+                @endif
                 <div class="flex-1 min-w-0">
                     <h3 class="text-sm font-bold text-gray-900 dark:text-white truncate" title="{{ $student->full_name }}">
                         {{ $student->paternal_last_name }} {{ $student->maternal_last_name }}, {{ $student->first_name }}
                     </h3>
                     <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                         <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700/70 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
-                            DNI: {{ $student->dni }}
+                            {{ $student->document_type ?? 'DNI' }}: {{ $student->dni }}
                         </span>
                         <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700/70 text-gray-700 dark:text-gray-300 font-mono text-[11px]">
                             {{ $student->student_code }}

@@ -11,25 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('students', function (Blueprint $table) {
+        Schema::create("students", function (Blueprint $table) {
             $table->id();
-            $table->string('dni')->unique();
-            $table->string('student_code')->unique();
-            $table->string('study_program');
-            $table->string('paternal_last_name');
-            $table->string('maternal_last_name');
+            $table->string("document_type", 20)->default("DNI");
+            $table->string("dni", 20)->unique();
+            $table->string("student_code")->unique();
+            $table->string("study_program");
+            $table->string("paternal_last_name");
+            $table->string("maternal_last_name");
             $table->string("first_name");
             $table->string("gender")->nullable();
             $table->string("personal_email")->nullable();
-            $table->string('institutional_email')->unique();
-            $table->string('phone')->nullable();
-            $table->string('mobile')->nullable();
-            $table->date('admission_date');
+            $table->string("institutional_email")->unique();
+            $table->string("phone")->nullable();
+            $table->string("mobile")->nullable();
+            $table->string("photo_path")->nullable();
+            $table->date("admission_date");
             $table->date("graduation_date")->nullable();
             $table->date("degree_date")->nullable();
             $table->string("degree_modality")->nullable();
             $table->foreignId("curriculum_id")->nullable()->constrained("curriculums")->nullOnDelete();
-            $table->string('shift')->nullable();
+            $table->string("shift")->nullable();
             $table->timestamps();
         });
     }
@@ -39,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists("students");
     }
 };

@@ -110,9 +110,9 @@
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead class="bg-gray-50 dark:bg-gray-900/50">
                                     <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estudiante</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Documento</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Código</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">DNI</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Apellidos y Nombres</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Género</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Programa de Estudio</th>
                                         <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
@@ -121,19 +121,39 @@
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach ($students as $student)
                                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $student->student_code }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $student->dni }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{{ $student->full_name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center space-x-3">
+                                                    @if ($student->photo_url)
+                                                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-9 h-9 rounded-full object-cover border border-indigo-200 dark:border-indigo-800 shadow-sm flex-shrink-0">
+                                                    @else
+                                                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm">
+                                                            {{ strtoupper(substr($student->first_name, 0, 1) . substr($student->paternal_last_name, 0, 1)) }}
+                                                        </div>
+                                                    @endif
+                                                    <div>
+                                                        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $student->full_name }}</div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $student->institutional_email }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-gray-100 dark:bg-gray-700/70 text-gray-800 dark:text-gray-200">
+                                                    <strong class="text-indigo-600 dark:text-indigo-400 mr-1">{{ $student->document_type ?? 'DNI' }}:</strong> {{ $student->dni }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 font-mono">{{ $student->student_code }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $student->gender ?? '-' }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $student->study_program }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
                                                 <a href="{{ route('students.show', $student) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">Ver</a>
                                                 <a href="{{ route('students.edit', $student) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300">Editar</a>
-                                                <form action="{{ route('students.destroy', $student) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar a este estudiante?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Eliminar</button>
-                                                </form>
+                                                @if (Auth::user()->isAdmin())
+                                                    <form action="{{ route('students.destroy', $student) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de que desea eliminar a este estudiante?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Eliminar</button>
+                                                    </form>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach

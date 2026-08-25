@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -55,6 +56,7 @@ class StudentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            "document_type" => "nullable|string|in:DNI,CE|max:20",
             "dni" => "required|string|unique:students,dni|max:20",
             "student_code" => "required|string|unique:students,student_code|max:50",
             "study_program" => "required|string|max:255",
@@ -63,14 +65,23 @@ class StudentController extends Controller
             "first_name" => "required|string|max:100",
             "gender" => "nullable|string|in:Masculino,Femenino",
             "personal_email" => "nullable|email|max:255",
-            "institutional_email" => "required|email|unique:students,institutional_email|max:255",
+            "institutional_email" => "required|email|ends_with:@sam.edu.pe|unique:students,institutional_email|max:255",
             "phone" => "nullable|string|max:20",
             "mobile" => "nullable|string|max:20",
+            "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
             "admission_date" => "required|date",
             "graduation_date" => "nullable|date|after_or_equal:admission_date",
             "curriculum_id" => "nullable|exists:curriculums,id",
             "shift" => "nullable|string|max:50",
+        ], [
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
         ]);
+
+        $validated["document_type"] = $validated["document_type"] ?? "DNI";
+
+        if ($request->hasFile("photo")) {
+            $validated["photo_path"] = $request->file("photo")->store("students", "public");
+        }
 
         Student::create($validated);
 
@@ -101,6 +112,7 @@ class StudentController extends Controller
     public function update(Request $request, Student $student): RedirectResponse
     {
         $validated = $request->validate([
+            "document_type" => "nullable|string|in:DNI,CE|max:20",
             "dni" => "required|string|max:20|unique:students,dni," . $student->id,
             "student_code" => "required|string|max:50|unique:students,student_code," . $student->id,
             "study_program" => "required|string|max:255",
@@ -109,14 +121,32 @@ class StudentController extends Controller
             "first_name" => "required|string|max:100",
             "gender" => "nullable|string|in:Masculino,Femenino",
             "personal_email" => "nullable|email|max:255",
-            "institutional_email" => "required|email|max:255|unique:students,institutional_email," . $student->id,
+            "institutional_email" => "required|email|ends_with:@sam.edu.pe|max:255|unique:students,institutional_email," . $student->id,
             "phone" => "nullable|string|max:20",
             "mobile" => "nullable|string|max:20",
+            "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
+            "remove_photo" => "nullable|boolean",
             "admission_date" => "required|date",
             "graduation_date" => "nullable|date|after_or_equal:admission_date",
             "curriculum_id" => "nullable|exists:curriculums,id",
             "shift" => "nullable|string|max:50",
+        ], [
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
         ]);
+
+        $validated["document_type"] = $validated["document_type"] ?? "DNI";
+
+        if ($request->boolean("remove_photo") && $student->photo_path) {
+            Storage::disk("public")->delete($student->photo_path);
+            $validated["photo_path"] = null;
+        }
+
+        if ($request->hasFile("photo")) {
+            if ($student->photo_path) {
+                Storage::disk("public")->delete($student->photo_path);
+            }
+            $validated["photo_path"] = $request->file("photo")->store("students", "public");
+        }
 
         $student->update($validated);
 
@@ -129,6 +159,14 @@ class StudentController extends Controller
      */
     public function destroy(Student $student): RedirectResponse
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, "Acceso denegado. Solo los administradores pueden eliminar estudiantes.");
+        }
+
+        if ($student->photo_path) {
+            Storage::disk("public")->delete($student->photo_path);
+        }
+
         $student->delete();
 
         return redirect()->route("students.index")
@@ -148,6 +186,7 @@ class StudentController extends Controller
         }
 
         $headers = [
+            "tipo_documento",
             "dni",
             "codigo",
             "apellido_paterno",
@@ -165,6 +204,7 @@ class StudentController extends Controller
         ];
 
         $sampleRow = [
+            "DNI",
             "71234567",
             "EST2026010",
             "Gomez",
@@ -172,7 +212,7 @@ class StudentController extends Controller
             "Carlos",
             "Masculino",
             "Diseño y programación web",
-            "cgomez@instituto.edu.pe",
+            "cgomez@sam.edu.pe",
             "carlos.gomez@gmail.com",
             "014567890",
             "987654321",
@@ -295,6 +335,8 @@ class StudentController extends Controller
                     return "";
                 };
 
+                $docTypeRaw = $getValue("document_type");
+                $documentType = strtoupper(trim($docTypeRaw)) === "CE" ? "CE" : "DNI";
                 $dni = $getValue("dni");
                 $studentCode = $getValue("student_code");
                 $paternalLastName = $getValue("paternal_last_name");
@@ -333,7 +375,7 @@ class StudentController extends Controller
                 }
 
                 if (empty($institutionalEmail)) {
-                    $institutionalEmail = strtolower($studentCode) . "@instituto.edu.pe";
+                    $institutionalEmail = strtolower($studentCode) . "@sam.edu.pe";
                 }
 
                 $admissionDate = $this->parseDate($admissionDateRaw, Carbon::today()->format("Y-m-d"));
@@ -345,6 +387,7 @@ class StudentController extends Controller
                     : $defaultCurriculumId;
 
                 $studentData = [
+                    "document_type" => $documentType,
                     "dni" => $dni,
                     "student_code" => $studentCode,
                     "study_program" => $studyProgram,
@@ -485,6 +528,8 @@ class StudentController extends Controller
                 }
 
                 $existingId = !empty($rowData["existing_student_id"]) ? (int)$rowData["existing_student_id"] : null;
+                $docTypeRaw = trim($rowData["document_type"] ?? "DNI");
+                $documentType = strtoupper($docTypeRaw) === "CE" ? "CE" : "DNI";
                 $dni = trim($rowData["dni"] ?? "");
                 $studentCode = trim($rowData["student_code"] ?? "");
                 $firstName = trim($rowData["first_name"] ?? "");
@@ -517,10 +562,11 @@ class StudentController extends Controller
                 }
 
                 if (empty($institutionalEmail)) {
-                    $institutionalEmail = strtolower($studentCode) . "@instituto.edu.pe";
+                    $institutionalEmail = strtolower($studentCode) . "@sam.edu.pe";
                 }
 
                 $studentData = [
+                    "document_type" => $documentType,
                     "dni" => $dni,
                     "student_code" => $studentCode,
                     "study_program" => $studyProgram,
@@ -622,6 +668,10 @@ class StudentController extends Controller
     private function getHeaderMapping(): array
     {
         return [
+            "tipodocumento" => "document_type",
+            "tipodoc" => "document_type",
+            "documenttype" => "document_type",
+            "tipodedocumento" => "document_type",
             "dni" => "dni",
             "documento" => "dni",
             "cedula" => "dni",

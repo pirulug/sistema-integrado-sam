@@ -41,7 +41,7 @@ class DashboardTest extends TestCase
             "paternal_last_name" => "Lopez",
             "maternal_last_name" => "Rios",
             "first_name" => "Carlos",
-            "institutional_email" => "clopez@instituto.edu.pe",
+            "institutional_email" => "clopez@sam.edu.pe",
             "hire_date" => "2026-03-01",
         ]);
 
@@ -52,7 +52,7 @@ class DashboardTest extends TestCase
             "maternal_last_name" => "Vargas",
             "first_name" => "Ana",
             "study_program" => "Diseño y programación web",
-            "institutional_email" => "asalas@instituto.edu.pe",
+            "institutional_email" => "asalas@sam.edu.pe",
             "shift" => "Diurno (Mañana)",
             "admission_date" => "2026-03-01",
             "curriculum_id" => $curriculum->id,

@@ -109,10 +109,21 @@
                                 <input type="hidden" name="rows[{{ $tempId }}][existing_student_id]" value="{{ $existingId }}" />
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                    <!-- DNI -->
+                                    <!-- Document Type -->
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                                            DNI <span class="text-red-500">*</span>
+                                            Tipo Doc. <span class="text-red-500">*</span>
+                                        </label>
+                                        <select name="rows[{{ $tempId }}][document_type]" class="w-full text-xs rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm">
+                                            <option value="DNI" {{ old('rows.'.$tempId.'.document_type', $data['document_type'] ?? 'DNI') == 'DNI' ? 'selected' : '' }}>DNI</option>
+                                            <option value="CE" {{ old('rows.'.$tempId.'.document_type', $data['document_type'] ?? '') == 'CE' ? 'selected' : '' }}>CE</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- DNI / Document Number -->
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                            N° Documento <span class="text-red-500">*</span>
                                         </label>
                                         <input type="text" name="rows[{{ $tempId }}][dni]" value="{{ old('rows.'.$tempId.'.dni', $data['dni'] ?? '') }}" required class="w-full text-xs rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-900 text-gray-800 dark:text-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" />
                                     </div>

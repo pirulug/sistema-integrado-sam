@@ -131,10 +131,14 @@
 
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 dark:border-gray-700 pb-8 mb-8 gap-6">
                             <div class="flex items-start space-x-4">
-                                <!-- Avatar Initials -->
-                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                                    {{ strtoupper($initials) }}
-                                </div>
+                                <!-- Avatar / Photo -->
+                                @if ($student->photo_url)
+                                    <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500 flex-shrink-0 shadow-lg">
+                                @else
+                                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                        {{ strtoupper($initials) }}
+                                    </div>
+                                @endif
                                 <div>
                                     <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest block mb-1">
                                         Ficha Académica de Graduación
@@ -144,7 +148,7 @@
                                     </h1>
                                     <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-mono">
-                                            DNI: {{ $student->dni }}
+                                            {{ $student->document_type ?? 'DNI' }}: {{ $student->dni }}
                                         </span>
                                         <span class="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-mono">
                                             Código: {{ $student->student_code }}

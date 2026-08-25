@@ -48,8 +48,8 @@ class TeacherImportTest extends TestCase
     public function test_import_teachers_with_comma_delimiter(): void
     {
         $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,email_institucional,email_personal,telefono,celular,fecha_contratacion\n" .
-            "87654321,DOC2026001,Ramirez,Soto,Maria Elena,mramirez@instituto.edu.pe,maria@gmail.com,013456789,912345678,2026-03-01\n" .
-            "87654322,DOC2026002,Vargas,Silva,Pedro Jose,pvargas@instituto.edu.pe,pedro@gmail.com,013456780,912345679,2026-03-01";
+            "87654321,DOC2026001,Ramirez,Soto,Maria Elena,mramirez@sam.edu.pe,maria@gmail.com,013456789,912345678,2026-03-01\n" .
+            "87654322,DOC2026002,Vargas,Silva,Pedro Jose,pvargas@sam.edu.pe,pedro@gmail.com,013456780,912345679,2026-03-01";
 
         $file = UploadedFile::fake()->createWithContent("profesores.csv", $csvContent);
 
@@ -79,7 +79,7 @@ class TeacherImportTest extends TestCase
     public function test_import_teachers_with_semicolon_delimiter(): void
     {
         $csvContent = "dni;codigo;apellido_paterno;apellido_materno;nombres;email_institucional;email_personal;telefono;celular;fecha_contratacion\n" .
-            "87654323;DOC2026003;Navarro;Gomez;Luis Alberto;lnavarro@instituto.edu.pe;luis@gmail.com;013456781;912345680;2026-03-01";
+            "87654323;DOC2026003;Navarro;Gomez;Luis Alberto;lnavarro@sam.edu.pe;luis@gmail.com;013456781;912345680;2026-03-01";
 
         $file = UploadedFile::fake()->createWithContent("profesores_semicolon.csv", $csvContent);
 
@@ -107,13 +107,13 @@ class TeacherImportTest extends TestCase
             "paternal_last_name" => "Ramirez",
             "maternal_last_name" => "Soto",
             "first_name" => "Maria Elena",
-            "institutional_email" => "mramirez@instituto.edu.pe",
+            "institutional_email" => "mramirez@sam.edu.pe",
             "hire_date" => "2020-03-01",
         ]);
 
         $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,email_institucional,fecha_contratacion\n" .
-            "87654399,DOC2026099,Nuevo,Docente,Ana,anuevodoc@instituto.edu.pe,2026-03-01\n" .
-            "87654321,DOC2026001,Ramirez,Soto,Maria Modificada,mramirez.mod@instituto.edu.pe,2026-03-01";
+            "87654399,DOC2026099,Nuevo,Docente,Ana,anuevodoc@sam.edu.pe,2026-03-01\n" .
+            "87654321,DOC2026001,Ramirez,Soto,Maria Modificada,mramirez.mod@sam.edu.pe,2026-03-01";
 
         $file = UploadedFile::fake()->createWithContent("docentes_conflicto.csv", $csvContent);
 
@@ -140,7 +140,7 @@ class TeacherImportTest extends TestCase
             "paternal_last_name" => "Ramirez",
             "maternal_last_name" => "Soto",
             "first_name" => "Maria",
-            "institutional_email" => "mramirez@instituto.edu.pe",
+            "institutional_email" => "mramirez@sam.edu.pe",
             "hire_date" => "2020-03-01",
         ]);
 
@@ -154,7 +154,7 @@ class TeacherImportTest extends TestCase
                     "paternal_last_name" => "Ramirez Actualizado",
                     "maternal_last_name" => "Soto",
                     "first_name" => "Maria Elena",
-                    "institutional_email" => "mramirez.actualizado@instituto.edu.pe",
+                    "institutional_email" => "mramirez.actualizado@sam.edu.pe",
                     "hire_date" => "2020-03-01",
                 ],
             ],
@@ -166,7 +166,7 @@ class TeacherImportTest extends TestCase
         $this->assertDatabaseHas("teachers", [
             "dni" => "87654321",
             "paternal_last_name" => "Ramirez Actualizado",
-            "institutional_email" => "mramirez.actualizado@instituto.edu.pe",
+            "institutional_email" => "mramirez.actualizado@sam.edu.pe",
         ]);
     }
 
@@ -178,7 +178,7 @@ class TeacherImportTest extends TestCase
             "paternal_last_name" => "Existente",
             "maternal_last_name" => "Docente",
             "first_name" => "Juan",
-            "institutional_email" => "juan@instituto.edu.pe",
+            "institutional_email" => "juan@sam.edu.pe",
             "hire_date" => "2020-03-01",
         ]);
 
@@ -192,7 +192,7 @@ class TeacherImportTest extends TestCase
                     "paternal_last_name" => "NuevoHermano",
                     "maternal_last_name" => "Docente",
                     "first_name" => "Carlos",
-                    "institutional_email" => "carlos@instituto.edu.pe",
+                    "institutional_email" => "carlos@sam.edu.pe",
                     "hire_date" => "2026-03-01",
                 ],
             ],

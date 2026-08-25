@@ -11,6 +11,7 @@ class Student extends Model
     use HasFactory;
 
     protected $fillable = [
+        "document_type",
         "dni",
         "student_code",
         "study_program",
@@ -22,6 +23,7 @@ class Student extends Model
         "institutional_email",
         "phone",
         "mobile",
+        "photo_path",
         "admission_date",
         "graduation_date",
         "degree_date",
@@ -36,6 +38,26 @@ class Student extends Model
     public function getFullNameAttribute(): string
     {
         return "{$this->paternal_last_name} {$this->maternal_last_name}, {$this->first_name}";
+    }
+
+    /**
+     * Get photo URL or null.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->photo_path) {
+            return asset("storage/" . $this->photo_path);
+        }
+        return null;
+    }
+
+    /**
+     * Get document label (e.g. 'DNI: 12345678' or 'CE: 123456789').
+     */
+    public function getDocumentFormattedAttribute(): string
+    {
+        $type = $this->document_type ?: "DNI";
+        return "{$type}: {$this->dni}";
     }
 
     /**

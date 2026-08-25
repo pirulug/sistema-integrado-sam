@@ -13,20 +13,20 @@ class CurriculumImportTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User $teacherUser;
+    private User $adminUser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->teacherUser = User::factory()->create([
-            "role" => "teacher",
+        $this->adminUser = User::factory()->create([
+            "role" => "admin",
         ]);
     }
 
     public function test_teacher_can_download_comma_template(): void
     {
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->get(route("curriculums.template", ["delimiter" => ","]));
 
         $response->assertOk();
@@ -37,7 +37,7 @@ class CurriculumImportTest extends TestCase
 
     public function test_teacher_can_download_semicolon_template(): void
     {
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->get(route("curriculums.template", ["delimiter" => ";"]));
 
         $response->assertOk();
@@ -55,7 +55,7 @@ class CurriculumImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("malla_unidades.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("curriculums.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("curriculums.import"), [
             "file" => $file,
             "delimiter" => ",",
             "target_mode" => "new",
@@ -106,7 +106,7 @@ class CurriculumImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("cursos_semicolon.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("curriculums.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("curriculums.import"), [
             "file" => $file,
             "delimiter" => ";",
             "target_mode" => "existing",
@@ -145,7 +145,7 @@ class CurriculumImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("conflicto.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("curriculums.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("curriculums.import"), [
             "file" => $file,
             "delimiter" => ",",
             "target_mode" => "existing",
@@ -171,7 +171,7 @@ class CurriculumImportTest extends TestCase
             "hours" => 48,
         ]);
 
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->withSession([
                 "import_curriculum_id" => $curriculum->id,
                 "import_curriculum_conflicts" => [["temp_id" => "1"]],
@@ -209,7 +209,7 @@ class CurriculumImportTest extends TestCase
             "year" => "2026",
         ]);
 
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->withSession([
                 "import_curriculum_id" => $curriculum->id,
                 "import_curriculum_conflicts" => [["temp_id" => "1"]],

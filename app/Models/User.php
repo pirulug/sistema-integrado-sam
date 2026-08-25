@@ -7,22 +7,31 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(["name", "dni", "email", "password", "role", "photo_path"])]
+#[Hidden(["password", "remember_token"])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
+     * Get the teacher profile associated with the user.
+     */
+    public function teacher(): HasOne
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
+    /**
      * Check if user is an Administrator.
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === "admin";
     }
 
     /**
@@ -30,7 +39,7 @@ class User extends Authenticatable
      */
     public function isTeacher(): bool
     {
-        return $this->role === 'teacher';
+        return $this->role === "teacher";
     }
 
     /**
@@ -38,7 +47,21 @@ class User extends Authenticatable
      */
     public function isStudent(): bool
     {
-        return $this->role === 'student';
+        return $this->role === "student";
+    }
+
+    /**
+     * Get photo URL or null.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if ($this->photo_path) {
+            return asset("storage/" . $this->photo_path);
+        }
+        if ($this->teacher && $this->teacher->photo_path) {
+            return asset("storage/" . $this->teacher->photo_path);
+        }
+        return null;
     }
 
     /**
@@ -49,8 +72,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            "email_verified_at" => "datetime",
+            "password" => "hashed",
         ];
     }
 }

@@ -13,20 +13,20 @@ class CourseImportTest extends TestCase
 {
     use RefreshDatabase;
 
-    private User $teacherUser;
+    private User $adminUser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->teacherUser = User::factory()->create([
-            "role" => "teacher",
+        $this->adminUser = User::factory()->create([
+            "role" => "admin",
         ]);
     }
 
     public function test_teacher_can_download_comma_template(): void
     {
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->get(route("courses.template", ["delimiter" => ","]));
 
         $response->assertOk();
@@ -37,7 +37,7 @@ class CourseImportTest extends TestCase
 
     public function test_teacher_can_download_semicolon_template(): void
     {
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->get(route("courses.template", ["delimiter" => ";"]));
 
         $response->assertOk();
@@ -59,7 +59,7 @@ class CourseImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("cursos.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("courses.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("courses.import"), [
             "file" => $file,
             "delimiter" => ",",
             "curriculum_id" => $curriculum->id,
@@ -91,7 +91,7 @@ class CourseImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("cursos_semicolon.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("courses.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("courses.import"), [
             "file" => $file,
             "delimiter" => ";",
         ]);
@@ -120,7 +120,7 @@ class CourseImportTest extends TestCase
 
         $file = UploadedFile::fake()->createWithContent("conflicto.csv", $csvContent);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("courses.import"), [
+        $response = $this->actingAs($this->adminUser)->post(route("courses.import"), [
             "file" => $file,
             "delimiter" => ",",
         ]);
@@ -139,7 +139,7 @@ class CourseImportTest extends TestCase
             "hours" => 48,
         ]);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("courses.import-conflicts.resolve"), [
+        $response = $this->actingAs($this->adminUser)->post(route("courses.import-conflicts.resolve"), [
             "rows" => [
                 "course_1" => [
                     "action" => "update",
@@ -174,7 +174,7 @@ class CourseImportTest extends TestCase
             "hours" => 80,
         ]);
 
-        $response = $this->actingAs($this->teacherUser)->post(route("courses.import-conflicts.resolve"), [
+        $response = $this->actingAs($this->adminUser)->post(route("courses.import-conflicts.resolve"), [
             "rows" => [
                 "course_1" => [
                     "action" => "create",
@@ -197,7 +197,7 @@ class CourseImportTest extends TestCase
 
     public function test_cancel_course_conflicts_clears_session(): void
     {
-        $response = $this->actingAs($this->teacherUser)
+        $response = $this->actingAs($this->adminUser)
             ->withSession([
                 "import_course_conflicts" => [["temp_id" => "1"]],
                 "import_course_saved_count" => 1,

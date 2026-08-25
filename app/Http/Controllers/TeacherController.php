@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -56,11 +57,18 @@ class TeacherController extends Controller
             "maternal_last_name" => "required|string|max:100",
             "first_name" => "required|string|max:100",
             "personal_email" => "nullable|email|max:255",
-            "institutional_email" => "required|email|unique:teachers,institutional_email|max:255",
+            "institutional_email" => "required|email|ends_with:@sam.edu.pe|unique:teachers,institutional_email|max:255",
             "phone" => "nullable|string|max:20",
             "mobile" => "nullable|string|max:20",
+            "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
             "hire_date" => "required|date",
+        ], [
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
         ]);
+
+        if ($request->hasFile("photo")) {
+            $validated["photo_path"] = $request->file("photo")->store("teachers", "public");
+        }
 
         Teacher::create($validated);
 
@@ -96,11 +104,29 @@ class TeacherController extends Controller
             "maternal_last_name" => "required|string|max:100",
             "first_name" => "required|string|max:100",
             "personal_email" => "nullable|email|max:255",
-            "institutional_email" => "required|email|max:255|unique:teachers,institutional_email," . $teacher->id,
+            "institutional_email" => "required|email|ends_with:@sam.edu.pe|max:255|unique:teachers,institutional_email," . $teacher->id,
             "phone" => "nullable|string|max:20",
             "mobile" => "nullable|string|max:20",
+            "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
+            "remove_photo" => "nullable|boolean",
             "hire_date" => "required|date",
+        ], [
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
         ]);
+
+        if ($request->boolean("remove_photo")) {
+            if ($teacher->photo_path) {
+                Storage::disk("public")->delete($teacher->photo_path);
+            }
+            $validated["photo_path"] = null;
+        }
+
+        if ($request->hasFile("photo")) {
+            if ($teacher->photo_path) {
+                Storage::disk("public")->delete($teacher->photo_path);
+            }
+            $validated["photo_path"] = $request->file("photo")->store("teachers", "public");
+        }
 
         $teacher->update($validated);
 
@@ -113,6 +139,10 @@ class TeacherController extends Controller
      */
     public function destroy(Teacher $teacher): RedirectResponse
     {
+        if ($teacher->photo_path) {
+            Storage::disk("public")->delete($teacher->photo_path);
+        }
+
         $teacher->delete();
 
         return redirect()->route("teachers.index")
@@ -150,7 +180,7 @@ class TeacherController extends Controller
             "Ramirez",
             "Soto",
             "Maria Elena",
-            "mramirez@instituto.edu.pe",
+            "mramirez@sam.edu.pe",
             "maria.ramirez@gmail.com",
             "013456789",
             "912345678",
@@ -287,7 +317,7 @@ class TeacherController extends Controller
                 }
 
                 if (empty($institutionalEmail)) {
-                    $institutionalEmail = strtolower($teacherCode) . "@instituto.edu.pe";
+                    $institutionalEmail = strtolower($teacherCode) . "@sam.edu.pe";
                 }
 
                 $hireDate = $this->parseDate($hireDateRaw, Carbon::today()->format("Y-m-d"));
@@ -443,7 +473,7 @@ class TeacherController extends Controller
                 }
 
                 if (empty($institutionalEmail)) {
-                    $institutionalEmail = strtolower($teacherCode) . "@instituto.edu.pe";
+                    $institutionalEmail = strtolower($teacherCode) . "@sam.edu.pe";
                 }
 
                 $teacherData = [
