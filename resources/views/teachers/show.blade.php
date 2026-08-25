@@ -99,6 +99,44 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- User Account Card (Admin View) -->
+                    <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <div class="p-5 rounded-2xl border {{ $teacher->user ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/60' : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/60' }}">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 rounded-xl {{ $teacher->user ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300' }}">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white">
+                                            {{ $teacher->user ? 'Cuenta de Usuario Asignada' : 'Sin Cuenta de Acceso' }}
+                                        </h4>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            @if ($teacher->user)
+                                                Usuario: <strong class="text-gray-800 dark:text-gray-200">{{ $teacher->user->email }}</strong> (Rol: {{ ucfirst($teacher->user->role) }})
+                                            @else
+                                                Este profesor no tiene credenciales para ingresar al sistema.
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    @if ($teacher->user)
+                                        <a href="{{ route('users.edit', $teacher->user) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                                            Restablecer Contraseña
+                                        </a>
+                                    @else
+                                        <a href="{{ route('users.create', ['teacher_id' => $teacher->id, 'role' => 'teacher']) }}" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                                            Crear Cuenta de Usuario
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

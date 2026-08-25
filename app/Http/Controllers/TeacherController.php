@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Teacher;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -50,7 +52,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             "dni" => "required|string|unique:teachers,dni|max:20",
             "teacher_code" => "required|string|unique:teachers,teacher_code|max:50",
             "paternal_last_name" => "required|string|max:100",
@@ -62,18 +64,47 @@ class TeacherController extends Controller
             "mobile" => "nullable|string|max:20",
             "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
             "hire_date" => "required|date",
-        ], [
+            "create_user_account" => "nullable|boolean",
+            "password" => "nullable|min:6|confirmed",
+        ];
+
+        if ($request->boolean("create_user_account") || $request->filled("password")) {
+            $rules["password"] = "required|min:6|confirmed";
+        }
+
+        $validated = $request->validate($rules, [
             "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
+            "password.required" => "La contraseña es requerida para habilitar la cuenta de usuario del profesor.",
+            "password.min" => "La contraseña debe tener al menos 6 caracteres.",
+            "password.confirmed" => "La confirmación de la contraseña no coincide.",
         ]);
 
         if ($request->hasFile("photo")) {
             $validated["photo_path"] = $request->file("photo")->store("teachers", "public");
         }
 
-        Teacher::create($validated);
+        $teacher = Teacher::create($validated);
+
+        // Create user account if requested
+        if ($request->boolean("create_user_account") || $request->filled("password")) {
+            $fullName = "{$teacher->paternal_last_name} {$teacher->maternal_last_name}, {$teacher->first_name}";
+
+            $user = User::updateOrCreate(
+                ["email" => $teacher->institutional_email],
+                [
+                    "name" => $fullName,
+                    "dni" => $teacher->dni,
+                    "password" => Hash::make($request->input("password")),
+                    "role" => "teacher",
+                    "photo_path" => $teacher->photo_path,
+                ]
+            );
+
+            $teacher->update(["user_id" => $user->id]);
+        }
 
         return redirect()->route("teachers.index")
-            ->with("success", "Profesor creado exitosamente.");
+            ->with("success", "Profesor creado exitosamente" . ($teacher->user_id ? " con cuenta de usuario habilitada." : "."));
     }
 
     /**
@@ -81,6 +112,7 @@ class TeacherController extends Controller
      */
     public function show(Teacher $teacher): View
     {
+        $teacher->load("user");
         return view("teachers.show", compact("teacher"));
     }
 
@@ -89,6 +121,7 @@ class TeacherController extends Controller
      */
     public function edit(Teacher $teacher): View
     {
+        $teacher->load("user");
         return view("teachers.edit", compact("teacher"));
     }
 
@@ -97,7 +130,7 @@ class TeacherController extends Controller
      */
     public function update(Request $request, Teacher $teacher): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             "dni" => "required|string|max:20|unique:teachers,dni," . $teacher->id,
             "teacher_code" => "required|string|max:50|unique:teachers,teacher_code," . $teacher->id,
             "paternal_last_name" => "required|string|max:100",
@@ -110,8 +143,20 @@ class TeacherController extends Controller
             "photo" => "nullable|image|mimes:jpeg,png,jpg,webp|max:2048",
             "remove_photo" => "nullable|boolean",
             "hire_date" => "required|date",
-        ], [
+            "create_user_account" => "nullable|boolean",
+            "remove_user_account" => "nullable|boolean",
+            "password" => "nullable|min:6|confirmed",
+        ];
+
+        if (!$teacher->user_id && ($request->boolean("create_user_account") || $request->filled("password"))) {
+            $rules["password"] = "required|min:6|confirmed";
+        }
+
+        $validated = $request->validate($rules, [
             "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
+            "password.required" => "La contraseña es requerida para habilitar la cuenta de usuario del profesor.",
+            "password.min" => "La contraseña debe tener al menos 6 caracteres.",
+            "password.confirmed" => "La confirmación de la contraseña no coincide.",
         ]);
 
         if ($request->boolean("remove_photo")) {
@@ -129,6 +174,45 @@ class TeacherController extends Controller
         }
 
         $teacher->update($validated);
+
+        $fullName = "{$teacher->paternal_last_name} {$teacher->maternal_last_name}, {$teacher->first_name}";
+
+        // Handle user account updates
+        if ($teacher->user) {
+            if ($request->boolean("remove_user_account")) {
+                $teacher->user->delete();
+                $teacher->update(["user_id" => null]);
+            } else {
+                $userData = [
+                    "name" => $fullName,
+                    "dni" => $teacher->dni,
+                    "email" => $teacher->institutional_email,
+                ];
+
+                if (array_key_exists("photo_path", $validated)) {
+                    $userData["photo_path"] = $validated["photo_path"];
+                }
+
+                if ($request->filled("password")) {
+                    $userData["password"] = Hash::make($request->input("password"));
+                }
+
+                $teacher->user->update($userData);
+            }
+        } elseif ($request->boolean("create_user_account") || $request->filled("password")) {
+            $user = User::updateOrCreate(
+                ["email" => $teacher->institutional_email],
+                [
+                    "name" => $fullName,
+                    "dni" => $teacher->dni,
+                    "password" => Hash::make($request->input("password")),
+                    "role" => "teacher",
+                    "photo_path" => $teacher->photo_path,
+                ]
+            );
+
+            $teacher->update(["user_id" => $user->id]);
+        }
 
         return redirect()->route("teachers.index")
             ->with("success", "Profesor actualizado exitosamente.");
@@ -172,6 +256,7 @@ class TeacherController extends Controller
             "telefono",
             "celular",
             "fecha_contratacion",
+            "contrasena",
         ];
 
         $sampleRow = [
@@ -185,6 +270,7 @@ class TeacherController extends Controller
             "013456789",
             "912345678",
             "2026-03-01",
+            "docente123",
         ];
 
         $filename = "plantilla_profesores.csv";
@@ -309,6 +395,7 @@ class TeacherController extends Controller
                 $phone = $getValue("phone");
                 $mobile = $getValue("mobile");
                 $hireDateRaw = $getValue("hire_date");
+                $passwordRaw = $getValue("password");
 
                 // Validations for essential fields
                 if (empty($dni) || empty($teacherCode) || empty($paternalLastName) || empty($maternalLastName) || empty($firstName)) {
@@ -363,16 +450,36 @@ class TeacherController extends Controller
 
                 if (!empty($reasons)) {
                     // Conflict detected: save for interactive review
+                    $conflictTeacherData = $teacherData;
+                    if (!empty($passwordRaw)) {
+                        $conflictTeacherData["password"] = $passwordRaw;
+                    }
+
                     $conflicts[] = [
                         "temp_id" => "row_" . $rowNumber . "_" . uniqid(),
                         "row_number" => $rowNumber,
                         "reasons" => $reasons,
                         "existing_teacher_id" => $existingTeacher ? $existingTeacher->id : null,
                         "existing_summary" => $existingTeacher ? "{$existingTeacher->full_name} (DNI: {$existingTeacher->dni}, Código: {$existingTeacher->teacher_code})" : null,
-                        "data" => $teacherData,
+                        "data" => $conflictTeacherData,
                         "action" => $existingTeacher ? "update" : "create",
                     ];
                 } else {
+                    // Create user account if password was provided in CSV
+                    if (!empty($passwordRaw)) {
+                        $fullName = "{$paternalLastName} {$maternalLastName}, {$firstName}";
+                        $user = User::updateOrCreate(
+                            ["email" => $institutionalEmail],
+                            [
+                                "name" => $fullName,
+                                "dni" => $dni,
+                                "password" => Hash::make($passwordRaw),
+                                "role" => "teacher",
+                            ]
+                        );
+                        $teacherData["user_id"] = $user->id;
+                    }
+
                     // No conflict: create immediately
                     Teacher::create($teacherData);
                     $createdCount++;
@@ -434,9 +541,8 @@ class TeacherController extends Controller
     {
         $rows = $request->input("rows", []);
         if (empty($rows) || !is_array($rows)) {
-            session()->forget(["import_teacher_conflicts", "import_teacher_saved_count"]);
             return redirect()->route("teachers.index")
-                ->with("info", "No se recibieron registros para procesar.");
+                ->with("info", "No se enviaron resoluciones para procesar.");
         }
 
         $createdCount = 0;
@@ -447,28 +553,29 @@ class TeacherController extends Controller
         DB::beginTransaction();
 
         try {
-            foreach ($rows as $tempId => $rowData) {
-                $action = $rowData["action"] ?? "ignore";
+            foreach ($rows as $row) {
+                $action = $row["action"] ?? "ignore";
+                $existingId = $row["existing_teacher_id"] ?? null;
 
                 if ($action === "ignore") {
                     $ignoredCount++;
                     continue;
                 }
 
-                $existingId = !empty($rowData["existing_teacher_id"]) ? (int)$rowData["existing_teacher_id"] : null;
-                $dni = trim($rowData["dni"] ?? "");
-                $teacherCode = trim($rowData["teacher_code"] ?? "");
-                $firstName = trim($rowData["first_name"] ?? "");
-                $paternalLastName = trim($rowData["paternal_last_name"] ?? "");
-                $maternalLastName = trim($rowData["maternal_last_name"] ?? "");
-                $institutionalEmail = trim($rowData["institutional_email"] ?? "");
-                $personalEmail = trim($rowData["personal_email"] ?? "");
-                $phone = trim($rowData["phone"] ?? "");
-                $mobile = trim($rowData["mobile"] ?? "");
-                $hireDate = $this->parseDate($rowData["hire_date"] ?? null, Carbon::today()->format("Y-m-d"));
+                $dni = trim($row["dni"] ?? $row["data"]["dni"] ?? "");
+                $teacherCode = trim($row["teacher_code"] ?? $row["data"]["teacher_code"] ?? "");
+                $paternalLastName = trim($row["paternal_last_name"] ?? $row["data"]["paternal_last_name"] ?? "");
+                $maternalLastName = trim($row["maternal_last_name"] ?? $row["data"]["maternal_last_name"] ?? "");
+                $firstName = trim($row["first_name"] ?? $row["data"]["first_name"] ?? "");
+                $institutionalEmail = trim($row["institutional_email"] ?? $row["data"]["institutional_email"] ?? "");
+                $personalEmail = trim($row["personal_email"] ?? $row["data"]["personal_email"] ?? "");
+                $phone = trim($row["phone"] ?? $row["data"]["phone"] ?? "");
+                $mobile = trim($row["mobile"] ?? $row["data"]["mobile"] ?? "");
+                $hireDate = $this->parseDate($row["hire_date"] ?? $row["data"]["hire_date"] ?? null, Carbon::today()->format("Y-m-d"));
+                $passwordRaw = trim($row["password"] ?? $row["data"]["password"] ?? "");
 
-                if (empty($dni) || empty($teacherCode) || empty($firstName) || empty($paternalLastName) || empty($maternalLastName)) {
-                    $errors[] = "Fila con DNI '{$dni}': Faltan campos obligatorios.";
+                if (empty($dni) || empty($teacherCode) || empty($paternalLastName) || empty($maternalLastName) || empty($firstName)) {
+                    $errors[] = "Registro omitido: Faltan campos obligatorios (DNI, código, nombres o apellidos).";
                     continue;
                 }
 
@@ -488,6 +595,21 @@ class TeacherController extends Controller
                     "mobile" => !empty($mobile) ? $mobile : null,
                     "hire_date" => $hireDate,
                 ];
+
+                // Create user account if password was present
+                if (!empty($passwordRaw)) {
+                    $fullName = "{$paternalLastName} {$maternalLastName}, {$firstName}";
+                    $user = User::updateOrCreate(
+                        ["email" => $institutionalEmail],
+                        [
+                            "name" => $fullName,
+                            "dni" => $dni,
+                            "password" => Hash::make($passwordRaw),
+                            "role" => "teacher",
+                        ]
+                    );
+                    $teacherData["user_id"] = $user->id;
+                }
 
                 if ($action === "update") {
                     $targetTeacher = null;
@@ -611,6 +733,12 @@ class TeacherController extends Controller
             "contratacion" => "hire_date",
             "fechaingreso" => "hire_date",
             "ingreso" => "hire_date",
+            "password" => "password",
+            "contrasena" => "password",
+            "contrasenia" => "password",
+            "clave" => "password",
+            "claveacceso" => "password",
+            "pass" => "password",
         ];
     }
 

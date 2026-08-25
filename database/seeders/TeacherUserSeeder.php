@@ -15,7 +15,7 @@ class TeacherUserSeeder extends Seeder
     public function run(): void
     {
         $teacherUser = User::updateOrCreate(
-            ["email" => "teacher@gmail.com"],
+            ["email" => "mramirez@sam.edu.pe"],
             [
                 "name" => "Maria Elena Ramirez Soto",
                 "dni" => "87654321",

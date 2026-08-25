@@ -141,7 +141,18 @@
                                                     {{ $teacher->teacher_code }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 dark:text-indigo-400 font-medium">{{ $teacher->institutional_email }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-indigo-600 dark:text-indigo-400 font-medium">{{ $teacher->institutional_email }}</div>
+                                                @if ($teacher->user_id)
+                                                    <span class="inline-flex items-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Cuenta activa
+                                                    </span>
+                                                @else
+                                                    <a href="{{ route('users.create', ['teacher_id' => $teacher->id, 'role' => 'teacher']) }}" class="inline-flex items-center text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span> Sin usuario &bull; Crear &rarr;
+                                                    </a>
+                                                @endif
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-2">
                                                 <a href="{{ route('teachers.show', $teacher) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 font-semibold">Ver</a>
                                                 <a href="{{ route('teachers.edit', $teacher) }}" class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 font-semibold">Editar</a>
@@ -273,7 +284,7 @@
                     </div>
                     <p class="mt-2 text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
                         Columnas requeridas: <strong>dni, codigo, apellido_paterno, apellido_materno, nombres</strong>.<br />
-                        Columnas opcionales: email_institucional, email_personal, telefono, celular, fecha_contratacion.
+                        Columnas opcionales: email_institucional, email_personal, telefono, celular, fecha_contratacion, <strong>contrasena</strong> (crea la cuenta de usuario automáticamente).
                     </p>
                 </div>
             </div>

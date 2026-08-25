@@ -549,14 +549,23 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 mt-4">
                             @if (Auth::user()->isAdmin())
+                                <!-- Admin: Usuarios -->
+                                <a href="{{ route('users.index') }}" class="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 transition group flex flex-col justify-between">
+                                    <div class="p-2 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl text-indigo-600 dark:text-indigo-400 w-fit mb-2">
+                                        <i data-feather="shield" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-indigo-600">Usuarios y Claves</span>
+                                    <span class="text-[10px] text-gray-400 mt-0.5">Control de accesos</span>
+                                </a>
+
                                 <!-- Admin: Estudiantes -->
                                 <a href="{{ route('students.index') }}" class="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 transition group flex flex-col justify-between">
-                                    <div class="p-2 bg-indigo-50 dark:bg-indigo-950/60 rounded-xl text-indigo-600 dark:text-indigo-400 w-fit mb-2">
+                                    <div class="p-2 bg-blue-50 dark:bg-blue-950/60 rounded-xl text-blue-600 dark:text-blue-400 w-fit mb-2">
                                         <i data-feather="users" class="w-4 h-4"></i>
                                     </div>
-                                    <span class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-indigo-600">Estudiantes</span>
+                                    <span class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-blue-600">Estudiantes</span>
                                     <span class="text-[10px] text-gray-400 mt-0.5">Gestión y CSV</span>
                                 </a>
 
@@ -594,15 +603,6 @@
                                     </div>
                                     <span class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-cyan-600">Módulos EFSRT</span>
                                     <span class="text-[10px] text-gray-400 mt-0.5">Prácticas</span>
-                                </a>
-
-                                <!-- Admin: Seguimiento -->
-                                <a href="{{ route('graduation.index') }}" class="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 hover:border-indigo-400 transition group flex flex-col justify-between">
-                                    <div class="p-2 bg-pink-50 dark:bg-pink-950/60 rounded-xl text-pink-600 dark:text-pink-400 w-fit mb-2">
-                                        <i data-feather="award" class="w-4 h-4"></i>
-                                    </div>
-                                    <span class="text-xs font-bold text-gray-900 dark:text-white group-hover:text-pink-600">Seguimiento</span>
-                                    <span class="text-[10px] text-gray-400 mt-0.5">Titulación</span>
                                 </a>
                             @else
                                 <!-- Docente: Estudiantes -->

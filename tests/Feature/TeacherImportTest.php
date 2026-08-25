@@ -242,4 +242,29 @@ class TeacherImportTest extends TestCase
         $response->assertSessionMissing("import_teacher_conflicts");
         $response->assertSessionHas("info");
     }
+
+    public function test_import_teachers_with_optional_password_creates_user_accounts(): void
+    {
+        $csvContent = "dni,codigo,apellido_paterno,apellido_materno,nombres,email_institucional,fecha_contratacion,contrasena\n" .
+            "88776655,DOC2026777,Salazar,Bravo,Lucia,lsalazar@sam.edu.pe,2026-03-01,claveprofesor777";
+
+        $file = UploadedFile::fake()->createWithContent("profesores_con_claves.csv", $csvContent);
+
+        $response = $this->actingAs($this->adminUser)->post(route("teachers.import"), [
+            "file" => $file,
+            "delimiter" => ",",
+        ]);
+
+        $response->assertRedirect(route("teachers.index"));
+        $response->assertSessionHas("success");
+
+        $teacher = Teacher::where("dni", "88776655")->first();
+        $this->assertNotNull($teacher);
+        $this->assertNotNull($teacher->user_id);
+
+        $user = User::find($teacher->user_id);
+        $this->assertEquals("lsalazar@sam.edu.pe", $user->email);
+        $this->assertEquals("teacher", $user->role);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check("claveprofesor777", $user->password));
+    }
 }

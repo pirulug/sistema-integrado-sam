@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CurriculumController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EfsrtController;
+use App\Http\Controllers\GraduationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\CurriculumController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\EfsrtController;
-use App\Http\Controllers\GraduationController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,8 +18,6 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/consulta', [GraduationController::class, 'publicLookup'])->name('graduation.public-lookup');
-
-use App\Http\Controllers\DashboardController;
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -48,6 +48,11 @@ Route::middleware('auth')->group(function () {
 
     // Rutas exclusivas del Administrador (role:admin)
     Route::middleware("role:admin")->group(function () {
+        // Gestión de Usuarios y Restablecimiento de Contraseñas
+        Route::resource("users", UserController::class);
+        Route::post("users/{user}/reset-password", [UserController::class, "resetPassword"])->name("users.reset-password");
+        Route::post("teachers/{teacher}/create-user", [UserController::class, "quickCreateTeacherUser"])->name("teachers.create-user");
+
         // Eliminar Estudiantes (solo admin)
         Route::delete("students/{student}", [StudentController::class, "destroy"])->name("students.destroy");
 

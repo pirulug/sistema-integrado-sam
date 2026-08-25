@@ -332,6 +332,74 @@
                             </div>
                         </div>
 
+                        <!-- Sección: Credenciales y Cuenta de Usuario -->
+                        @if ($teacher->user)
+                            <div class="mt-8 p-5 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                                        <h4 class="text-sm font-bold text-gray-900 dark:text-white">Cuenta de Usuario Activa</h4>
+                                    </div>
+                                    <label class="flex items-center space-x-2 text-xs text-red-600 hover:text-red-700 cursor-pointer">
+                                        <input type="checkbox" name="remove_user_account" value="1" x-model="removeUserAccount" class="rounded border-red-300 text-red-600 focus:ring-red-500">
+                                        <span>Deshabilitar/Eliminar cuenta de acceso</span>
+                                    </label>
+                                </div>
+
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    El profesor accede al sistema mediante su correo institucional: <strong class="text-emerald-700 dark:text-emerald-300 font-mono" x-text="form.institutional_email"></strong>.
+                                </p>
+
+                                <div x-show="!removeUserAccount" class="pt-3 border-t border-emerald-100 dark:border-emerald-800/60">
+                                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                        Cambiar / Restablecer Contraseña <span class="text-xs font-normal text-gray-500">(Opcional, dejar en blanco para no cambiar)</span>
+                                    </label>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <input id="password" name="password" type="password" minlength="6" x-model="form.password" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Nueva contraseña">
+                                            <x-input-error class="mt-2" :messages="$errors->get('password')" />
+                                        </div>
+                                        <div>
+                                            <input id="password_confirmation" name="password_confirmation" type="password" minlength="6" x-model="form.password_confirmation" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Confirmar nueva contraseña">
+                                            <x-input-error class="mt-2" :messages="$errors->get('password_confirmation')" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="mt-8 p-5 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200 dark:border-indigo-800/60 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-start space-x-3 cursor-pointer">
+                                        <input type="checkbox" name="create_user_account" value="1" x-model="createUserAccount" class="mt-0.5 w-4 h-4 text-indigo-600 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500">
+                                        <div>
+                                            <span class="text-sm font-bold text-gray-900 dark:text-white">Crear y habilitar cuenta de acceso para este profesor</span>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                El docente podrá iniciar sesión con su correo institucional (<strong class="text-indigo-600 dark:text-indigo-400 font-mono" x-text="form.institutional_email || 'correo@sam.edu.pe'"></strong>).
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div x-show="createUserAccount" x-transition class="pt-3 border-t border-indigo-100 dark:border-indigo-800/60 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="password" class="block font-medium text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                            Contraseña de Acceso <span class="text-red-500 font-bold">*</span>
+                                        </label>
+                                        <input id="password" name="password" type="password" minlength="6" x-model="form.password" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Mínimo 6 caracteres" :required="createUserAccount">
+                                        <x-input-error class="mt-2" :messages="$errors->get('password')" />
+                                    </div>
+
+                                    <div>
+                                        <label for="password_confirmation" class="block font-medium text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                            Confirmar Contraseña <span class="text-red-500 font-bold">*</span>
+                                        </label>
+                                        <input id="password_confirmation" name="password_confirmation" type="password" minlength="6" x-model="form.password_confirmation" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Repita la contraseña" :required="createUserAccount">
+                                        <x-input-error class="mt-2" :messages="$errors->get('password_confirmation')" />
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="flex items-center justify-between mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
                             <span class="text-xs text-gray-500 dark:text-gray-400">
                                 <span class="text-red-500 font-bold">*</span> Campos requeridos obligatorios.
@@ -354,6 +422,9 @@
     <script>
         function teacherEditForm(initialData) {
             return {
+                hasUser: {{ $teacher->user ? 'true' : 'false' }},
+                createUserAccount: {{ old('create_user_account') ? 'true' : 'false' }},
+                removeUserAccount: false,
                 form: {
                     dni: initialData.dni || '',
                     teacher_code: initialData.teacher_code || '',
@@ -364,7 +435,9 @@
                     personal_email: initialData.personal_email || '',
                     mobile: initialData.mobile || '',
                     phone: initialData.phone || '',
-                    hire_date: initialData.hire_date || ''
+                    hire_date: initialData.hire_date || '',
+                    password: '',
+                    password_confirmation: ''
                 },
                 touched: {},
                 existingPhotoUrl: initialData.existingPhotoUrl || null,
@@ -484,8 +557,21 @@
                     if (this.form.personal_email && !this.isEmailValid(this.form.personal_email)) {
                         errors.push('El Email Personal no tiene un formato válido.');
                     }
-                    if (!this.form.hire_date) {
-                        errors.push('La Fecha de Contratación es obligatoria.');
+                    if (!this.hasUser && this.createUserAccount) {
+                        if (!this.form.password || this.form.password.length < 6) {
+                            errors.push('La contraseña de acceso debe tener al menos 6 caracteres.');
+                        }
+                        if (this.form.password !== this.form.password_confirmation) {
+                            errors.push('La confirmación de la contraseña no coincide.');
+                        }
+                    }
+                    if (this.hasUser && this.form.password.length > 0) {
+                        if (this.form.password.length < 6) {
+                            errors.push('La nueva contraseña debe tener al menos 6 caracteres.');
+                        }
+                        if (this.form.password !== this.form.password_confirmation) {
+                            errors.push('La confirmación de la nueva contraseña no coincide.');
+                        }
                     }
                     if (this.photoError) {
                         errors.push(this.photoError);

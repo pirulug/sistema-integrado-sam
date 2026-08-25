@@ -316,6 +316,39 @@
                             </div>
                         </div>
 
+                        <!-- Sección: Habilitar Cuenta de Usuario -->
+                        <div class="mt-8 p-5 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200 dark:border-indigo-800/60 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-start space-x-3 cursor-pointer">
+                                    <input type="checkbox" name="create_user_account" value="1" x-model="createUserAccount" class="mt-0.5 w-4 h-4 text-indigo-600 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500">
+                                    <div>
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white">Crear cuenta de acceso para este profesor</span>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            El docente podrá ingresar al sistema con su correo institucional (<strong class="text-indigo-600 dark:text-indigo-400 font-mono" x-text="form.institutional_email || 'correo@sam.edu.pe'"></strong>).
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div x-show="createUserAccount" x-transition class="pt-3 border-t border-indigo-100 dark:border-indigo-800/60 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="password" class="block font-medium text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                        Contraseña Inicial <span class="text-red-500 font-bold">*</span>
+                                    </label>
+                                    <input id="password" name="password" type="password" minlength="6" x-model="form.password" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Mínimo 6 caracteres" :required="createUserAccount">
+                                    <x-input-error class="mt-2" :messages="$errors->get('password')" />
+                                </div>
+
+                                <div>
+                                    <label for="password_confirmation" class="block font-medium text-xs text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                                        Confirmar Contraseña <span class="text-red-500 font-bold">*</span>
+                                    </label>
+                                    <input id="password_confirmation" name="password_confirmation" type="password" minlength="6" x-model="form.password_confirmation" class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 dark:text-gray-100" placeholder="Repita la contraseña" :required="createUserAccount">
+                                    <x-input-error class="mt-2" :messages="$errors->get('password_confirmation')" />
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-between mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
                             <span class="text-xs text-gray-500 dark:text-gray-400">
                                 <span class="text-red-500 font-bold">*</span> Campos requeridos obligatorios.
@@ -338,6 +371,7 @@
     <script>
         function teacherForm(initialData) {
             return {
+                createUserAccount: {{ old('create_user_account') ? 'true' : 'false' }},
                 form: {
                     dni: initialData.dni || '',
                     teacher_code: initialData.teacher_code || '',
@@ -348,7 +382,9 @@
                     personal_email: initialData.personal_email || '',
                     mobile: initialData.mobile || '',
                     phone: initialData.phone || '',
-                    hire_date: initialData.hire_date || ''
+                    hire_date: initialData.hire_date || '',
+                    password: '',
+                    password_confirmation: ''
                 },
                 touched: {},
                 photoPreview: null,
@@ -455,8 +491,13 @@
                     if (this.form.personal_email && !this.isEmailValid(this.form.personal_email)) {
                         errors.push('El Email Personal no tiene un formato válido.');
                     }
-                    if (!this.form.hire_date) {
-                        errors.push('La Fecha de Contratación es obligatoria.');
+                    if (this.createUserAccount) {
+                        if (!this.form.password || this.form.password.length < 6) {
+                            errors.push('La contraseña de acceso debe tener al menos 6 caracteres.');
+                        }
+                        if (this.form.password !== this.form.password_confirmation) {
+                            errors.push('La confirmación de la contraseña no coincide.');
+                        }
                     }
                     if (this.photoError) {
                         errors.push(this.photoError);
