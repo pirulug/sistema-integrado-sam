@@ -43,6 +43,73 @@ class StudentController extends Controller
     }
 
     /**
+     * Check if a DNI / CE is already registered in real time.
+     */
+    public function checkDni(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $dni = trim($request->query("dni", ""));
+        $documentType = strtoupper(trim($request->query("document_type", "DNI")));
+        $ignoreId = $request->query("ignore_id");
+
+        if (empty($dni)) {
+            return response()->json([
+                "valid" => false,
+                "exists" => false,
+                "available" => false,
+                "message" => "El número de documento no puede estar vacío.",
+            ]);
+        }
+
+        if ($documentType === "DNI" && strlen($dni) !== 8) {
+            return response()->json([
+                "valid" => false,
+                "exists" => false,
+                "available" => false,
+                "message" => "El DNI debe tener exactamente 8 dígitos.",
+            ]);
+        }
+
+        if ($documentType === "CE" && strlen($dni) < 4) {
+            return response()->json([
+                "valid" => false,
+                "exists" => false,
+                "available" => false,
+                "message" => "El Carnet de Extranjería debe tener al menos 4 caracteres.",
+            ]);
+        }
+
+        $query = Student::where("dni", $dni);
+
+        if (!empty($ignoreId) && is_numeric($ignoreId)) {
+            $query->where("id", "!=", (int)$ignoreId);
+        }
+
+        $existing = $query->first();
+
+        if ($existing) {
+            return response()->json([
+                "valid" => true,
+                "exists" => true,
+                "available" => false,
+                "student" => [
+                    "id" => $existing->id,
+                    "full_name" => $existing->full_name,
+                    "student_code" => $existing->student_code,
+                    "study_program" => $existing->study_program,
+                ],
+                "message" => "El {$documentType} ya ha sido registrado para: {$existing->full_name} ({$existing->student_code}).",
+            ]);
+        }
+
+        return response()->json([
+            "valid" => true,
+            "exists" => false,
+            "available" => true,
+            "message" => "{$documentType} disponible para registro.",
+        ]);
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
     public function create(): View
@@ -56,6 +123,40 @@ class StudentController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            "dni" => trim((string)$request->input("dni", "")),
+            "student_code" => trim((string)$request->input("student_code", "")),
+            "institutional_email" => trim((string)$request->input("institutional_email", "")),
+        ]);
+
+        $messages = [
+            "document_type.in" => "El tipo de documento debe ser DNI o CE.",
+            "dni.required" => "El número de documento / DNI es obligatorio.",
+            "dni.unique" => "El DNI ya ha sido registrado.",
+            "dni.max" => "El DNI no puede exceder los 20 caracteres.",
+            "student_code.required" => "El código de estudiante es obligatorio.",
+            "student_code.unique" => "El código de estudiante ya ha sido registrado.",
+            "student_code.max" => "El código de estudiante no puede exceder los 50 caracteres.",
+            "study_program.required" => "El programa de estudio es obligatorio.",
+            "paternal_last_name.required" => "El apellido paterno es obligatorio.",
+            "maternal_last_name.required" => "El apellido materno es obligatorio.",
+            "first_name.required" => "Los nombres son obligatorios.",
+            "gender.in" => "El género seleccionado no es válido.",
+            "personal_email.email" => "El correo personal no tiene un formato válido.",
+            "institutional_email.required" => "El correo institucional es obligatorio.",
+            "institutional_email.email" => "El correo institucional no tiene un formato válido.",
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
+            "institutional_email.unique" => "El correo institucional ya ha sido registrado.",
+            "admission_date.required" => "La fecha de ingreso es obligatoria.",
+            "admission_date.date" => "La fecha de ingreso no tiene un formato válido.",
+            "graduation_date.after_or_equal" => "La fecha de egreso debe ser posterior o igual a la fecha de ingreso.",
+            "graduation_date.date" => "La fecha de egreso no tiene un formato válido.",
+            "curriculum_id.exists" => "La malla curricular seleccionada no existe.",
+            "photo.image" => "El archivo debe ser una imagen.",
+            "photo.mimes" => "La fotografía debe estar en formato JPG, JPEG, PNG o WebP.",
+            "photo.max" => "La fotografía no debe superar los 2 MB (2048 KB).",
+        ];
+
         $validated = $request->validate([
             "document_type" => "nullable|string|in:DNI,CE|max:20",
             "dni" => "required|string|unique:students,dni|max:20",
@@ -74,9 +175,7 @@ class StudentController extends Controller
             "graduation_date" => "nullable|date|after_or_equal:admission_date",
             "curriculum_id" => "nullable|exists:curriculums,id",
             "shift" => "nullable|string|max:50",
-        ], [
-            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
-        ]);
+        ], $messages);
 
         $validated["document_type"] = $validated["document_type"] ?? "DNI";
 
@@ -84,7 +183,21 @@ class StudentController extends Controller
             $validated["photo_path"] = $request->file("photo")->store("students", "public");
         }
 
-        Student::create($validated);
+        try {
+            Student::create($validated);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException|\Illuminate\Database\QueryException $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, "students_dni_unique") || str_contains($msg, "dni")) {
+                return redirect()->back()->withInput()->withErrors(["dni" => "El DNI ya ha sido registrado en el sistema."]);
+            }
+            if (str_contains($msg, "students_student_code_unique") || str_contains($msg, "student_code")) {
+                return redirect()->back()->withInput()->withErrors(["student_code" => "El código de estudiante ya ha sido registrado en el sistema."]);
+            }
+            if (str_contains($msg, "students_institutional_email_unique") || str_contains($msg, "institutional_email")) {
+                return redirect()->back()->withInput()->withErrors(["institutional_email" => "El correo institucional ya ha sido registrado en el sistema."]);
+            }
+            return redirect()->back()->withInput()->withErrors(["dni" => "Ya existe un registro con estos datos únicos."]);
+        }
 
         return redirect()->route("students.index")
             ->with("success", "Estudiante creado exitosamente.");
@@ -112,6 +225,40 @@ class StudentController extends Controller
      */
     public function update(Request $request, Student $student): RedirectResponse
     {
+        $request->merge([
+            "dni" => trim((string)$request->input("dni", "")),
+            "student_code" => trim((string)$request->input("student_code", "")),
+            "institutional_email" => trim((string)$request->input("institutional_email", "")),
+        ]);
+
+        $messages = [
+            "document_type.in" => "El tipo de documento debe ser DNI o CE.",
+            "dni.required" => "El número de documento / DNI es obligatorio.",
+            "dni.unique" => "El DNI ya ha sido registrado.",
+            "dni.max" => "El DNI no puede exceder los 20 caracteres.",
+            "student_code.required" => "El código de estudiante es obligatorio.",
+            "student_code.unique" => "El código de estudiante ya ha sido registrado.",
+            "student_code.max" => "El código de estudiante no puede exceder los 50 caracteres.",
+            "study_program.required" => "El programa de estudio es obligatorio.",
+            "paternal_last_name.required" => "El apellido paterno es obligatorio.",
+            "maternal_last_name.required" => "El apellido materno es obligatorio.",
+            "first_name.required" => "Los nombres son obligatorios.",
+            "gender.in" => "El género seleccionado no es válido.",
+            "personal_email.email" => "El correo personal no tiene un formato válido.",
+            "institutional_email.required" => "El correo institucional es obligatorio.",
+            "institutional_email.email" => "El correo institucional no tiene un formato válido.",
+            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
+            "institutional_email.unique" => "El correo institucional ya ha sido registrado.",
+            "admission_date.required" => "La fecha de ingreso es obligatoria.",
+            "admission_date.date" => "La fecha de ingreso no tiene un formato válido.",
+            "graduation_date.after_or_equal" => "La fecha de egreso debe ser posterior o igual a la fecha de ingreso.",
+            "graduation_date.date" => "La fecha de egreso no tiene un formato válido.",
+            "curriculum_id.exists" => "La malla curricular seleccionada no existe.",
+            "photo.image" => "El archivo debe ser una imagen.",
+            "photo.mimes" => "La fotografía debe estar en formato JPG, JPEG, PNG o WebP.",
+            "photo.max" => "La fotografía no debe superar los 2 MB (2048 KB).",
+        ];
+
         $validated = $request->validate([
             "document_type" => "nullable|string|in:DNI,CE|max:20",
             "dni" => "required|string|max:20|unique:students,dni," . $student->id,
@@ -131,9 +278,7 @@ class StudentController extends Controller
             "graduation_date" => "nullable|date|after_or_equal:admission_date",
             "curriculum_id" => "nullable|exists:curriculums,id",
             "shift" => "nullable|string|max:50",
-        ], [
-            "institutional_email.ends_with" => "El correo institucional debe pertenecer al dominio @sam.edu.pe",
-        ]);
+        ], $messages);
 
         $validated["document_type"] = $validated["document_type"] ?? "DNI";
 
@@ -149,7 +294,21 @@ class StudentController extends Controller
             $validated["photo_path"] = $request->file("photo")->store("students", "public");
         }
 
-        $student->update($validated);
+        try {
+            $student->update($validated);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException|\Illuminate\Database\QueryException $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, "students_dni_unique") || str_contains($msg, "dni")) {
+                return redirect()->back()->withInput()->withErrors(["dni" => "El DNI ya ha sido registrado por otro estudiante."]);
+            }
+            if (str_contains($msg, "students_student_code_unique") || str_contains($msg, "student_code")) {
+                return redirect()->back()->withInput()->withErrors(["student_code" => "El código de estudiante ya ha sido registrado por otro estudiante."]);
+            }
+            if (str_contains($msg, "students_institutional_email_unique") || str_contains($msg, "institutional_email")) {
+                return redirect()->back()->withInput()->withErrors(["institutional_email" => "El correo institucional ya ha sido registrado por otro estudiante."]);
+            }
+            return redirect()->back()->withInput()->withErrors(["dni" => "Ya existe un registro con estos datos únicos."]);
+        }
 
         return redirect()->route("students.index")
             ->with("success", "Estudiante actualizado exitosamente.");

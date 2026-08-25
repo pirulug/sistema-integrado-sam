@@ -88,7 +88,7 @@
                                 <x-input-error class="mt-2" :messages="$errors->get('document_type')" />
                             </div>
 
-                            <!-- 2. Número de Documento (DNI / CE) con feedback dinámico -->
+                            <!-- 2. Número de Documento (DNI / CE) con validación en tiempo real por Fetch -->
                             <div>
                                 <label for="dni" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
                                     <span x-text="form.document_type === 'DNI' ? 'Número de DNI' : 'Número de Carnet de Extranjería'"></span>
@@ -98,42 +98,74 @@
                                     <input id="dni" name="dni" type="text" 
                                         x-model="form.dni" 
                                         @input="handleDniInput($event)" 
-                                        @blur="touch('dni')"
+                                        @blur="touch('dni'); checkDniAvailabilityNow()"
                                         :placeholder="form.document_type === 'DNI' ? 'Ej. 71234567 (8 dígitos)' : 'Ej. 001234567 (hasta 20 caracteres)'" 
                                         :maxlength="form.document_type === 'DNI' ? 8 : 20"
-                                        class="block w-full rounded border text-sm shadow-sm transition"
+                                        class="block w-full rounded border text-sm shadow-sm transition pr-10"
                                         :class="getInputBorder('dni', isDniValid())"
                                         required autofocus />
                                     
-                                    <!-- Dynamic Valid Icon -->
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" x-show="isDniValid() && form.dni.length > 0">
-                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <!-- Dynamic Icons (Checking / Valid / Duplicate) -->
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <!-- Loading Spinner -->
+                                        <svg x-show="dniChecking" x-cloak class="animate-spin h-4 w-4 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                        </svg>
+
+                                        <!-- Available Checkmark -->
+                                        <svg x-show="!dniChecking && dniStatus === 'available'" x-cloak class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                        </svg>
+
+                                        <!-- Duplicate Warning / Error Icon -->
+                                        <svg x-show="!dniChecking && dniStatus === 'taken'" x-cloak class="h-4 w-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
                                     </div>
                                 </div>
 
                                 <!-- Dynamic Feedback Message -->
-                                <div class="mt-1.5 text-xs font-medium" x-show="touched.dni || form.dni.length > 0">
-                                    <template x-if="form.document_type === 'DNI'">
+                                <div class="mt-1.5 text-xs font-medium">
+                                    <!-- Checking Message -->
+                                    <div x-show="dniChecking" x-cloak class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                                        <span>Consultando disponibilidad en base de datos...</span>
+                                    </div>
+
+                                    <!-- Duplicate / Taken Message -->
+                                    <div x-show="!dniChecking && dniStatus === 'taken'" x-cloak class="p-2 rounded bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-start gap-1.5 shadow-sm">
+                                        <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span x-text="dniMessage" class="font-semibold"></span>
+                                    </div>
+
+                                    <!-- Available Message -->
+                                    <div x-show="!dniChecking && dniStatus === 'available'" x-cloak class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <span x-text="dniMessage"></span>
+                                    </div>
+
+                                    <!-- Length Incomplete Feedback when typing -->
+                                    <template x-if="!dniChecking && dniStatus === null && (touched.dni || form.dni.length > 0)">
                                         <div>
-                                            <span x-show="form.dni.length === 8" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                DNI completo y válido (8 dígitos).
-                                            </span>
-                                            <span x-show="form.dni.length > 0 && form.dni.length < 8" class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                                Faltan <span class="font-bold" x-text="8 - form.dni.length"></span> dígitos para completar los 8 requeridos (<span x-text="form.dni.length"></span>/8).
-                                            </span>
-                                            <span x-show="touched.dni && form.dni.length === 0" class="text-red-600 dark:text-red-400">
-                                                El número de DNI es obligatorio.
-                                            </span>
-                                        </div>
-                                    </template>
-                                    <template x-if="form.document_type === 'CE'">
-                                        <div>
-                                            <span x-show="form.dni.length >= 4" class="text-emerald-600 dark:text-emerald-400">
-                                                Carnet de Extranjería registrado (<span x-text="form.dni.length"></span> caracteres).
-                                            </span>
-                                            <span x-show="touched.dni && form.dni.length < 4" class="text-amber-600 dark:text-amber-400">
-                                                Ingrese al menos 4 caracteres para el Carnet de Extranjería.
-                                            </span>
+                                            <template x-if="form.document_type === 'DNI'">
+                                                <div>
+                                                    <span x-show="form.dni.length > 0 && form.dni.length < 8" class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                                        Faltan <span class="font-bold" x-text="8 - form.dni.length"></span> dígitos para completar los 8 requeridos (<span x-text="form.dni.length"></span>/8).
+                                                    </span>
+                                                    <span x-show="touched.dni && form.dni.length === 0" class="text-red-600 dark:text-red-400">
+                                                        El número de DNI es obligatorio.
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <template x-if="form.document_type === 'CE'">
+                                                <div>
+                                                    <span x-show="touched.dni && form.dni.length < 4" class="text-amber-600 dark:text-amber-400">
+                                                        Ingrese al menos 4 caracteres para el Carnet de Extranjería.
+                                                    </span>
+                                                </div>
+                                            </template>
                                         </div>
                                     </template>
                                 </div>
@@ -424,8 +456,15 @@
                                 <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     Cancelar
                                 </a>
-                                <button type="submit" class="inline-flex items-center px-5 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
-                                    Guardar Estudiante
+                                <button type="submit" 
+                                    :disabled="isSubmitting || dniChecking || dniStatus === 'taken'"
+                                    :class="(isSubmitting || dniChecking || dniStatus === 'taken') ? 'opacity-60 cursor-not-allowed bg-indigo-500' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-900 shadow-md'"
+                                    class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <svg x-show="isSubmitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    <span x-text="isSubmitting ? 'Guardando...' : 'Guardar Estudiante'"></span>
                                 </button>
                             </div>
                         </div>
@@ -458,16 +497,34 @@
                 photoSuccess: null,
                 hasErrors: false,
                 errorSummaryList: '',
+                isSubmitting: false,
+                dniChecking: false,
+                dniStatus: null,
+                dniMessage: '',
+                dniCheckTimeout: null,
+                lastCheckedDni: '',
+
+                init() {
+                    if (this.isDniValid() && this.form.dni) {
+                        this.checkDniAvailability();
+                    }
+                },
 
                 touch(field) {
                     this.touched[field] = true;
                 },
 
                 handleDocTypeChange() {
+                    this.dniStatus = null;
+                    this.dniMessage = '';
+                    this.lastCheckedDni = '';
                     if (this.form.document_type === 'DNI') {
                         this.form.dni = this.form.dni.replace(/\D/g, '').slice(0, 8);
                     } else {
                         this.form.dni = this.form.dni.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+                    }
+                    if (this.isDniValid()) {
+                        this.checkDniAvailability();
                     }
                 },
 
@@ -476,6 +533,75 @@
                         this.form.dni = e.target.value.replace(/\D/g, '').slice(0, 8);
                     } else {
                         this.form.dni = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+                    }
+
+                    if (this.dniCheckTimeout) {
+                        clearTimeout(this.dniCheckTimeout);
+                    }
+
+                    const dniVal = this.form.dni.trim();
+                    const isValidFormat = (this.form.document_type === 'DNI' && dniVal.length === 8) || 
+                                          (this.form.document_type === 'CE' && dniVal.length >= 4);
+
+                    if (!isValidFormat) {
+                        this.dniStatus = null;
+                        this.dniMessage = '';
+                        this.lastCheckedDni = '';
+                        return;
+                    }
+
+                    this.dniCheckTimeout = setTimeout(() => {
+                        this.checkDniAvailability();
+                    }, 350);
+                },
+
+                checkDniAvailabilityNow() {
+                    const dniVal = this.form.dni.trim();
+                    const isValidFormat = (this.form.document_type === 'DNI' && dniVal.length === 8) || 
+                                          (this.form.document_type === 'CE' && dniVal.length >= 4);
+                    if (isValidFormat && this.lastCheckedDni !== dniVal) {
+                        this.checkDniAvailability();
+                    }
+                },
+
+                async checkDniAvailability() {
+                    const dniVal = this.form.dni.trim();
+                    if (!dniVal) return;
+
+                    this.dniChecking = true;
+                    this.dniMessage = '';
+                    this.lastCheckedDni = dniVal;
+
+                    try {
+                        const url = '{{ route("students.check-dni") }}?dni=' + encodeURIComponent(dniVal) + '&document_type=' + encodeURIComponent(this.form.document_type);
+                        const response = await fetch(url, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Error en la verificación');
+                        }
+
+                        const data = await response.json();
+
+                        if (data.available) {
+                            this.dniStatus = 'available';
+                            this.dniMessage = data.message || 'DNI disponible para registro.';
+                        } else if (data.exists) {
+                            this.dniStatus = 'taken';
+                            this.dniMessage = data.message || 'El número de documento ya ha sido registrado.';
+                        } else {
+                            this.dniStatus = null;
+                            this.dniMessage = data.message || '';
+                        }
+                    } catch (err) {
+                        console.error('Error al verificar DNI:', err);
+                        this.dniStatus = null;
+                    } finally {
+                        this.dniChecking = false;
                     }
                 },
 
@@ -505,6 +631,18 @@
                 },
 
                 getInputBorder(field, isValid) {
+                    if (field === 'dni') {
+                        if (this.dniStatus === 'taken') {
+                            return 'border-red-500 focus:border-red-500 focus:ring-red-500 dark:border-red-500 dark:bg-gray-900 text-gray-800 dark:text-gray-100 bg-red-50/30';
+                        }
+                        if (this.dniStatus === 'available') {
+                            return 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500 dark:border-emerald-500 dark:bg-gray-900 text-gray-800 dark:text-gray-100';
+                        }
+                        if (this.dniChecking) {
+                            return 'border-indigo-400 focus:border-indigo-400 focus:ring-indigo-400 dark:border-indigo-400 dark:bg-gray-900 text-gray-800 dark:text-gray-100';
+                        }
+                    }
+
                     if (this.touched[field]) {
                         if (isValid) {
                             return 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500 dark:border-emerald-500 dark:bg-gray-900 text-gray-800 dark:text-gray-100';
@@ -551,6 +689,11 @@
                 },
 
                 handleSubmit(e) {
+                    if (this.isSubmitting) {
+                        e.preventDefault();
+                        return;
+                    }
+
                     // Mark all mandatory fields as touched
                     const requiredFields = ['dni', 'student_code', 'first_name', 'paternal_last_name', 'maternal_last_name', 'institutional_email', 'admission_date'];
                     requiredFields.forEach(f => this.touched[f] = true);
@@ -561,7 +704,12 @@
 
                     if (!this.isDniValid()) {
                         errors.push(this.form.document_type === 'DNI' ? 'El DNI debe contener exactamente 8 dígitos numéricos.' : 'El Carnet de Extranjería debe contener al menos 4 caracteres.');
+                    } else if (this.dniStatus === 'taken') {
+                        errors.push(this.dniMessage || 'El número de DNI / CE ya se encuentra registrado.');
+                    } else if (this.dniChecking) {
+                        errors.push('Se está verificando la disponibilidad del DNI. Por favor espere unos segundos.');
                     }
+
                     if (!this.form.student_code.trim()) {
                         errors.push('El Código de Estudiante es obligatorio.');
                     }
@@ -592,11 +740,13 @@
 
                     if (errors.length > 0) {
                         e.preventDefault();
+                        this.isSubmitting = false;
                         this.hasErrors = true;
                         this.errorSummaryList = errors.map(err => '<li>' + err + '</li>').join('');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
                         this.hasErrors = false;
+                        this.isSubmitting = true;
                     }
                 }
             };

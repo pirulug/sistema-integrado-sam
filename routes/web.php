@@ -32,7 +32,6 @@ Route::middleware("auth")->group(function () {
     // 1. Rutas de solo lectura compartidas (Docente, Auditor y Administrador)
     Route::middleware("role:teacher,auditor")->group(function () {
         Route::get("students", [StudentController::class, "index"])->name("students.index");
-        Route::get("students/{student}", [StudentController::class, "show"])->name("students.show");
         Route::get("graduation", [GraduationController::class, "index"])->name("graduation.index");
     });
 
@@ -44,23 +43,18 @@ Route::middleware("auth")->group(function () {
 
         // Usuarios (solo lectura para auditor)
         Route::get("users", [UserController::class, "index"])->name("users.index");
-        Route::get("users/{user}", [UserController::class, "show"])->name("users.show");
 
         // Profesores (solo lectura para auditor)
         Route::get("teachers", [TeacherController::class, "index"])->name("teachers.index");
-        Route::get("teachers/{teacher}", [TeacherController::class, "show"])->name("teachers.show");
 
         // Mallas Curriculares (solo lectura para auditor)
         Route::get("curriculums", [CurriculumController::class, "index"])->name("curriculums.index");
-        Route::get("curriculums/{curriculum}", [CurriculumController::class, "show"])->name("curriculums.show");
 
         // Cursos (solo lectura para auditor)
         Route::get("courses", [CourseController::class, "index"])->name("courses.index");
-        Route::get("courses/{course}", [CourseController::class, "show"])->name("courses.show");
 
         // EFSRT (solo lectura para auditor)
         Route::get("efsrts", [EfsrtController::class, "index"])->name("efsrts.index");
-        Route::get("efsrts/{efsrt}", [EfsrtController::class, "show"])->name("efsrts.show");
     });
 
     // 3. Mutaciones y gestión operativa (Docente y Administrador - NO Auditor)
@@ -70,6 +64,7 @@ Route::middleware("auth")->group(function () {
         Route::get("students/import-conflicts", [StudentController::class, "showConflicts"])->name("students.import-conflicts");
         Route::post("students/import-conflicts/resolve", [StudentController::class, "resolveConflicts"])->name("students.import-conflicts.resolve");
         Route::post("students/import-conflicts/cancel", [StudentController::class, "cancelConflicts"])->name("students.import-conflicts.cancel");
+        Route::get("students/check-dni", [StudentController::class, "checkDni"])->name("students.check-dni");
         Route::get("students/create", [StudentController::class, "create"])->name("students.create");
         Route::post("students", [StudentController::class, "store"])->name("students.store");
         Route::get("students/{student}/edit", [StudentController::class, "edit"])->name("students.edit");
@@ -138,6 +133,19 @@ Route::middleware("auth")->group(function () {
         Route::get("efsrts/{efsrt}/edit", [EfsrtController::class, "edit"])->name("efsrts.edit");
         Route::match(["put", "patch"], "efsrts/{efsrt}", [EfsrtController::class, "update"])->name("efsrts.update");
         Route::delete("efsrts/{efsrt}", [EfsrtController::class, "destroy"])->name("efsrts.destroy");
+    });
+
+    // 5. Rutas de visualización individual con parámetros (Docente/Auditor/Administrador)
+    Route::middleware("role:teacher,auditor")->group(function () {
+        Route::get("students/{student}", [StudentController::class, "show"])->name("students.show");
+    });
+
+    Route::middleware("role:auditor")->group(function () {
+        Route::get("users/{user}", [UserController::class, "show"])->name("users.show");
+        Route::get("teachers/{teacher}", [TeacherController::class, "show"])->name("teachers.show");
+        Route::get("curriculums/{curriculum}", [CurriculumController::class, "show"])->name("curriculums.show");
+        Route::get("courses/{course}", [CourseController::class, "show"])->name("courses.show");
+        Route::get("efsrts/{efsrt}", [EfsrtController::class, "show"])->name("efsrts.show");
     });
 });
 
