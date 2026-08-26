@@ -92,65 +92,47 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             
-                            <!-- 1. Tipo de Documento -->
+                            <!-- 1. Tipo de Documento (Solo Lectura) -->
                             <div>
                                 <label for="document_type" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
-                                    Tipo de Documento <span class="text-red-500 font-bold ml-0.5">*</span>
+                                    Tipo de Documento <span class="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">(Solo lectura)</span>
                                 </label>
-                                <select id="document_type" name="document_type" x-model="form.document_type" @change="handleDocTypeChange()" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm shadow-sm" required>
-                                    <option value="DNI">DNI (Documento Nacional de Identidad - 8 dígitos)</option>
-                                    <option value="CE">CE (Carnet de Extranjería - Alfanumérico)</option>
-                                </select>
+                                <div class="relative mt-1">
+                                    <select id="document_type_select" disabled class="block w-full rounded border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-400 text-sm shadow-sm cursor-not-allowed">
+                                        <option value="DNI" {{ old('document_type', $student->document_type ?? 'DNI') === 'DNI' ? 'selected' : '' }}>DNI (Documento Nacional de Identidad)</option>
+                                        <option value="CE" {{ old('document_type', $student->document_type ?? '') === 'CE' ? 'selected' : '' }}>CE (Carnet de Extranjería)</option>
+                                    </select>
+                                    <input type="hidden" name="document_type" value="{{ old('document_type', $student->document_type ?? 'DNI') }}">
+                                </div>
                                 <x-input-error class="mt-2" :messages="$errors->get('document_type')" />
                             </div>
 
-                            <!-- 2. Número de Documento (DNI / CE) -->
+                            <!-- 2. Número de Documento (DNI / CE) - Solo Lectura -->
                             <div>
                                 <label for="dni" class="block font-medium text-sm text-gray-700 dark:text-gray-300">
                                     <span x-text="form.document_type === 'DNI' ? 'Número de DNI' : 'Número de Carnet de Extranjería'"></span>
-                                    <span class="text-red-500 font-bold ml-0.5">*</span>
+                                    <span class="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">(Solo lectura)</span>
                                 </label>
                                 <div class="relative mt-1">
                                     <input id="dni" name="dni" type="text" 
-                                        x-model="form.dni" 
-                                        @input="handleDniInput($event)" 
-                                        @blur="touch('dni')"
-                                        :placeholder="form.document_type === 'DNI' ? 'Ej. 71234567 (8 dígitos)' : 'Ej. 001234567 (hasta 20 caracteres)'" 
-                                        :maxlength="form.document_type === 'DNI' ? 8 : 20"
-                                        class="block w-full rounded border text-sm shadow-sm transition"
-                                        :class="getInputBorder('dni', isDniValid())"
-                                        required autofocus />
+                                        value="{{ old('dni', $student->dni) }}"
+                                        readonly 
+                                        class="block w-full rounded border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800/80 text-gray-600 dark:text-gray-400 text-sm shadow-sm cursor-not-allowed select-all pr-10 focus:ring-0 focus:border-gray-300 dark:focus:border-gray-700" />
                                     
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" x-show="isDniValid() && form.dni.length > 0">
-                                        <svg class="h-4 w-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <!-- Lock Icon -->
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
                                     </div>
                                 </div>
 
-                                <div class="mt-1.5 text-xs font-medium" x-show="touched.dni || form.dni.length > 0">
-                                    <template x-if="form.document_type === 'DNI'">
-                                        <div>
-                                            <span x-show="form.dni.length === 8" class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                                DNI completo y válido (8 dígitos).
-                                            </span>
-                                            <span x-show="form.dni.length > 0 && form.dni.length < 8" class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                                Faltan <span class="font-bold" x-text="8 - form.dni.length"></span> dígitos para completar los 8 requeridos (<span x-text="form.dni.length"></span>/8).
-                                            </span>
-                                            <span x-show="touched.dni && form.dni.length === 0" class="text-red-600 dark:text-red-400">
-                                                El número de DNI es obligatorio.
-                                            </span>
-                                        </div>
-                                    </template>
-                                    <template x-if="form.document_type === 'CE'">
-                                        <div>
-                                            <span x-show="form.dni.length >= 4" class="text-emerald-600 dark:text-emerald-400">
-                                                Carnet de Extranjería registrado (<span x-text="form.dni.length"></span> caracteres).
-                                            </span>
-                                            <span x-show="touched.dni && form.dni.length < 4" class="text-amber-600 dark:text-amber-400">
-                                                Ingrese al menos 4 caracteres para el Carnet de Extranjería.
-                                            </span>
-                                        </div>
-                                    </template>
-                                </div>
+                                <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span>El número de documento de identidad no se puede modificar tras el registro.</span>
+                                </p>
                                 <x-input-error class="mt-2" :messages="$errors->get('dni')" />
                             </div>
 
@@ -438,8 +420,15 @@
                                 <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-500 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     Cancelar
                                 </a>
-                                <button type="submit" class="inline-flex items-center px-5 py-2.5 bg-indigo-600 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md">
-                                    Actualizar Estudiante
+                                <button type="submit" 
+                                    :disabled="isSubmitting"
+                                    :class="isSubmitting ? 'opacity-60 cursor-not-allowed bg-indigo-500' : 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-900 shadow-md'"
+                                    class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <svg x-show="isSubmitting" x-cloak class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                    </svg>
+                                    <span x-text="isSubmitting ? 'Actualizando...' : 'Actualizar Estudiante'"></span>
                                 </button>
                             </div>
                         </div>
@@ -474,6 +463,7 @@
                 photoSuccess: null,
                 removePhoto: false,
                 hasErrors: false,
+                isSubmitting: false,
                 errorSummaryList: '',
 
                 touch(field) {
@@ -489,27 +479,8 @@
                     }
                 },
 
-                handleDocTypeChange() {
-                    if (this.form.document_type === 'DNI') {
-                        this.form.dni = this.form.dni.replace(/\D/g, '').slice(0, 8);
-                    } else {
-                        this.form.dni = this.form.dni.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
-                    }
-                },
-
-                handleDniInput(e) {
-                    if (this.form.document_type === 'DNI') {
-                        this.form.dni = e.target.value.replace(/\D/g, '').slice(0, 8);
-                    } else {
-                        this.form.dni = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
-                    }
-                },
-
                 isDniValid() {
-                    if (this.form.document_type === 'DNI') {
-                        return this.form.dni.length === 8;
-                    }
-                    return this.form.dni.trim().length >= 4;
+                    return true;
                 },
 
                 isInstitutionalEmailValid(email) {
@@ -578,16 +549,18 @@
                 },
 
                 handleSubmit(e) {
-                    const requiredFields = ['dni', 'student_code', 'first_name', 'paternal_last_name', 'maternal_last_name', 'institutional_email', 'admission_date'];
+                    if (this.isSubmitting) {
+                        e.preventDefault();
+                        return;
+                    }
+
+                    const requiredFields = ['student_code', 'first_name', 'paternal_last_name', 'maternal_last_name', 'institutional_email', 'admission_date'];
                     requiredFields.forEach(f => this.touched[f] = true);
                     this.touched['graduation_date'] = true;
                     if (this.form.personal_email) this.touched['personal_email'] = true;
 
                     const errors = [];
 
-                    if (!this.isDniValid()) {
-                        errors.push(this.form.document_type === 'DNI' ? 'El DNI debe contener exactamente 8 dígitos numéricos.' : 'El Carnet de Extranjería debe contener al menos 4 caracteres.');
-                    }
                     if (!this.form.student_code.trim()) {
                         errors.push('El Código de Estudiante es obligatorio.');
                     }
@@ -618,11 +591,13 @@
 
                     if (errors.length > 0) {
                         e.preventDefault();
+                        this.isSubmitting = false;
                         this.hasErrors = true;
                         this.errorSummaryList = errors.map(err => '<li>' + err + '</li>').join('');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     } else {
                         this.hasErrors = false;
+                        this.isSubmitting = true;
                     }
                 }
             };
